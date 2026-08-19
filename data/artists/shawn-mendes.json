@@ -1,0 +1,377 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "shawn-mendes",
+  "type": "artist",
+  "name": "Shawn Mendes",
+  "aliases": [
+    "shawn mendes",
+    "shawn peter raul mendes",
+    "shawnmendes",
+    "mendes"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2014-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "blue-eyed soul",
+    "acoustic pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "pop-2000s",
+    "rnb-2000s",
+    "reggaeton"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Shawn Mendes",
+    "Wikipedia — Shawn Mendes (https://en.wikipedia.org/wiki/Shawn_Mendes)"
+  ],
+  "notes": "Guitar-led pop with blue-eyed-soul phrasing. Two researched facts drive the drums: \"the soul-facing tracks use a swung 16th ghost-note snare pattern\", which is a real `swing.amount` of 0.56 on a 16th grid plus the densest ghost map in this batch (four positions at 0.42), and \"percussion density stays low so the guitar riff reads\", which pulls the perc lanes and the hat fill density down against a parent that runs both high. The Latin-pop tresillo accent the Lane line names on the crossover singles is `kick.tresilloBias` 0.34 rather than a second model. Keys are the entry's own guitar list — E, A, D, B minor, F♯ minor \"with capo'd close voicings\" — so `voicing.style` is close and its register is raised. Harmony is \"4-bar diatonic loops with suspended 2 and 4 voicings\", which is `susSubstitutionProb` 0.42. The bass is explicitly not an 808: \"electric bass on roots and 5ths, with an occasional syncopated funk figure in the chorus\", so the cell shapes are root-fifth with one syncopated shape and no `bass808` block is authored. Melody encodes \"stepwise with a leap of a 6th or octave into the hook, and melisma used as a soul gesture at phrase ends\" as a high step share with a raised `octaveJumpProb` and `endVariation` on; \"stacked oh-vowel backing pads\" is the `sustain_pad` counter. ⚠ `confidence` is medium and the research says the parameters are \"largely lane-conventional\": every drum probability, `swing.amount` 0.56 (the research says \"swung\", not a ratio), the humanize numbers, the melody register and `bpm.mode` 105 (the midpoint of the stated 90—120 band) are INFERRED. ⚠ The entry's [LOW-CONF] mark on the falsetto-flip claim is repeated here as the reason the topline ceiling is a reading.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 120,
+      "mode": 105
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "E",
+        "A",
+        "D",
+        "Bm",
+        "F#m"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.84,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 6,
+        "clap": 6,
+        "shaker": 8
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.3,
+      "tresilloBias": 0.34,
+      "offbeat8thShare": 0.16
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap",
+        "snare"
+      ],
+      "layerClapOffsetMs": [
+        5,
+        11
+      ],
+      "ghost": {
+        "prob": 0.42,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.22,
+      "velocities": {
+        "main": [
+          0.5,
+          0.78
+        ],
+        "ghost": [
+          0.16,
+          0.36
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.05
+      },
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "snap"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "any",
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.58,
+      "seventh": 0.32,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        54,
+        80
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ],
+    "susSubstitutionProb": 0.42
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.76,
+      "third": 0.16,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.3,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": [
+      0.12,
+      0.24
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.32,
+      0.52
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2",
+      "P4"
+    ],
+    "anticipationProb": 0.3,
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5",
+        "1",
+        "b7"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

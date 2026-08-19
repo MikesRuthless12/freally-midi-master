@@ -162,7 +162,7 @@
     ],
     "densityPerBar": [
       3,
-      7
+      6
     ],
     "phraseBars": {
       "values": [
@@ -174,30 +174,11 @@
         2
       ]
     },
-    "timbreHint": "rhodes",
-    "structure": "riff_loop",
-    "motifPitchCount": [
-      3,
-      4
-    ],
-    "intervals": {
-      "step": 0.59,
-      "third": 0.34,
-      "leap": 0.2
-    },
-    "contour": {
-      "riff": 0.64,
-      "descend": 0.29,
-      "arch": 0.2
-    },
-    "chordToneBias": 0.77,
-    "halfStepDissonance": 0.04,
-    "endVariation": true,
-    "octaveJumpProb": 0.15
+    "timbreHint": "rhodes"
   },
   "countermelody": {
     "registerOffset": 12,
-    "densityRatio": 0.6,
+    "densityRatio": 0.65,
     "styles": {
       "values": [
         "answer_lick",
@@ -207,8 +188,7 @@
         3,
         2
       ]
-    },
-    "fillGapsOnly": true
+    }
   },
   "chords": {
     "progressionFamilies": [

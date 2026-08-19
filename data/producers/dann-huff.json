@@ -1,0 +1,286 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dann-huff",
+  "type": "producer",
+  "name": "Dann Huff",
+  "aliases": [
+    "dann huff",
+    "dannhuff",
+    "dan huff"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1996-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s",
+    "country-train"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Dann Huff",
+    "Mix — Dann Huff Q&A (https://www.mixonline.com/recording/dann-huff-qa-366125)",
+    "Mix — Dann Huff profile (https://www.mixonline.com/recording/dann-huff-372993)",
+    "Mix — Rascal Flatts tracking session (https://www.mixonline.com/technology/rascal-flatts-jay-demarcus-hosts-tracking-session-new-flatts-album-379370)",
+    "Wikipedia — Dann Huff (https://en.wikipedia.org/wiki/Dann_Huff)"
+  ],
+  "notes": "The architect of arena country-pop — a former rock/pop session guitarist who brings guitar-stacking and rock dynamics to Nashville. The board is the parameter set here, and it is first-person: \"Nashville is the last bastion of live tracking … music depends on interaction,\" a documented date with \"seven players cutting together (two guitarists, drums, bass, scratch vocal, grand piano, synth) in a room chosen specifically for its drum sound,\" and a deliberate habit of recording in \"funky\" or \"dodgy\" rooms because \"musicians play a little different in that setting.\" That is why the humanize sits mid-loose rather than on the grid: his own dividing line is that some records need \"clarity and a dance mentality, getting into the grid side of music\" and others need \"imperfection\" so as not to strip \"the soul out of the music.\" The stated drum grammar is \"2&4 with cross-stick verses, full-kit choruses, tom-driven bridges,\" and the arrangement is \"chorus-maximal — the last chorus is the densest bar of the record; drop-outs and half-time bridges are his main transitions.\" The guitar-stack is the melodic parameter: \"layered clean arpeggios plus crunch power chords plus a melodic lead line, with pedal steel and fiddle retained as genre markers and string/synth pads reserved for final choruses.\" ⚠ **No `progressionFamilies` are authored** — the entry gives keys as a casting decision (\"the tonic to follow the singer's belt\") and names no numerals, so the genre's families are inherited rather than invented, and only the extension spread, the voicing and the harmonic rhythm are authored from the guitar-stack description. ⚠ The bass carries a stated negative: \"no programmed sub in his core catalogue,\" so no `drums.bass808` block. ⚠ The INFERRED parameters are the velocity tiers, the humanize values, the perc density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 66,
+      "max": 150,
+      "mode": 104
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2,
+        1,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.81,
+      "velocityVar": 0.19,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 5,
+        "closedHat": 5,
+        "tom": 7,
+        "crash": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        120,
+        127
+      ],
+      "main": [
+        72,
+        100
+      ],
+      "ghost": [
+        24,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.25,
+      "offbeat8thShare": 0.36
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.13,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.24,
+      "openHat": {
+        "prob": 0.31,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tomHigh",
+        "tomLow",
+        "crash",
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -3,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.28,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    },
+    "susSubstitutionProb": 0.36
+  },
+  "melody": {
+    "register": [
+      55,
+      86
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.24,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.28,
+      "arch": 0.52
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": [
+      0.08,
+      0.18
+    ],
+    "timbreHint": "layered_guitar_stack"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.58,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.88,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      45
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.42,
+        "beats": 4
+      },
+      "switchUpProb": 0.24
+    }
+  }
+}

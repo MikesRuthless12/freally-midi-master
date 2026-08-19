@@ -160,13 +160,12 @@
         "even"
       ],
       "velocityRampRange": [
-        59,
-        98
+        55,
+        102
       ],
       "rampJitter": 5,
-      "gapProb": 0.66,
-      "descendProb": 0.04,
-      "pitchWalk": 2
+      "gapProb": 0.65,
+      "descendProb": 0.08
     }
   },
   "melody": {
@@ -204,8 +203,8 @@
     "timbreHint": "soft_pad"
   },
   "countermelody": {
-    "registerOffset": -17,
-    "densityRatio": 0.35,
+    "registerOffset": -12,
+    "densityRatio": 0.5,
     "styles": {
       "values": [
         "octave_echo",
@@ -215,7 +214,7 @@
       "weights": [
         4,
         3,
-        3
+        2
       ]
     }
   },

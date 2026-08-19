@@ -1,0 +1,372 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "eric-hudson",
+  "type": "producer",
+  "name": "Eric Hudson",
+  "aliases": [
+    "eric hudson",
+    "hudson producer",
+    "jazz funk project"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "2005-2010",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "producer"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "neo-soul",
+    "boom-bap",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Eric Hudson",
+    "Wikipedia — Eric Hudson (https://en.wikipedia.org/wiki/Eric_Hudson)",
+    "bpmdatabase — Omarion (https://www.bpmdatabase.com/music/search/?artist=Omarion)"
+  ],
+  "notes": "A multi-instrumentalist hip-hop-soul producer bridging Kanye-orbit rap and 2000s R&B; the research windows him 2005–2010 and gives \"96–110 straight\", mode 107, the sourced tempo. Three drum deltas from \"live-instrumentation-forward — a programmed kick/snare grid with played ride, hat and hand percussion over it\": `quantizeStrength` falls to 0.58 with `velocityVar` at 0.28 and the snare 4–10 ms off the grid, the hat moves to a played 8th base at 0.34 fill density, and the perc bed is a four-lane ride/conga/bongo/tambourine set at three to seven hits a bar. The entry also states a negative that is authored as one: \"moderate 16th hat density, **no trap-style rolls**\", so `rolls.freqPerBar` sits at 0.03 — near-zero for a model at this tempo, and a real delta from the parent's 0.3. Harmony comes from the biography: \"he came up playing in church and leading the Jazz Funk Project band\" and \"he plays **piano, drums, bass, guitar and organ**\", so the model authors 4-chord cycles with a 0.14 triad share and organ colour rather than a two-chord bed. The bass is the same claim: \"played electric bass or organ pedal rather than sustained 808; **the low end moves**\" — `followRootsProb` 0.52 with walking cells and no `bass808` block. \"A guitar or horn countermelody\" is the counter at +12 at a 0.5 density. ⚠ Confidence is medium: instrumentation and credits are sourced, the tempo band is catalogue-derived. ⚠ Every velocity and density number is INFERRED. ⚠ `session.keys` is INFERRED: the entry's Keys line gives \"minor-mode with jazz/gospel extensions — he came up playing in church and leading the Jazz Funk Project band\" and enumerates no tonic, so the values here and their weights are this author's reading of that line.",
+  "session": {
+    "bpm": {
+      "min": 96,
+      "max": 110,
+      "mode": 107
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Cm",
+        "Fm",
+        "Em",
+        "Am"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "blues",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.57
+    },
+    "humanize": {
+      "quantizeStrength": 0.58,
+      "velocityVar": 0.28,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 10,
+        "ride": 12,
+        "conga": 12,
+        "bongo": 12
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.28,
+      "tresilloBias": 0.08,
+      "andOf4EveryOtherBar": 0.2
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      },
+      "offGridMs": [
+        4,
+        10
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.34,
+      "velocities": {
+        "main": [
+          0.4,
+          0.62
+        ],
+        "ghost": [
+          0.18,
+          0.34
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.03
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "conga",
+        "bongo",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        3,
+        7
+      ],
+      "placement": "any",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.14,
+      "seventh": 0.5,
+      "ninth": 0.36
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      58,
+      82
+    ],
+    "densityPerBar": [
+      3,
+      9
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.18,
+      "descend": 0.4,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.78,
+    "halfStepDissonance": 0.18,
+    "octaveJumpProb": 0.07,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.52,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "M2",
+      "m3",
+      "P4",
+      "m7"
+    ],
+    "anticipationProb": 0.36,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "b7",
+        "4"
+      ],
+      [
+        "1",
+        "b3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "8"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 4
+      },
+      "switchUpProb": 0.14
+    }
+  }
+}

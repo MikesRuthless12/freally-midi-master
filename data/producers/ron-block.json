@@ -1,0 +1,315 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ron-block",
+  "type": "producer",
+  "name": "Ron Block",
+  "aliases": [
+    "ron block",
+    "ronblock"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-train"
+  ],
+  "era": "1991-present",
+  "genres": [
+    "country-train",
+    "bluegrass",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-train — Ron Block",
+    "Wikipedia — Ron Block (https://en.wikipedia.org/wiki/Ron_Block)"
+  ],
+  "notes": "The Union Station banjo-and-guitar chair, and \"the archetype's model for a banjo player used inside a song rather than as a soloist\". The section's own scope note says why this entry looks the way it does: \"in this archetype the producer role is largely occupied by instrumental specialists — the players whose parts are the train beat when there is no drum kit, and who also produce records. Each entry below is written as a parameter set for the part they contribute, because that is what the engine needs.\" His stated contribution is restraint: \"on Union Station's ballad-dominant catalogue the banjo roll is often reduced to a sparse, low-velocity arpeggio or replaced by guitar, so model a banjo-density parameter where the roll can thin to quarter-note arpeggios without leaving the idiom\". That is the quietest drum block anywhere in this section — `velocityTiers` accent 76–90 against a 34–48 ghost band, `hihat.velocities.main` down to 0.4–0.6, `kick` [1,2] on beat 1 alone, `percs` at −13 dB — plus a countermelody `densityRatio` of 0.45, the thinnest in this wing, for the roll that thins to quarters. Harmony is where he is genuinely his own model rather than his band's: his own compositions \"are hymn-shaped, which in harmonic terms means plagal motion (IV–I) and long-held tonic pedals rather than the bluegrass I–IV–V cycle — a genuinely distinct progression family for the engine\". So I–IV–I carries top weight over I–IV–V, `harmonicRhythm` leads with two bars per chord, and `chordDurationBeats` runs [4,16] for the tonic pedals. Keys follow the same open-G banjo constraint the Fleck entry documents. The stated arrangement device is specific and is authored: \"the roll enters as a texture change at the chorus, which is a specific and useful arrangement device (banjo as the lift, in place of a snare)\" — song-form structures rather than the breakdown form his neighbours use. ⚠ The entry rates itself medium with \"the density parameter inferred from the sourced catalogue character [LOW-CONF]\", and that flag applies to every velocity and density number above. ⚠ Also INFERRED: `bpm.mode` 100 inside the stated 65–190 band (placed in the ballad mass the entry calls the catalogue's character), the −3 ms offset, `percs` contents and the melody and bassline numbers.",
+  "session": {
+    "bpm": {
+      "min": 65,
+      "max": 190,
+      "mode": 100
+    },
+    "keys": {
+      "values": [
+        "G",
+        "D"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        6,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 3,
+        "perc": 4
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        76,
+        90
+      ],
+      "main": [
+        54,
+        68
+      ],
+      "ghost": [
+        34,
+        48
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ]
+    },
+    "snare": {
+      "offGridMs": -3
+    },
+    "hihat": {
+      "base": "4th",
+      "continuous": false,
+      "fillDensity": 0.032,
+      "velocities": {
+        "main": [
+          0.4,
+          0.6
+        ],
+        "ghost": [
+          0.2,
+          0.32
+        ]
+      },
+      "openHat": {
+        "prob": 0.02,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.02
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "gainOffsetDb": -13
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "IV",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.2,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      81
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.17,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.36,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.84,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "banjo_roll"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "arp",
+        "sustain_pad"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "register": [
+      28,
+      42
+    ],
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.16
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.08,
+        "beats": 1
+      },
+      "switchUpProb": 0.03
+    }
+  }
+}

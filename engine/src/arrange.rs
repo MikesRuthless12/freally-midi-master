@@ -935,10 +935,13 @@ fn render_section(
     // first.
     let lead = match (needs_lead, &harmony) {
         (true, Some(harmony)) => {
-            let (lanes, _, report) =
-                novelty::screen(novelty::bundled(), Part::Melody, seed, |take| {
-                    vec![melody::generate(model, ctx, take, harmony, &kit)]
-                });
+            let (lanes, _, report) = novelty::screen(
+                novelty::bundled(),
+                Part::Melody,
+                parts::screenable(model, Part::Melody),
+                seed,
+                |take| vec![melody::generate(model, ctx, take, harmony, &kit)],
+            );
             novelty::log(Part::Melody, &report);
             lanes.into_iter().next()
         }
@@ -957,17 +960,36 @@ fn render_section(
             Part::Counter => match (&harmony, &lead) {
                 (Some(harmony), Some(lead)) => {
                     // Screened for the same reason the lead above is.
-                    let (lanes, _, report) =
-                        novelty::screen(novelty::bundled(), Part::Counter, seed, |take| {
-                            vec![counter::generate(model, ctx, take, harmony, lead)]
-                        });
+                    let (lanes, _, report) = novelty::screen(
+                        novelty::bundled(),
+                        Part::Counter,
+                        parts::screenable(model, Part::Counter),
+                        seed,
+                        |take| vec![counter::generate(model, ctx, take, harmony, lead)],
+                    );
                     novelty::log(Part::Counter, &report);
                     lanes
                 }
                 _ => Vec::new(),
             },
+            // ⛔ **Screened here too, and that is the point of doing it at all.**
+            // A rule installed at one door is a rule the next door arrives
+            // without — this file's own lead and counter are screened three
+            // lines up for exactly that reason, and a song is where a producer
+            // generates the most bars. `follows_the_kick` is what decides
+            // whether there is a figure to screen; see `novelty::screens`.
             Part::Bass => match &harmony {
-                Some(harmony) => vec![bass::generate(model, ctx, seed, harmony, &kit)],
+                Some(harmony) => {
+                    let (lanes, _, report) = novelty::screen(
+                        novelty::bundled(),
+                        Part::Bass,
+                        parts::screenable(model, Part::Bass),
+                        seed,
+                        |take| vec![bass::generate(model, ctx, take, harmony, &kit)],
+                    );
+                    novelty::log(Part::Bass, &report);
+                    lanes
+                }
                 None => Vec::new(),
             },
         };

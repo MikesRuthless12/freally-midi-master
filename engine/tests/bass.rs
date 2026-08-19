@@ -45,7 +45,15 @@ fn bass_for(model: &engine::StyleModel, seed: u64) -> LaneTrack {
 /// Empty: every authored parameter is currently read. Kept rather than deleted
 /// so the place to record an exception already exists, exactly as in
 /// `counter.rs`.
-const NOT_NOTE_LEVEL: &[(&str, &str)] = &[];
+const NOT_NOTE_LEVEL: &[(&str, &str)] = &[(
+    "loopVerbatim",
+    "a declaration that the research describes this low end as static. Read by \
+     this file's own `static_low_end`, not by a generator: the bass already \
+     sounds static from its authored `followRootsProb` and rhythm, so making a \
+     generator read this would change the notes rather than describe them. The \
+     melody's `loopVerbatim` IS generative; this one deliberately is not, and \
+     the name is shared because it is the same claim about a lane.",
+)];
 
 /// The saturation bar for a bassline, which is *lower than the melody's* — and
 /// the reason is the part, not a concession.
@@ -92,6 +100,45 @@ fn every_authored_bassline_parameter_is_read_or_documented_as_unread() {
     );
 }
 
+/// Does this model declare a **deliberately static low end**?
+///
+/// ⛔⛔ **The bassline's answer to `melody.loopVerbatim`, and built the same way
+/// on purpose** (2026-08-17, Mike's call). The melody and counter floors already
+/// excuse a lane the research describes as narrow — `melody.rs`'s
+/// `deliberately_narrow` and `counter.rs`'s `narrow_lead` — and the bassline had
+/// no equivalent, so five models whose entries say the low end never moves had
+/// no honest way to say so: *"the pattern never varies across a record"*
+/// (`cassie`), *"a single low synth/808-style tone on the root, long and
+/// undecorated"* (`gwen-stefani`), *"the low end is continuous rather than
+/// rhythmic"* (`illangelo`).
+///
+/// ⛔ **A declaration AND a corroborating parameter, never a bare flag.**
+/// `narrow_lead` requires `loopVerbatim` *and* a `motifPitchCount` for exactly
+/// this reason: one authored word must not be able to buy an exemption. Here the
+/// corroboration is `followRootsProb`, because a bass that is on the chord root
+/// nine times in ten has almost no pitch of its own left to vary.
+///
+/// ⚠ **The corroboration alone is nowhere near enough, measured:**
+/// `mirror_kick` with `followRootsProb >= 0.9` describes **328 of the 1,212**
+/// models that author a bassline. The declaration is what makes this specific,
+/// and it is authored per model against a quoted research line.
+///
+/// ⚠ **[`MIN_DISTINCT`] still admits no exceptions.** A model that declares this
+/// still owes a producer 500 different basslines; all five clear it comfortably
+/// at 886-935. This waives only the saturation share, which this file's own doc
+/// already calls "the one that is asking a derived part to behave like an
+/// independent one".
+fn static_low_end(block: &Value) -> bool {
+    let declared = block
+        .get("loopVerbatim")
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    let rooted = block
+        .get("followRootsProb")
+        .and_then(Value::as_f64)
+        .unwrap_or(0.0);
+    declared && rooted >= 0.9
+}
 #[test]
 fn the_unread_list_does_not_outlive_the_keys_it_excuses() {
     let authored: BTreeSet<String> = bass_models()
@@ -223,16 +270,22 @@ fn an_artist_can_reach_a_different_bassline_for_practically_every_seed() {
     let mut failures = Vec::new();
     let mut report = Vec::new();
 
-    for (id, model, _) in generating_models() {
+    for (id, model, block) in generating_models() {
         let mut seen = BTreeSet::new();
         for seed in 1..=seeds {
             seen.insert(shape(&bass_for(&model, seed)));
         }
 
         let share = seen.len() as f64 / seeds as f64;
+        let static_low = static_low_end(&block);
         report.push(format!(
-            "{id}: {}/{seeds} distinct ({share:.3})",
-            seen.len()
+            "{id}: {}/{seeds} distinct ({share:.3}){}",
+            seen.len(),
+            if static_low {
+                " — static low end by design"
+            } else {
+                ""
+            }
         ));
 
         if seen.len() < MIN_DISTINCT {
@@ -242,7 +295,9 @@ fn an_artist_can_reach_a_different_bassline_for_practically_every_seed() {
                 seen.len()
             ));
         }
-        if share < BASS_DISTINCT_SHARE {
+        // ⚠ Waived for a declared static low end — see [`static_low_end`]. The
+        // absolute floor above is not waived and never is.
+        if share < BASS_DISTINCT_SHARE && !static_low {
             failures.push(format!(
                 "{id}: only {}/{seeds} basslines were distinct ({share:.3}, needs \
                  {BASS_DISTINCT_SHARE}) — that model's grammar is saturating",

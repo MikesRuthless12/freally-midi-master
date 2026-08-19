@@ -71,17 +71,13 @@
     "kick": {
       "densityPerBar": [
         2,
-        5
+        4
       ],
       "anchors": [
         "1"
       ],
-      "syncopation": 0.41,
-      "tresilloBias": 0.08,
-      "secondaryAnchor": "3",
-      "andOf4EveryOtherBar": 0.5,
-      "avoidPreSnareGap": "8th",
-      "lockTo808": 1
+      "syncopation": 0.32,
+      "tresilloBias": 0.12
     },
     "snare": {
       "placement": "halftime_3",
@@ -89,22 +85,7 @@
       "layerClapOffsetMs": [
         4,
         10
-      ],
-      "detuneSemis": [
-        -2,
-        -1
-      ],
-      "ghost": {
-        "prob": 0.21,
-        "pos": [
-          "4&"
-        ],
-        "vel": [
-          0.4,
-          0.6
-        ]
-      },
-      "offGridMs": 0
+      ]
     },
     "hihat": {
       "base": {
@@ -165,27 +146,19 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "8t"
+        "16th",
+        "32nd"
       ],
       "grouping": [
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        54,
-        115
+        62,
+        110
       ],
-      "rampJitter": 19,
-      "descendProb": 0.5,
-      "gapProb": 0.21,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25,
-      "pitchWalk": 4
+      "rampJitter": 22,
+      "descendProb": 0.47,
+      "gapProb": 0.24
     },
     "bass808": {
       "sustain": "legato",
@@ -208,17 +181,17 @@
     ],
     "intervals": {
       "step": 0.7,
-      "third": 0.22,
-      "leap": 0.04
+      "third": 0.24,
+      "leap": 0.06
     },
     "contour": {
       "riff": 0.25,
-      "descend": 0.38,
-      "arch": 0.33
+      "descend": 0.4,
+      "arch": 0.35
     },
-    "chordToneBias": 0.81,
+    "chordToneBias": 0.8,
     "halfStepDissonance": 0.03,
-    "octaveJumpProb": 0.12,
+    "octaveJumpProb": 0.1,
     "phraseBars": {
       "values": [
         4,
@@ -229,14 +202,7 @@
         2
       ]
     },
-    "timbreHint": "fingerpicked_guitar",
-    "structure": "question_answer",
-    "colorTones": [
-      2,
-      4,
-      6
-    ],
-    "endVariation": true
+    "timbreHint": "fingerpicked_guitar"
   },
   "countermelody": {
     "registerOffset": 12,

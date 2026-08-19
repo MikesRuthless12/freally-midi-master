@@ -149,7 +149,8 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "32nd"
+        "16th",
+        "16t"
       ],
       "grouping": [
         "even",
@@ -161,8 +162,7 @@
       ],
       "rampJitter": 22,
       "descendProb": 0.18,
-      "gapProb": 0.22,
-      "pitchWalk": 4
+      "gapProb": 0.22
     }
   },
   "chords": {
@@ -244,24 +244,17 @@
       4
     ],
     "intervals": {
-      "step": 0.43,
+      "step": 0.42,
       "third": 0.3,
-      "leap": 0.25
+      "leap": 0.28
     },
-    "chordToneBias": 0.5,
+    "chordToneBias": 0.55,
     "halfStepDissonance": 0.1,
     "octaveJumpProb": [
       0.08,
       0.18
     ],
-    "timbreHint": "horn_stab",
-    "structure": "riff_loop",
-    "contour": {
-      "riff": 0.56,
-      "descend": 0.25,
-      "arch": 0.17
-    },
-    "endVariation": true
+    "timbreHint": "horn_stab"
   },
   "countermelody": {
     "registerOffset": -12,

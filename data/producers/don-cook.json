@@ -1,0 +1,252 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "don-cook",
+  "type": "producer",
+  "name": "Don Cook",
+  "aliases": [
+    "don cook",
+    "doncook",
+    "donald cook"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1991-2004",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-train",
+    "country-shuffle"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Don Cook",
+    "Wikipedia — Don Cook (https://en.wikipedia.org/wiki/Don_Cook)",
+    "bpmdatabase — Brooks & Dunn (https://www.bpmdatabase.com/music/search/?artist=Brooks+%26+Dunn)",
+    "songdata.io — Brooks & Dunn (https://songdata.io/search?query=Brooks+and+Dunn)"
+  ],
+  "notes": "\"Nashville's reluctant producer,\" and a songwriter first — \"song and production are one decision.\" The house grammar he built is quoted: \"a hard-backbeat two-beat with quarter kick for the dance cuts and cross-stick-into-full-kit for the ballads,\" and the bass rule is stated as a rule: \"live bass in quarter-note root motion on the boogies, tied whole notes on the ballads, doubling the kick on beat 1 as a rule.\" Harmony is \"I–IV–V plus vi–IV–I–V on the ballads and a I–♭VII–IV rock borrow on the uptempo cuts.\" The identifiable production choice is a vocal-arrangement rule and it is the counter parameter here: \"harmony vocal as the hook mechanism: the second voice enters in parallel thirds at the chorus and vacates the verses entirely\" — so the counter is an answer that appears rather than a pad that runs, which is why `densityRatio` is mid-high against a `fillGapsOnly` inherited true. The twin-lead palette adds \"Telecaster and pedal steel trading 2-bar answers with fiddle doubling the steel a third above on choruses.\" ⚠ Boundary note carried from the research: \"the boogie and slow-swing grooves in this catalogue belong to the sibling archetype genres; his arena midtempos are the part modelled here.\" ⚠ Confidence is medium and the research says why: \"roster, chart record and songwriter-first orientation documented; technical method not [LOW-CONF].\" ⚠ The INFERRED parameters are the velocity tiers, the perc density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 59,
+      "max": 155,
+      "mode": 126
+    },
+    "keys": {
+      "values": [
+        "G",
+        "A",
+        "C",
+        "F"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_blues"
+      ],
+      "weights": [
+        6,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.17,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "ride": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        116,
+        127
+      ],
+      "main": [
+        84,
+        102
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.09,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.22,
+      "openHat": {
+        "prob": 0.34,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "shaker",
+        "tambourine",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "gainOffsetDb": -6,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.2,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      56,
+      80
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "contour": {
+      "riff": 0.22,
+      "descend": 0.32,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.83,
+    "octaveJumpProb": 0.04,
+    "endVariation": true,
+    "timbreHint": "tele_and_pedal_steel"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.62,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.91,
+    "register": [
+      28,
+      44
+    ],
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2"
+    ],
+    "anticipationProb": 0.07
+  }
+}

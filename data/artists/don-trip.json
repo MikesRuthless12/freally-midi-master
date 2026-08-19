@@ -3,26 +3,12 @@
   "id": "don-trip",
   "type": "artist",
   "name": "Don Trip",
-  "aliases": [
-    "don trip",
-    "christopher wallace jr",
-    "trip"
-  ],
+  "aliases": ["don trip", "christopher wallace jr", "trip"],
   "tier": "standard",
-  "extends": [
-    "memphis-rap"
-  ],
+  "extends": ["memphis-rap"],
   "era": "2011-2016",
-  "genres": [
-    "rap",
-    "memphis",
-    "lyrical"
-  ],
-  "relatedGenres": [
-    "memphis-rap",
-    "boom-bap",
-    "trap-soul"
-  ],
+  "genres": ["rap", "memphis", "lyrical"],
+  "relatedGenres": ["memphis-rap", "boom-bap", "trap-soul"],
   "confidence": "low",
   "sources": [
     "style-research-extended vol.1 memphis-rap — Don Trip",
@@ -31,195 +17,66 @@
   ],
   "notes": "Memphis's lyric-dense narrative wing, and the only entry in this batch whose parameter set is verse-first rather than hook-first. Four things separate it from the archetype and all four come out of one fact — the loops are sampled soul and gospel rather than programmed. (1) Real harmonic motion: ii–v–i and i–iv–VII are authored as families, `maxChords` is 4, and `extensions` is seventh-weighted (0.42) with `topVoiceStepwise` true, which no other entry here does. (2) The **highest melodic note density in the modern Memphis set** — 4–8 a bar over 4- and 8-bar phrases, `emptyBarBias` down to 0.06 against the lane's 0.18. (3) The kit is deliberately plain so the lyric reads: 8th/16th hats, cowbell almost off (0–2 a bar at −6 dB), and the sparsest fill in this batch (`gapProb` 0.58, hat rolls at 0.05 a bar). (4) The verses run 24–32 bars with a short or absent hook and no beat switch (`switchUpProb` 0.02). ⛔ `low` because the research rates it medium-low: era, label and the XXL Freshman placement are sourced, **and the harmony, the drum values and the tempo band are inferences from his documented production camp** rather than from his records. ⚠ The research also says the 808 is sometimes replaced by a sampled bass line from the source record; that alternative is not modeled — the bass stays `mirror_kick` on the root at 0.8, and the sampled-bass reading would be `independent_riff`.",
   "session": {
-    "bpm": {
-      "min": 132,
-      "max": 156,
-      "mode": 142
-    },
-    "scales": {
-      "values": [
-        "natural_minor",
-        "dorian",
-        "harmonic_minor"
-      ],
-      "weights": [
-        4,
-        3,
-        2
-      ]
-    },
-    "swing": {
-      "grid": "16th",
-      "amount": 0.53
-    },
-    "humanize": {
-      "quantizeStrength": 0.88,
-      "velocityVar": 0.16
-    }
+    "bpm": { "min": 132, "max": 156, "mode": 142 },
+    "scales": { "values": ["natural_minor", "dorian", "harmonic_minor"], "weights": [4, 3, 2] },
+    "swing": { "grid": "16th", "amount": 0.53 },
+    "humanize": { "quantizeStrength": 0.88, "velocityVar": 0.16 }
   },
   "drums": {
     "velocityTiers": {
-      "accent": [
-        90,
-        110
-      ],
-      "main": [
-        64,
-        80
-      ],
-      "ghost": [
-        30,
-        42
-      ]
+      "accent": [90, 110],
+      "main": [64, 80],
+      "ghost": [30, 42]
     },
     "kick": {
-      "densityPerBar": [
-        2,
-        3
-      ],
-      "anchors": [
-        "1"
-      ],
+      "densityPerBar": [2, 3],
+      "anchors": ["1"],
       "secondaryAnchor": "3&",
       "syncopation": 0.26,
       "tresilloBias": 0.3
     },
     "snare": {
       "layered": true,
-      "ghost": {
-        "prob": 0.22,
-        "pos": [
-          "3a",
-          "4e"
-        ],
-        "vel": [
-          0.24,
-          0.4
-        ]
-      }
+      "ghost": { "prob": 0.22, "pos": ["3a", "4e"], "vel": [0.24, 0.4] }
     },
     "hihat": {
-      "base": {
-        "values": [
-          "8th",
-          "16th"
-        ],
-        "weights": [
-          3,
-          2
-        ]
-      },
+      "base": { "values": ["8th", "16th"], "weights": [3, 2] },
       "continuous": true,
       "fillDensity": 0.3,
-      "velocities": {
-        "main": [
-          0.55,
-          0.8
-        ],
-        "ghost": [
-          0.2,
-          0.4
-        ]
-      },
+      "velocities": { "main": [0.55, 0.8], "ghost": [0.2, 0.4] },
       "rolls": {
-        "vocab": {
-          "values": [
-            "16"
-          ],
-          "weights": [
-            1
-          ]
-        },
-        "positions": [
-          "bar_4"
-        ],
+        "vocab": { "values": ["16"], "weights": [1] },
+        "positions": ["bar_4"],
         "freqPerBar": 0.05,
         "velocityRamp": false
       },
-      "openHat": {
-        "prob": 0.12,
-        "pos": [
-          "4&"
-        ],
-        "perBar": [
-          0,
-          1
-        ]
-      }
+      "openHat": { "prob": 0.12, "pos": ["4&"], "perBar": [0, 1] }
     },
     "percs": {
-      "lanes": [
-        "rim",
-        "cowbell"
-      ],
-      "densityPerBar": [
-        0,
-        2
-      ],
+      "lanes": ["rim", "cowbell"],
+      "densityPerBar": [0, 2],
       "gainOffsetDb": -6
     },
-    "fills": {
-      "smallEveryBars": 8,
-      "bigEveryBars": 16
-    },
+    "fills": { "smallEveryBars": 8, "bigEveryBars": 16 },
     "snareRoll": {
-      "subdivisions": [
-        "16th"
-      ],
-      "grouping": [
-        "even"
-      ],
-      "velocityRampRange": [
-        42,
-        82
-      ],
-      "rampJitter": 11,
+      "subdivisions": ["16th"],
+      "grouping": ["even"],
+      "velocityRampRange": [36, 86],
+      "rampJitter": 12,
       "gapProb": 0.58,
       "descendProb": 0.2
     },
     "bass808": {
       "slideProb": 0.1,
-      "slideIntervals": {
-        "values": [
-          "P4",
-          "P5"
-        ],
-        "weights": [
-          3,
-          2
-        ]
-      }
+      "slideIntervals": { "values": ["P4", "P5"], "weights": [3, 2] }
     }
   },
   "melody": {
-    "register": [
-      55,
-      79
-    ],
-    "densityPerBar": [
-      4,
-      8
-    ],
-    "phraseBars": {
-      "values": [
-        4,
-        8
-      ],
-      "weights": [
-        3,
-        2
-      ]
-    },
-    "intervals": {
-      "step": 0.64,
-      "third": 0.26,
-      "leap": 0.1
-    },
-    "contour": {
-      "riff": 0.34,
-      "descend": 0.36,
-      "arch": 0.3
-    },
+    "register": [55, 79],
+    "densityPerBar": [4, 8],
+    "phraseBars": { "values": [4, 8], "weights": [3, 2] },
+    "intervals": { "step": 0.64, "third": 0.26, "leap": 0.1 },
+    "contour": { "riff": 0.34, "descend": 0.36, "arch": 0.3 },
     "chordToneBias": 0.72,
     "halfStepDissonance": 0.12,
     "emptyBarBias": 0.06,
@@ -229,143 +86,41 @@
   "countermelody": {
     "registerOffset": 12,
     "densityRatio": 0.5,
-    "styles": {
-      "values": [
-        "answer_lick",
-        "octave_echo"
-      ],
-      "weights": [
-        4,
-        2
-      ]
-    }
+    "styles": { "values": ["answer_lick", "octave_echo"], "weights": [4, 2] }
   },
   "chords": {
     "progressionFamilies": [
-      {
-        "roman": [
-          "ii",
-          "v",
-          "i"
-        ],
-        "weight": 4
-      },
-      {
-        "roman": [
-          "i",
-          "iv",
-          "VII"
-        ],
-        "weight": 4
-      },
-      {
-        "roman": [
-          "i",
-          "VI",
-          "III",
-          "VII"
-        ],
-        "weight": 2
-      },
-      {
-        "roman": [
-          "i"
-        ],
-        "weight": 2
-      }
+      { "roman": ["ii", "v", "i"], "weight": 4 },
+      { "roman": ["i", "iv", "VII"], "weight": 4 },
+      { "roman": ["i", "VI", "III", "VII"], "weight": 2 },
+      { "roman": ["i"], "weight": 2 }
     ],
     "maxChords": 4,
-    "extensions": {
-      "triad": 0.45,
-      "seventh": 0.42,
-      "ninth": 0.13
-    },
-    "voicing": {
-      "style": "close",
-      "register": [
-        46,
-        76
-      ],
-      "topVoiceStepwise": true
-    },
+    "extensions": { "triad": 0.45, "seventh": 0.42, "ninth": 0.13 },
+    "voicing": { "style": "close", "register": [46, 76], "topVoiceStepwise": true },
     "harmonicRhythm": {
-      "values": [
-        "1_per_bar",
-        "2_bars_per_chord",
-        "vamp"
-      ],
-      "weights": [
-        4,
-        3,
-        1
-      ]
+      "values": ["1_per_bar", "2_bars_per_chord", "vamp"],
+      "weights": [4, 3, 1]
     },
-    "chordDurationBeats": [
-      2,
-      10
-    ]
+    "chordDurationBeats": [2, 10]
   },
   "bassline": {
     "rhythm": "mirror_kick",
     "followRootsProb": 0.8,
-    "register": [
-      26,
-      44
-    ],
+    "register": [26, 44],
     "glideProb": 0.12,
-    "passingTones": [
-      "P5",
-      "m7",
-      "M2"
-    ],
+    "passingTones": ["P5", "m7", "M2"],
     "anticipationProb": 0.18
   },
   "arrangement": {
     "structures": [
-      {
-        "sections": [
-          "intro",
-          "verse",
-          "hook",
-          "verse",
-          "hook",
-          "outro"
-        ],
-        "weight": 4
-      },
-      {
-        "sections": [
-          "intro",
-          "verse",
-          "verse",
-          "hook",
-          "verse",
-          "outro"
-        ],
-        "weight": 3
-      }
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "outro"], "weight": 4 },
+      { "sections": ["intro", "verse", "verse", "hook", "verse", "outro"], "weight": 3 }
     ],
-    "sectionBars": {
-      "intro": [
-        4,
-        8
-      ],
-      "verse": [
-        24,
-        32
-      ],
-      "hook": [
-        4,
-        8
-      ],
-      "outro": 4
-    },
+    "sectionBars": { "intro": [4, 8], "verse": [24, 32], "hook": [4, 8], "outro": 4 },
     "transitions": {
       "fillBeforeSection": true,
-      "dropOutBeats": {
-        "prob": 0.35,
-        "beats": 4
-      },
+      "dropOutBeats": { "prob": 0.35, "beats": 4 },
       "switchUpProb": 0.02
     }
   }

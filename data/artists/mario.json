@@ -1,0 +1,386 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mario",
+  "type": "artist",
+  "name": "Mario",
+  "aliases": [
+    "mario barrett",
+    "mario singer",
+    "let me love you"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "2002-2009",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "pop"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "pop-2000s",
+    "crunk",
+    "neo-soul"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Mario",
+    "Wikipedia — Let Me Love You (https://en.wikipedia.org/wiki/Let_Me_Love_You_(Mario_song))",
+    "songdata — Mario (https://songdata.io/search?query=Mario)"
+  ],
+  "notes": "J Records teen-to-adult soloist built on Scott Storch's 80s-synth R&B plus a Ne-Yo topline; Storch has his own model, so this is the artist lane, 2002–2009. The research gives \"65–98 straight; ballads 61–66 half-time\", and the straight band is the base with the mode at 94, the sourced tempo of the signature record. Three drum deltas quote the entry's phrase for the kit — \"mechanized melodic backbeat with a sturdy, clap-heavy drum track\": `quantizeStrength` is 0.92 with `offGridMs` 0 and `swing.amount` 0.52 (mechanized, against this genre's under-quantised 0.62), the clap is a real stack with a velocity-tier accent band of 110–124 over a 88–102 main (clap-heavy), and \"kick on 1 and the 16th before 3\" puts the secondary anchor on `2a`. Harmony is the sourced progression: \"`iv–i–VII` in G minor (Cm–Gm–F)… a modal three-chord loop with 'wandering 80s-style synth pillows'\", so `iv–i–VII` is the top family with by far the largest weight, `maxChords` is 4 (a cap, not a target — it is only there so the one pop-crossover family is not truncated) and the counter is a `sustain_pad`-led pillow at +12. \"Light tenor with Ne-Yo-written narrow-interval phrasing\" is a 0.86 step share and a near-zero octave jump. The low end is the entry's explicit correction of the lane default — \"'soulful bass' playing a moving line rather than a static sub, doubled by keys; Storch's low end is keyboard-derived, not 808-derived\" — so there is no `drums.bass808` block, `followRootsProb` falls to 0.56 and the cells move. ⚠ The INFERRED parameters are the velocity tiers, all density numbers and the swing figure.",
+  "session": {
+    "bpm": {
+      "min": 65,
+      "max": 98,
+      "mode": 94
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Gm",
+        "F",
+        "Db",
+        "Bm",
+        "C"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    },
+    "humanize": {
+      "quantizeStrength": 0.92,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 2,
+        "clap": 2,
+        "closedHat": 3
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        124
+      ],
+      "main": [
+        88,
+        102
+      ],
+      "ghost": [
+        32,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.32,
+      "tresilloBias": 0.1,
+      "andOf4EveryOtherBar": 0.2
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "layered": true,
+      "layerClapOffsetMs": [
+        0,
+        2
+      ],
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.42,
+      "velocities": {
+        "main": [
+          0.5,
+          0.7
+        ],
+        "ghost": [
+          0.22,
+          0.38
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.1
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -7
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "iv",
+          "i",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.48,
+      "ninth": 0.22
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        49,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      60,
+      80
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.86,
+      "third": 0.12,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.4,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": 0.02,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "soft_keys"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.56,
+    "rhythm": "independent_riff",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "P4",
+      "m3"
+    ],
+    "anticipationProb": 0.36,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "b7",
+        "4"
+      ],
+      [
+        "1",
+        "b3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "1",
+        "b7"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.14
+    }
+  }
+}

@@ -202,22 +202,15 @@
         "32nd"
       ],
       "grouping": [
-        "even",
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        57,
-        101
+        55,
+        99
       ],
-      "rampJitter": 13,
-      "descendProb": 0.07,
-      "gapProb": 0.39,
-      "ladder": [
-        "4",
-        "8",
-        "16"
-      ],
-      "pitchWalk": 3
+      "rampJitter": 14,
+      "descendProb": 0.1,
+      "gapProb": 0.41
     },
     "bass808": {
       "sustain": "legato",

@@ -1,0 +1,239 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "brooks-and-dunn",
+  "type": "artist",
+  "name": "Brooks & Dunn",
+  "aliases": [
+    "brooks and dunn",
+    "brooks dunn",
+    "brooksanddunn"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1991-2001",
+  "genres": [
+    "country-pop",
+    "country",
+    "honky tonk"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-train",
+    "country-shuffle"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Brooks & Dunn",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Brooks+%26+Dunn)",
+    "songdata.io (https://songdata.io/search?query=Brooks+and+Dunn)",
+    "Wikipedia — Don Cook (https://en.wikipedia.org/wiki/Don_Cook)"
+  ],
+  "notes": "The duo that made honky-tonk a stadium format. The uptempo signature the entry names is a two-beat \"with a hard backbeat and quarter-note kick,\" so the kick anchors sit on all four beats and the velocity tiers are pushed above the genre's; the ballads are \"cross-stick with the snare entering only at the chorus.\" Harmony is the stated vocabulary — \"I–IV–V plus vi–IV–I–V on the ballads and a I–♭VII–IV rock borrow on the uptempo cuts\" — and the mixolydian weighting exists only to make that ♭VII singable. The bass rule is quoted: \"the bass doubles the kick on beat 1 of every bar as a rule,\" which is a high `followRootsProb` with almost no anticipation rather than a kick mirror. The countermelody is the entry's twin-lead: \"Telecaster and pedal steel trading 2-bar answers, fiddle doubling the steel a third above on choruses.\" ⚠ Boundary flag carried from the research: \"Boot Scootin' Boogie\" is a boogie/train-adjacent shuffle and \"Neon Moon\" is a slow swung 12/8 — both grooves belong to the sibling archetype genres. ⚠ Confidence is medium because the research rates it high-medium and marks the per-track key/tempo readings [LOW-CONF]; per-track harmonic detail is generalised there. ⚠ The INFERRED parameters are the velocity tiers, the melody register/density and the countermelody ratio — \"hard backbeat\" and \"chorus melodies are higher-register and longer-noted than verses\" are directions, and 110–127, 58–81 and 0.6 are this author's reading of them.",
+  "session": {
+    "bpm": {
+      "min": 59,
+      "max": 155,
+      "mode": 128
+    },
+    "keys": {
+      "values": [
+        "G",
+        "A",
+        "C",
+        "F"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        6,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.15
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        127
+      ],
+      "main": [
+        86,
+        100
+      ],
+      "ghost": [
+        36,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.12,
+      "offbeat8thShare": 0.1
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.2,
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine",
+        "ride"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -5
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.8,
+      "seventh": 0.18,
+      "ninth": 0.02
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      81
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.3,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.82
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp",
+        "sustain_pad"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "register": [
+      28,
+      44
+    ],
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2"
+    ],
+    "anticipationProb": 0.08
+  }
+}

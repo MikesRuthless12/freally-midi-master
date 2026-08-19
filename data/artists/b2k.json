@@ -1,0 +1,349 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "b2k",
+  "type": "artist",
+  "name": "B2K",
+  "aliases": [
+    "b2k",
+    "boys of the new millennium",
+    "tug records"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "2001-2004",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "pop"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "pop-2000s",
+    "crunk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — B2K",
+    "bpmdatabase — B2K (https://www.bpmdatabase.com/music/search/?artist=B2K)",
+    "Wikipedia — Troy Taylor (https://en.wikipedia.org/wiki/Troy_Taylor_(record_producer))"
+  ],
+  "notes": "Epic/TUG teen boy band out of the Chris Stokes camp, with Neptunes and R. Kelly-adjacent productions, 2001–2004. The research gives \"66–99 straight; ballads 66–69 half-time\", and the straight band is the base — five of the seven sourced tempos sit at 90 or above — with the mode at 96. Three drum deltas from \"dry programmed kit, clap flat on 2&4, minimal hats, and a hard rim/snap accent on the offbeat 16th\": `quantizeStrength` 0.92 with `offGridMs` 0 and `swing.amount` 0.50, a hat lane at 0.12 fill density that is not continuous, and — the distinguishing one — an offbeat-placed rim/snap perc pair at three to five hits a bar and −5 dB, which is where the record's 16th-note motion actually lives. Harmony is \"two-chord m7/m9 shuttles with a bell or plucked lead\", so `maxChords` is 2 with seventh and ninth carrying 0.78 between them. \"Four young tenors in narrow stacks, chant hooks, low note-density, choreography-friendly 2-bar rhythmic cells\" is `structure` `riff_loop`, `twoBarCellRepeat`, a 3–5 pitch motif, a 2–6 density and `phraseBars` weighted onto 2. The bass is \"plucked synth bass in 8ths on the up-tempos\", encoded as repeated-root cells with no `bass808`. ⚠ Confidence is **low**: the research rates the entry medium-low and marks the key claim `[LOW-CONF]`. ⚠ Every velocity, density and register number is INFERRED. ⚠ `session.keys` is INFERRED: the entry's Keys line gives \"minor-mode two-chord vamps [LOW-CONF]\" and enumerates no tonic, so the values here and their weights are this author's reading of that line. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry's harmony line is \"minor-mode two-chord vamps\" / \"two-chord m7/m9 shuttles with a bell or plucked lead\", and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\") — so weighting `vamp` at the top rendered a **one**-chord bed the research nowhere describes. The chord motion the entry states is now carried by `1_per_bar` (the pair over a 2-bar cell) and `2_bars_per_chord` (the pair over a 4-bar cell), with `vamp` kept as the minority for the held reading. ⚠ The split between those two rates is **INFERRED** — the entry names the device, not its rate.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 99,
+      "mode": 96
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Fm",
+        "Cm",
+        "Gm",
+        "Bbm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.92,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 2,
+        "clap": 2,
+        "rim": 3,
+        "snap": 3
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.16,
+      "tresilloBias": 0.04,
+      "andOf4EveryOtherBar": 0.1
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        0,
+        2
+      ],
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.12,
+          0.22
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.12,
+      "velocities": {
+        "main": [
+          0.26,
+          0.4
+        ],
+        "ghost": [
+          0.1,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.04
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "snap"
+      ],
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.22,
+      "seventh": 0.48,
+      "ninth": 0.3
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      62,
+      81
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.84,
+      "third": 0.14,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.3,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": 0.02,
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "twoBarCellRepeat": true,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.26,
+    "styles": {
+      "values": [
+        "bell_echo",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "independent_riff",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.22,
+    "cellShapes": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

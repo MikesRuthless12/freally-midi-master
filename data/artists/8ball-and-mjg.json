@@ -62,16 +62,15 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        1,
+        2,
         3
       ],
       "anchors": [
         "1"
       ],
       "secondaryAnchor": "3&",
-      "syncopation": 0.25,
-      "tresilloBias": 0.29,
-      "lockTo808": 1
+      "syncopation": 0.24,
+      "tresilloBias": 0.3
     },
     "snare": {
       "ghost": {
@@ -83,9 +82,7 @@
           0.22,
           0.4
         ]
-      },
-      "placement": "halftime_3",
-      "offGridMs": 0
+      }
     },
     "hihat": {
       "base": "8th",
@@ -155,10 +152,10 @@
         "even"
       ],
       "velocityRampRange": [
-        52,
-        102
+        58,
+        100
       ],
-      "rampJitter": 17,
+      "rampJitter": 20,
       "descendProb": 0.52,
       "gapProb": 0.46
     },

@@ -1,0 +1,385 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "wyclef-jean-and-jerry-wonda-duplessis",
+  "type": "producer",
+  "name": "Wyclef Jean & Jerry \"Wonda\" Duplessis",
+  "aliases": [
+    "wyclef jean and jerry duplessis",
+    "jerry wonda",
+    "wyclef jean",
+    "platinum sound"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1996-2008",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "producer"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "dancehall",
+    "boom-bap",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Wyclef Jean & Jerry \"Wonda\" Duplessis",
+    "Wikipedia — Jerry Duplessis (https://en.wikipedia.org/wiki/Jerry_Duplessis)",
+    "songdata — Destiny's Child (https://songdata.io/search?query=Destiny%27s+Child)",
+    "songdata — Mary J. Blige (https://songdata.io/search?query=Mary+J.+Blige)"
+  ],
+  "notes": "Refugee Camp / Booga Basement into Platinum Sound — live-bass, Caribbean-inflected R&B crossover, 1996–2008; the research combines them into one entry \"because their production credits are effectively inseparable across this window\", and that decision is carried here. The band is \"87–100 straight (backbeat 2&4), with one-drop and 4/4-reggae variants\", mode 91. Three drum deltas: \"kick on 1 with a one-drop variant putting the kick on beat 3\" — so the kick anchors on both 1 and 3, which nothing else in this section does for that reason; \"snare/rim flat on 2&4\" with a rimshot layer pushed 5–11 ms; and \"live hand percussion (congas, timbales) layered over a programmed base; the feel is played rather than gridded\" — a five-lane conga/timbale/bongo/shaker/cowbell bed at four to eight hits a bar with `quantizeStrength` at 0.56 and `velocityVar` 0.28. The identifying parameter is stated as a superlative: \"**the bass is the identity** — Duplessis is a bassist from age 14 (influences Aston 'Family Man' Barrett and James Jamerson) and plays the parts himself: melodic, walking, reggae-derived lines that carry the harmony, mixed forward, with no 808 sub\". So `followRootsProb` is 0.3 — the lowest bass root-follow in this whole section — with a seven-wide passing-tone set, `anticipationProb` 0.52 and four walking cell shapes, and there is deliberately no `bass808` block. Harmony is \"guitar-and-bass-led 4-chord cycles, acoustic-guitar arpeggios\" with \"a sung-plus-rapped double-lead structure\", hence the major families, the guitar timbre hint and a `call_response` melody. ⚠ Confidence is medium: the bass-led method, gear and studio lineage are sourced, but \"tempo/harmony are catalogue-derived\". ⚠ Every velocity and density number is INFERRED. ⚠ `session.keys` is part-sourced: the entry names `Db`, `G`, and the remaining values `C`, `Am`, `Dm`, together with all 5 weights, are INFERRED rather than read from the entry.",
+  "session": {
+    "bpm": {
+      "min": 87,
+      "max": 100,
+      "mode": 91
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Db",
+        "G",
+        "C",
+        "Am",
+        "Dm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        2,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.56,
+      "velocityVar": 0.28,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 10,
+        "conga": 13,
+        "timbale": 12,
+        "bongo": 13,
+        "cowbell": 11
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.2,
+      "tresilloBias": 0.06,
+      "andOf4EveryOtherBar": 0.1
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.3
+        ]
+      },
+      "offGridMs": [
+        5,
+        11
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.36,
+          0.6
+        ],
+        "ghost": [
+          0.16,
+          0.32
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.06
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "timbale",
+        "bongo",
+        "shaker",
+        "cowbell"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "placement": "any",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.44,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        47,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      80
+    ],
+    "densityPerBar": [
+      3,
+      9
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.38,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.05,
+    "structure": "call_response",
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "acoustic_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.3,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.14,
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "P4",
+      "M6",
+      "m7",
+      "P8"
+    ],
+    "anticipationProb": 0.52,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "8",
+        "5"
+      ],
+      [
+        "1",
+        "2",
+        "3",
+        "5"
+      ],
+      [
+        "1",
+        "b7",
+        "5",
+        "4"
+      ],
+      [
+        "5",
+        "1",
+        "4",
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 16,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

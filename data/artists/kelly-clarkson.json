@@ -1,0 +1,252 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kelly-clarkson",
+  "type": "artist",
+  "name": "Kelly Clarkson",
+  "aliases": [
+    "kelly clarkson",
+    "kellyclarkson"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2002-2009",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "pop-rock"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "country-pop",
+    "pop-2020s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Kelly Clarkson",
+    "Wikipedia — \"Since U Been Gone\" (https://en.wikipedia.org/wiki/Since_U_Been_Gone)",
+    "Wikipedia — Jörgen Elofsson (https://en.wikipedia.org/wiki/J%C3%B6rgen_Elofsson)"
+  ],
+  "notes": "Talent-show pop that annexed pop-rock, and the harmony is the reason it needs its own model rather than the genre default: the documented signature key is G major with a **G–Am–Em–F** loop — I–ii–vi–IV, \"a non-functional, indie-derived cycle rather than a I–V–vi–IV\" — so that family carries top weight and the canonical pop loop sits under it. 90–132 straight, backbeat on 2&4. The drums are documented as an intervention: \"harder drums\" added at the artist's insistence over a programmed demo, so the accent tier is the highest in this batch and the snare is dry and tight. Three deltas: \"kick 1 and 3 with an 8th pickup\" (second anchor \"4&\"), \"8th hat in verse, crash-and-open-hat 8ths in the chorus\" (an 8th base with a high open-hat probability on both \"&\"s and a crash lane), and \"a one-bar drum-out before the last chorus\", which is `dropOutBeats` at 0.95 over 4 beats. The melody spans a documented two octaves (G3–G5) \"with the chorus apex on the title\" and \"no melisma — straight belted notes\", which is the 55–79 register with a high `chordToneBias`, an arch contour and no end variation. The quiet-verse/loud-chorus alternative-rock dynamic is carried in the arrangement rather than in the notes. ⚠ The **INFERRED** parameters are the drum probabilities and velocity tier — \"harder\" and \"hit hard with a short room\" are directions, and 112–127 is this author's reading.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 132,
+      "mode": 112
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.16
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        82,
+        98
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.2
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.4,
+      "openHat": {
+        "prob": 0.55,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.12
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "ii",
+          "vi",
+          "IV"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.22,
+      "ninth": 0.08
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.28,
+      "descend": 0.24,
+      "arch": 0.48
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": 0.18,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "endVariation": false
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.93,
+    "rhythm": "mirror_kick",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.95,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

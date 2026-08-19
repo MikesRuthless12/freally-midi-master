@@ -1,0 +1,376 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "normani",
+  "type": "artist",
+  "name": "Normani",
+  "aliases": [
+    "normani",
+    "normani kordei hamilton",
+    "dopamine"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap-soul"
+  ],
+  "era": "2018-present",
+  "genres": [
+    "trap-soul",
+    "rnb",
+    "latin pop"
+  ],
+  "relatedGenres": [
+    "trap-soul",
+    "reggaeton",
+    "pop-2020s",
+    "dance-pop"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 trap-soul — Normani",
+    "Wikipedia — Normani (https://en.wikipedia.org/wiki/Normani)",
+    "Wikipedia — Alternative R&B (https://en.wikipedia.org/wiki/Alternative_R%26B)",
+    "Wikipedia — Trap music (https://en.wikipedia.org/wiki/Trap_music)"
+  ],
+  "notes": "`pop-2020s` did not claim her (the volume says it checked), so she is entried here on the R&B-and-Latin-percussion material. The modelled band is the trap-soul one — \"120–140 read / 60–70 felt half-time for the trap-soul cuts\" — with the dembow/Latin kit carried as the percussion layer rather than as a second model, because it is what the entry treats as her signature: \"timbales/congas as the main fill instrument\". So the perc block is the widest and loudest in this batch, and `kick.tresilloBias` is high for the 3+3+2 figure the entry names. The harmony follows the entry's two shapes — minor 2-chord loops with m9 pads, and Latin/reggaeton-adjacent modal vamps written out as `i–VI–VII` and `i–V`. The melody is \"agile mid-soprano with high rhythmic density, staccato syllabic phrasing designed for choreography\", so `articulation` is staccato, the density is high and the runs are short — `endVariation` on, `phraseBars` short. ⚠ `confidence` is **low**: the research rates the entry medium-low and says \"tempo bands and drum detail are idiom inference\". ⚠ Every drum number, the swing amount, the 808 figures and both melody bands are therefore **INFERRED**; the researched facts are the era, the two tempo bands, the backbeat classes, the two harmonic shapes and the named percussion. ⚠ `session.bpm.mode` is **INFERRED**: the number is not stated in the entry, and it is an authored centre of gravity inside the band the entry does state. ⚠ **`session.keys` is INFERRED.** The entry's Keys line describes the harmonic grammar but names no key centre, so these values and their weights are an authored choice — no key in this set is stated in the research.",
+  "session": {
+    "bpm": {
+      "min": 120,
+      "max": 140,
+      "mode": 130
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Am",
+        "Gm",
+        "Cm",
+        "Em",
+        "Dm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
+    "humanize": {
+      "quantizeStrength": 0.87,
+      "velocityVar": 0.17,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 4,
+        "clap": 4,
+        "closedHat": 3,
+        "conga": 8,
+        "timbale": 8
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.56,
+      "tresilloBias": 0.7,
+      "lockTo808": 0.66
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "2e",
+          "3a"
+        ],
+        "vel": [
+          0.24,
+          0.4
+        ]
+      },
+      "offGridMs": [
+        1,
+        4
+      ],
+      "offSnare": {
+        "prob": 0.42,
+        "pos": [
+          "2&",
+          "4&"
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.54,
+          0.76
+        ],
+        "ghost": [
+          0.24,
+          0.4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.34,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "timbale",
+        "bongo",
+        "snap",
+        "clave"
+      ],
+      "densityPerBar": [
+        5,
+        8
+      ],
+      "placement": "any",
+      "gainOffsetDb": -3
+    },
+    "bass808": {
+      "sustain": "staccato",
+      "slideProb": 0.34,
+      "slidesPer4Bars": [
+        1,
+        2
+      ],
+      "slideIntervals": {
+        "values": [
+          "P4",
+          "P5"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        26,
+        41
+      ],
+      "distortion": "light"
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.44,
+      "ninth": 0.26
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        51,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      64,
+      86
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      7,
+      13
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.38,
+      "descend": 0.36,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.7,
+    "endVariation": true,
+    "octaveJumpProb": 0.09,
+    "articulation": "staccato",
+    "timbreHint": "brass_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": [
+        8,
+        16
+      ],
+      "prechorus": 4,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "bridge",
+          "hook",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 4
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

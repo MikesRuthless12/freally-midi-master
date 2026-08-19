@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-import { pickArtist } from './app';
+import { expect, test, type Locator } from '@playwright/test';
+import { pickArtist, rosterBox } from './app';
 
 /**
  * Original Workflow — build a style of your own, save it, generate from it
@@ -18,6 +18,24 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
 });
+
+/**
+ * Give the draft something of its own, so it is a style rather than its base.
+ *
+ * ⛔ **Mike, 2026-08-16:** *"if you tick just a scale without generating
+ * anything, then it shouldn't save anything"* — so a draft that only carries a
+ * name and a ticked scale is now refused, and the tests below are about what
+ * happens *after* a save rather than about that rule. This is the one line that
+ * makes each of them a real save: it moves a control, which is what a producer
+ * does. The rule itself has its own test.
+ *
+ * ⚠ Hat density, deliberately: `modelFrom` writes `drums.hihat.fillDensity` for
+ * every draft anyway, so moving it changes the value and nothing about the shape
+ * of what is saved.
+ */
+async function makeItAStyle(dialog: Locator) {
+  await dialog.getByLabel('Hat density').fill('0.8');
+}
 
 test('the way in is pinned above everything, whatever is selected', async ({ page }) => {
   // ⛔ Mike's rule: it pins to the top above every artist and producer, always.
@@ -63,6 +81,7 @@ test('a saved style joins the roster marked as yours, and reopens as itself', as
 
   await dialog.getByLabel('Name').fill('My Dark Trap');
   await scales.first().check();
+  await makeItAStyle(dialog);
   await dialog.getByRole('button', { name: 'Save style' }).click();
 
   // Saved, and said so with the name rather than a bare tick.
@@ -80,7 +99,7 @@ test('a saved style joins the roster marked as yours, and reopens as itself', as
   // roster refreshes over the bridge after the save: committing immediately
   // matched nothing and correctly fell back to the previous selection. An
   // `expect` retries, which is what gives the refresh time to land.
-  const roster = page.getByRole('combobox', { name: 'Roster' });
+  const roster = rosterBox(page);
   await roster.click();
   await roster.fill('My Dark');
   const row = page
@@ -190,6 +209,7 @@ test('saving copies no samples unless the producer says so', async ({ page }) =>
   await expect(box).not.toBeChecked();
 
   await dialog.getByLabel('Name').fill('No Copies');
+  await makeItAStyle(dialog);
   await dialog.getByRole('button', { name: 'Save style' }).click();
   await expect(dialog.locator('.styleeditor__saved')).toContainText('No Copies');
 
@@ -202,6 +222,7 @@ test('ticking the box is what lets the samples be copied', async ({ page }) => {
 
   await dialog.getByLabel('Name').fill('With Copies');
   await dialog.locator('.styleeditor__samples').getByRole('checkbox').check();
+  await makeItAStyle(dialog);
   await dialog.getByRole('button', { name: 'Save style' }).click();
 
   await expect(dialog.locator('.styleeditor__saved')).toContainText('Copied 1 samples');
@@ -221,4 +242,111 @@ test('an unnamed style is refused with a reason rather than saved as nothing', a
   await expect(dialog.locator('.styleeditor__error')).toBeVisible();
   // Nothing reached the roster.
   await expect(page.locator('.roster__item .badge--mine')).toHaveCount(0);
+});
+
+test('a scale ticked over nothing is refused rather than saved as a style', async ({
+  page,
+}) => {
+  // ⛔⛔ **Mike, 2026-08-16:** *"the ticking a scale and pressing the save button
+  // (if you tick just a scale without generating anything, then it shouldn't
+  // save anything)"*.
+  //
+  // ⚠ **Ticking a scale is deliberately not content**, and that is the whole
+  // rule rather than an omission: the list this dialog offers is narrowed to the
+  // base's own scales, so every one a producer can tick is one their base
+  // already uses. Ticking one restates the base; it does not add to it.
+  await page.getByRole('button', { name: /Original Workflow/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Style editor' });
+
+  await dialog.getByLabel('Name').fill('Nothing But A Scale');
+  await dialog.locator('.styleeditor__scales input[type="checkbox"]').first().check();
+  await dialog.getByRole('button', { name: 'Save style' }).click();
+
+  // ⚠ **Refused with a reason on screen**, not by grinding to a halt: an
+  // unedited song is deliberately not saved either, and a control that quietly
+  // does nothing is a rule the producer has to guess at.
+  await expect(dialog.locator('.styleeditor__error')).toBeVisible();
+  await expect(dialog.locator('.styleeditor__saved')).toHaveCount(0);
+
+  // And then it saves, once there is something to save.
+  await makeItAStyle(dialog);
+  await dialog.getByRole('button', { name: 'Save style' }).click();
+  await expect(dialog.locator('.styleeditor__saved')).toContainText('Nothing But A Scale');
+});
+
+/**
+ * The four blocks the editor could not reach (TASK-040U, closed 2026-08-15).
+ *
+ * ⛔ **The entry stayed ◐ for a stated reason**: *"they cannot yet reach roll
+ * vocabulary, snare placement, 808 behaviour or progression families."* Those
+ * four are most of what separates one authored style from another, so a producer
+ * building a vibe by hand could set a tempo and a scale and nothing that decides
+ * how the beat is actually written.
+ *
+ * ⚠ **What only a browser proves here is the round trip**, which is the half that
+ * silently rots: `modelFrom` writing a key the reopened `draftFrom` does not read
+ * back leaves a control that forgets what the producer chose. The write itself is
+ * `plugin/src/models.rs` and is tested there.
+ */
+test('the snare, the rolls, the 808 and the progressions save and reopen', async ({ page }) => {
+  await page.getByRole('button', { name: /Original Workflow/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Style editor' });
+  await expect(dialog).toBeVisible();
+
+  const snare = dialog.locator('fieldset').filter({ hasText: 'Snare' });
+  const rolls = dialog.locator('fieldset').filter({ hasText: 'Rolls' });
+  const bass = dialog.locator('fieldset').filter({ hasText: '808' });
+  const progressions = dialog.locator('fieldset').filter({ hasText: 'Progressions' });
+
+  // ⛔ **Every group starts on "From the base"**, because an authored value
+  // replaces the parent's — a control with no unset state would make opening the
+  // dialog enough to overwrite what the style is based on.
+  await expect(snare.getByRole('radio', { name: 'From the base' })).toBeChecked();
+  await expect(bass.getByRole('radio', { name: 'From the base' })).toBeChecked();
+  await expect(rolls.getByRole('checkbox', { checked: true })).toHaveCount(0);
+  await expect(progressions.getByRole('checkbox', { checked: true })).toHaveCount(0);
+
+  // ⚠ The slide is dead until the 808 has a role: a slide probability with no
+  // role is half an 808, and the disabled state is what says so.
+  await expect(bass.getByRole('slider')).toBeDisabled();
+
+  await dialog.getByLabel('Name').fill('My Bounce');
+  await snare.getByRole('radio', { name: '2 & 4' }).check();
+  await rolls.getByRole('checkbox', { name: '16T' }).check();
+  await bass.getByRole('radio', { name: 'Answers the bassline' }).check();
+  await progressions.getByRole('checkbox', { name: 'i–VI–VII' }).check();
+  await expect(bass.getByRole('slider')).toBeEnabled();
+
+  await dialog.getByRole('button', { name: 'Save style' }).click();
+  await expect(dialog.locator('.styleeditor__saved')).toContainText('My Bounce');
+  await dialog.getByRole('button', { name: 'Close' }).click();
+
+  // Reopen the saved style and every one of the four comes back as it was.
+  const roster = rosterBox(page);
+  await roster.click();
+  await roster.fill('My Bounce');
+  const row = page
+    .locator('.combo__menu')
+    .getByRole('option')
+    .filter({ hasText: 'My Bounce' })
+    .first();
+  await expect(row).toBeVisible();
+  await row.click();
+
+  // ⚠ **The pencil, not "Original Workflow".** That button opens a *blank* form
+  // — it is the way in to a new style — and the first cut of this test used it
+  // and correctly found nothing checked. Editing a saved style is the row's own
+  // control, which appears only once the selection is the producer's own.
+  await page.getByRole('button', { name: 'Edit My Bounce' }).click();
+  await expect(dialog).toBeVisible();
+  await expect(snare.getByRole('radio', { name: '2 & 4' })).toBeChecked();
+  await expect(rolls.getByRole('checkbox', { name: '16T' })).toBeChecked();
+  await expect(bass.getByRole('radio', { name: 'Answers the bassline' })).toBeChecked();
+  await expect(progressions.getByRole('checkbox', { name: 'i–VI–VII' })).toBeChecked();
+
+  // ...and the ones never touched are still inheriting rather than authored.
+  await expect(rolls.getByRole('checkbox', { name: '32' })).not.toBeChecked();
+  await expect(
+    progressions.getByRole('checkbox', { name: 'i–iv', exact: true }),
+  ).not.toBeChecked();
 });

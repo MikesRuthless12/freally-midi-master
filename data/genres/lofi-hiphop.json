@@ -39,7 +39,7 @@
     "style-research ch.1 Cross-genre engine constants (MPC swing scale)",
     "style-research ch.1 sources — brltheory.com (Dilla III), ujam.com (neo-soul drums)"
   ],
-  "notes": "The soft, sleepy derivative of boom bap. Same 2 and 4, but slower, shuffled at 62% where boom bap sits at the classic 58%, and quantized loosely enough that the kit drags behind itself — the kick sparse and late on the a-of-3, the hats unhurried eighths played quietly, the whole kit written 20 velocity points under a 90s record. Harmony is the other half of it: a Rhodes voicing sevenths and ninths open, real ii–v–i motion rather than a two-chord loop, with a low-density melody that wanders and leans on the 9th, 11th and 13th instead of the chord tones. No 808 — the low end is an upright-register bass walking its own figure. Confidence is medium because the compendium documents this as boom bap's Dilla/neo-soul \"drunk\" variant rather than as a genre of its own, so the 70–90 tempo band and the velocity floor are extrapolated from ch.1 §8 and §9 rather than read off a line.",
+  "notes": "The soft, sleepy derivative of boom bap. Same 2 and 4, but slower, shuffled at 62% where boom bap sits at the classic 58%, and quantized loosely enough that the kit drags behind itself — the kick sparse and late on the a-of-3, the hats unhurried eighths played quietly, the whole kit written 20 velocity points under a 90s record. Harmony is the other half of it: a Rhodes voicing sevenths and ninths open, real ii–v–i motion rather than a two-chord loop, with a low-density melody that wanders and leans on the 9th, 11th and 13th instead of the chord tones. No 808 — the low end is an upright-register bass walking its own figure. Confidence is medium because the compendium documents this as boom bap's Dilla/neo-soul \"drunk\" variant rather than as a genre of its own, so the 70–90 tempo band and the velocity floor are extrapolated from ch.1 §8 and §9 rather than read off a line. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit has no 808 — `bass808` is `null` here or in the parent it inherits — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so in this file it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead here. Where it was NOT dead was in the artists and producers who extend this kit and author an 808 of their own: they inherited the zero, `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, and their sub lane was silent at every seed — `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\" for 35 of them. Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: this kit's own statement about the 808 is the `bass808: null` beside it, and that is untouched.",
   "session": {
     "bpm": {
       "min": 70,
@@ -126,8 +126,7 @@
       "subLayerVelocity": [
         0.4,
         0.55
-      ],
-      "lockTo808": 0
+      ]
     },
     "snare": {
       "placement": "backbeat_24",

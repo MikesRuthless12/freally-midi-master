@@ -22,7 +22,7 @@ use crate::context::SessionContext;
 use crate::dataset::StyleModel;
 use crate::generators::chords::Chords;
 use crate::generators::grid;
-use crate::generators::read::{block, flag, number, optional_number, pair, text};
+use crate::generators::read::{self, block, flag, number, optional_number, pair, text};
 use crate::pattern::{Articulation, Lane, LaneTrack, Note};
 use crate::rng;
 use crate::theory;
@@ -452,13 +452,16 @@ fn rhythm(
             continue;
         }
 
-        let wanted = if density.1 > density.0 {
-            rng.random_range(density.0..=density.1)
-        } else {
-            density.0
-        }
-        .round()
-        .clamp(0.0, slots.len() as f64) as usize;
+        // ⛔ **TASK-125 leans this draw and does not replace it.** The authored
+        // range is the model's own statement about its spread — `[2, 6]` means a
+        // sparse bar is as much this artist as a busy one — so Complex moves the
+        // *average* toward six while leaving two reachable. A model that authors
+        // one number is unmoved at every setting, which is the rule.
+        // ⚠ Direction from `read::LEANING` rather than assumed here (TASK-170).
+        let wanted = read::leaning(ctx.complexity, "melody", "densityPerBar")
+            .draw(density.0, density.1, rng)
+            .round()
+            .clamp(0.0, slots.len() as f64) as usize;
         if wanted == 0 {
             continue;
         }
@@ -829,9 +832,21 @@ fn answer(
     // The root of whatever is sounding at *this phrase's* end, in the register.
     // ⛔ The offset matters: without it every phrase resolves onto the chord
     // that happened to be under the first one.
+    //
+    // ⛔ **The root only while the session's scale has it.** The chord was
+    // stacked in `theory::harmonic_degrees`, and a five- or six-note scale
+    // sounds over that key with notes missing from it: major pentatonic has no
+    // fourth, so `IV`'s root is a pitch this melody may not play. Resolving onto
+    // it is the one place this generator left its own key — `kygo`, which
+    // authors `major_pentatonic` and `halfStepDissonance: 0`, failed both
+    // `melody::every_shipped_melody_stays_in_its_key_and_register` and
+    // `coherence` on exactly that note. The next tone of the *same chord* the
+    // scale does have is still a resolution onto the harmony; the tonic is the
+    // fallback when there is no chord at all. See
+    // [`ChordEvent::tones_in_scale`].
     let root = chords
         .at(offset + last.tick)
-        .map(|event| event.root)
+        .and_then(|event| event.tones_in_scale(ctx).first().copied())
         .unwrap_or(ctx.key_root);
     let resolved = theory::pitch_class_in_register(root, low, high)
         .or_else(|| theory::fold_into_register(pitch_of(ctx, degrees, 1) as i16, low, high));

@@ -1,0 +1,164 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "brent-mason",
+  "type": "producer",
+  "name": "Brent Mason",
+  "aliases": [
+    "brent mason",
+    "brentmason",
+    "brett mason"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1990-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-train"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Brent Mason",
+    "Premier Guitar — Brent Mason (https://www.premierguitar.com/artists/brent-mason-interview)",
+    "Wikipedia — Brent Mason (https://en.wikipedia.org/wiki/Brent_Mason)",
+    "Mix — Classic Tracks: \"Independence Day\" (https://www.mixonline.com/recording/classic-tracks/classic-tracks-martina-mcbrides-independence-day)"
+  ],
+  "notes": "The defining Nashville lead-guitar grammar, placed in PRODUCERS by the research as an *instrumental-grammar* entry — \"the Nashville lead-guitar, pedal-steel and drum vocabularies that the engine needs as style parameters; no artist entry duplicates them\" (Assignment notes). ⛔ **This file exists because that instruction says it should.** It was dropped in the first encoding pass under a \"Drums: n/a\" gate, which reads the wrong field: the entry's Drums line is not empty, it is a *placement* rule for his own part, and this entry carries more documented technique than the two drummer entries that were shipped. The lick vocabulary is the model: \"double-stops in sixths and thirds, open-string pull-offs, chromatic approach notes into chord tones, and pedal-steel-imitating bends against a held note\" — so `intervals.third` is the highest in this section and the sixths read as the leap share, `halfStepDissonance` is 0.16 against the genre's 0.02 (that is the chromatic approach, and nothing else in country-pop authors one), and `chordToneBias` stays high because those approaches resolve *into chord tones*. `articulation` is the entry's own word: \"staccato 'chicken-pickin'' attacks land on the backbeat and the 16ths around it, and he leaves the downbeat to the band\" — hence the 16th-level density and no drum block at all, because the downbeat belongs to the band. The phrase grid is quoted: fills \"answer the vocal in the gaps at the ends of **2- and 4-bar phrases**,\" which is `phraseBars` and the counter's `fillGapsOnly`. The bass block follows the one low-register fact the entry gives — \"a Jerry Jones six-string bass tuned down an octave and a Jerry Jones baritone tuned down a fourth are documented parts of his kit, i.e. the 'tic-tac' baritone doubling of the bass line is in-palette\" — so the line is root-following rather than independent, because a tic-tac double *is* the bass line. The arrangement carries his stated method: \"not playing the obvious … he works inside each artist's framework rather than deploying signature licks uniformly,\" which is a high `switchUpProb` (he does not repeat himself across songs), and \"on artists who wanted dance-length breaks he supplied **extended instrumental passages** rather than short solos,\" which is the 8-bar bridge — ⚠ the engine's section vocabulary is intro / verse / prechorus / chorus / bridge / outro and has no instrumental kind, so the documented instrumental break is carried by the bridge's length. ⚠ **No `session.bpm` and no `session.keys` are authored, and both omissions are the research's own words**: \"his parts run across the whole tempo map at 2&4\" (so the genre band stands) and \"he plays in the singer's key, not the guitarist's, which is precisely why the lick vocabulary is transposition-robust\" (so no key set is claimed). ⚠ **No `chords` block is authored**: the entry contains no roman numerals and no harmonic statement at all, so the genre's families are inherited rather than invented — the same call `dann-huff`, `byron-gallimore`, `nathan-chapman` and `ed-seay` already ship. ⚠ The humanize values are read from \"light 9–44 strings with normal action for **fast session work**\" and the same interview's \"first takes usually kept\" (quoted in this document's `country-train` timbre palette), i.e. a played, uncorrected feel — but the numbers themselves are INFERRED, and no per-lane `timingJitterMs` is authored because the entry's Drums line is about *his* placement, not about a kit he plays. ⚠ Also INFERRED: the melody register, the density range, the contour split, the counter ratio and every bass number except the root-following rationale. ⚠ Confidence is medium (research: high) — the technique is first-person and detailed, but this entry supplies no tempo, no key and no numeral, so most of what a generator needs here is this author's reading rather than a researched fact. ⚠ `relatedGenres` claims `country-train` on the document's own words and nothing wider: that section's timbre palette is sourced to this same interview — \"the Nashville session-Telecaster tone that carries this archetype on record is documented concretely: a 1968 Telecaster … into a **Boss compressor** into a **1967 Fender Deluxe Reverb** … ([Premier Guitar — Brent Mason interview])\" — and the Assignment notes flag the fast Alan Jackson and Brooks & Dunn grooves (\"Chattahoochee,\" \"Mercury Blues,\" \"Boot Scootin' Boogie\"), records this entry's own credit list names him on, to `country-train`.",
+  "session": {
+    "humanize": {
+      "quantizeStrength": 0.79,
+      "velocityVar": 0.22
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "structure": "question_answer",
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "intervals": {
+      "step": 0.5,
+      "third": 0.36,
+      "leap": 0.14
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.3,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.84,
+    "halfStepDissonance": 0.16,
+    "endVariation": true,
+    "octaveJumpProb": [
+      0.06,
+      0.14
+    ],
+    "articulation": "staccato",
+    "timbreHint": "tele_chicken_pickin"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad",
+        "arp"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "boom_chick",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M6",
+      "M2"
+    ],
+    "anticipationProb": 0.16
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.14,
+        "beats": 2
+      },
+      "switchUpProb": 0.3
+    }
+  }
+}

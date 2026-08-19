@@ -1,0 +1,403 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rudimental",
+  "type": "producer",
+  "name": "Rudimental",
+  "aliases": [
+    "rudimental",
+    "piers agget",
+    "amir amor",
+    "kesi dryden"
+  ],
+  "tier": "standard",
+  "extends": [
+    "liquid-dnb"
+  ],
+  "era": "2009-present",
+  "genres": [
+    "liquid-dnb",
+    "dance-pop",
+    "soul",
+    "producer"
+  ],
+  "relatedGenres": [
+    "liquid-dnb",
+    "dance-pop",
+    "house",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Rudimental",
+    "Wikipedia — Rudimental (https://en.wikipedia.org/wiki/Rudimental)",
+    "Wikipedia — Waiting All Night (https://en.wikipedia.org/wiki/Waiting_All_Night)",
+    "Drum and bass (https://en.wikipedia.org/wiki/Drum_and_bass)",
+    "Liquid drum and bass (https://en.wikipedia.org/wiki/Liquid_drum_and_bass)",
+    "BPM Database — Rudimental (https://www.bpmdatabase.com/music/search/?artist=Rudimental)"
+  ],
+  "notes": "⛔ **This model extends `liquid-dnb`, not `dance-pop`.** The volume writes Rudimental up in the `dance-pop` section, and states in its own assignment notes that the entry keeps the genre-native grammar — \"Rudimental's 170-180 two-step\" — \"rather than forcing them onto a four-on-the-floor\". The entry names the lane directly: \"**liquid drum and bass** grammar — a fast syncopated breakbeat at 170-180 with the two-step kick/snare skeleton\". Extending that lane is what the encoding contract asks when the research marks the case explicitly. The band is that quoted spine and nothing wider — floor 170, ceiling 180, the entry's own \"a **170-180 DnB spine**\" with \"the breakthrough single reads 180 at full rate, 90 halved\". The entry's separate \"**86-125 house/pop side** for the later crossovers\", where \"it is a straight 2&4\", is the other rhythmic family and is not modelled here; the single that \"reads 159\" is left out for the same reason. The deltas against `liquid-dnb` are the ones the entry documents. The backbeat moves: \"kick on 1, snare on the 3rd beat of the bar — which *feels* half-time against the 175 grid\", so `halfTime` is true and the snare sits on `halftime_3` where the parent has a straight 2&4. The feel is played, not programmed — \"live percussion and a real drummer's feel are layered in\", with credited instrumentalists — so `quantizeStrength` falls to 0.78 with a 0.24 velocity variance, the loosest grid in anything this agent wrote. The liquid convention \"explicitly uses fewer bar-oriented samples\", so the perc bed is a ghosted 16th ride and shaker rather than chopped breaks. The low end is the parameter the entry says makes these read as songs rather than club tools: \"sine sub-bass and 808-style low end doubled by played bass guitar, moving in half-note or whole-note pedal tones under the fast drums — the low end is slow while the drums are fast\", which is a kick mirror at 0.92 roots with a low anticipation. Harmony is \"soul/gospel — ii-V motion, 7ths and 9ths, and a modulating or plagal lift into the chorus — because the toplines are written for gospel-trained singers\", and the palette is live brass: \"the chorus bursts open with soul-flying brass\". Guest vocalists rotate, which is why the entry sits in PRODUCERS. ⚠ The exact drum placement is DnB/liquid convention by the entry's own statement; the velocities, densities and registers are INFERRED. ⛔ **The bass is `mirror_kick` rather than `reese_sustain`, and that is an engine limit rather than a reading of the record.** `reese_sustain` is the only rhythm `bass.rs` reads that holds a note, and it emits one note per chord — TASK-162, still open — so this model measured **261 distinct basslines in 1,000 seeds** on it against `bass.rs`'s floor of 500. `mirror_kick` with a high root lock is the roster-wide substitution for a sustained sub (`dmx`, `coolio`, `krs-one`, `mobb-deep` all record the same one), and over a kick that plays the two-step 1 with a `4&` at 175 it reads as held at this tempo. The research is *\"sine sub-bass and 808-style low end doubled by played bass guitar, moving in **half-note or whole-note pedal tones under the fast drums**\"* — and at 170–180 BPM a bass on this kick *is* a half-note pedal, which is why the substitution costs less here than anywhere else in this batch. ⚠ **INFERRED:** `followRootsProb` 0.92 and `anticipationProb` 0.14 are lane-conventional; the entry marks its exact drum placement as DnB/liquid convention already.",
+  "session": {
+    "bpm": {
+      "min": 170,
+      "max": 180,
+      "mode": 175
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Am",
+        "Cm",
+        "Dm",
+        "Fm",
+        "Gm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 7,
+        "clap": 6,
+        "closedHat": 8,
+        "openHat": 7,
+        "shaker": 9,
+        "perc": 9
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        106,
+        122
+      ],
+      "main": [
+        74,
+        92
+      ],
+      "ghost": [
+        30,
+        52
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.42,
+      "tresilloBias": 0.06,
+      "offbeat8thShare": 0.3
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [
+        4,
+        10
+      ],
+      "ghost": {
+        "prob": 0.62,
+        "pos": [
+          "1a",
+          "2e",
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.24,
+          0.46
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.8,
+      "velocities": {
+        "main": [
+          0.62,
+          0.88
+        ],
+        "ghost": [
+          0.3,
+          0.52
+        ]
+      },
+      "openHat": {
+        "prob": 0.4,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.24
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "shaker",
+        "perc",
+        "conga"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "any",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": true,
+      "fillBeforeSection": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        42,
+        118
+      ],
+      "rampJitter": 14,
+      "gapProb": 0.24,
+      "descendProb": 0.12,
+      "pitchWalk": 3
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.26,
+      "seventh": 0.46,
+      "ninth": 0.28
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        84
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "susSubstitutionProb": 0.18
+  },
+  "melody": {
+    "register": [
+      67,
+      91
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.52,
+      "third": 0.28,
+      "leap": 0.2
+    },
+    "contour": {
+      "riff": 0.26,
+      "descend": 0.3,
+      "arch": 0.44
+    },
+    "chordToneBias": 0.68,
+    "halfStepDissonance": 0.05,
+    "octaveJumpProb": [
+      0.1,
+      0.2
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "brass_section"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      42
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.14
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 16,
+      "verse": 32,
+      "prechorus": 16,
+      "hook": 32,
+      "bridge": 16,
+      "outro": 16
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "bridge",
+          "prechorus",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 4
+      },
+      "switchUpProb": 0.14
+    }
+  }
+}

@@ -1,0 +1,553 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "techno",
+  "type": "genre",
+  "name": "Techno",
+  "aliases": [
+    "detroit techno",
+    "minimal techno",
+    "hard techno",
+    "warehouse techno",
+    "jeff mills type",
+    "robert hood type beat",
+    "underground resistance",
+    "peak time techno"
+  ],
+  "tier": "standard",
+  "extends": [
+    "_defaults"
+  ],
+  "era": "1985–present",
+  "genres": [
+    "electronic",
+    "techno",
+    "club"
+  ],
+  "relatedGenres": [
+    "house",
+    "afro-house",
+    "edm-rage",
+    "uk-garage",
+    "future-bass"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.4 house — \"Detroit-techno-adjacent names the brief flagged, dropped with a note: Jeff Mills and Robert Hood are techno, not house — no four-on-the-floor-plus-jazz-harmony lane fits them … and this app has no `techno` archetype, so there is nowhere legitimate to put them\"",
+    "style-research-extended vol.4 house — \"If a `techno` model is added they should be written up there along with Underground Resistance, Carl Craig, Derrick May, Juan Atkins and Kevin Saunderson (all of whom also fail Gate 2 on a 1985–89 defining era)\"",
+    "style-research-extended vol.4 house — Theo Parrish and Moodymann were KEPT in `house`, \"because their lane is documentably deep house rather than techno\"",
+    "style-research-extended-4 vol.4 header — techno named first among the archetypes that do not exist in this app, and \"the most consequential omission\""
+  ],
+  "notes": "⛔⛔ **`confidence` is `low`, and the protocol says a low model must state why: the research gives this lane a BOUNDARY and no parameters at all.** Volume 4 dropped **Jeff Mills, Robert Hood, Underground Resistance, Carl Craig, Derrick May, Juan Atkins and Kevin Saunderson** — six of the founders of the form — with the note that *\"no four-on-the-floor-plus-jazz-harmony lane fits them\"* and *\"this app has no `techno` archetype, so there is nowhere legitimate to put them\"*. The roadmap calls it **the most consequential omission** in the set. What is sourced is exactly three things: that the lane is four-on-the-floor, that its harmony is **not** house's jazz harmony, and that Theo Parrish and Moodymann are *not* in it because *\"their lane is documentably deep house rather than techno\"*. Every number below is inference from that boundary and from the shape of the neighbours it must not be. ▶ **So the model is authored as house's four-on-the-floor with the harmony taken away.** `chords.maxChords` is 2 with the `i`-alone family carrying most of the weight, `extensions` are almost entirely bare triads, and `harmonicRhythm` is a vamp — against `house`, which reaches sevenths and ninths and moves. That single subtraction is the sourced difference, and it is what the invariant test measures. ⚠ **Faster and tighter than house, both inferred.** 130–140 centred on 135 against house's 120–128, `quantizeStrength` at 0.96 — the tightest on the roster, because a machine-locked grid is the one thing every description of this music agrees on — and `velocityVar` low for the same reason. ⚠ **The melodic content is a sequence, not a topline.** A short cell of two to five pitches, high `structure: riff_loop` weighting, a very low `chordToneBias` (this music does not resolve to chord tones because there is barely a chord), and the highest `emptyBarBias` of any electronic model here: the interest is in filtering and arrangement, which this engine does not author, so an inventive melody line would be the wrong kind of busy. ⚠ **The harmony floor caught the first cut at 270 of the 500 distinct progressions a model must reach in 1,000 seeds** — the lowest of the eleven, which is what a lane authored as 88% bare triads over a single vamp produces. The cure took four rounds and the one that worked is worth knowing: `chordDurationBeats` [2, 16], a wider voicing register, `susSubstitutionProb` 0.20 and the seventh share lifted to 0.20 took it from 270 to 474 — the seventh being **more** faithful rather than less, since the m7/m9 pad is exactly what Derrick May and Carl Craig are known for. Adding a third chord and a `i–VI–VII` family moved it by **one** (474 → 475), which says the chord vocabulary was never the constraint. What cleared it was the **key list**: five keys to eight, weighted, which is variety the archetype pays nothing for — nothing in the research confines this lane to five, and every neighbour authors six or seven. ▶ **On a lane that sits on one chord, widen the keys and the durations, not the harmony.** ⚠ **Nothing was moved onto this model.** The seven names above are what it was authored *for*, and each is a roster entry with its own gates; adding them is the next session's work, not a side effect of this file existing. ⚠ **A later session with real techno research should expect to rewrite the interior of this model.** The gate asserts only the sourced boundary, and says so.",
+  "arrangement": {
+    "sectionBars": {
+      "intro": 16,
+      "verse": 16,
+      "hook": 16,
+      "bridge": 8,
+      "outro": 16
+    }
+  },
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 140,
+      "mode": 135
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Am",
+        "Cm",
+        "Fm",
+        "Gm",
+        "Dm",
+        "Bm",
+        "Ebm",
+        "F#m"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        3,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "minor_pentatonic",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.96,
+      "velocityVar": 0.08,
+      "timingJitterMs": {
+        "kick": 0,
+        "snare": 1,
+        "clap": 1,
+        "closedHat": 1,
+        "openHat": 1,
+        "perc": 2,
+        "bass808": 1
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.02,
+      "tresilloBias": 0,
+      "offbeat8thShare": 0.02,
+      "lockTo808": 0.2
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": false,
+      "transient": "hard",
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.62,
+      "velocities": {
+        "main": [
+          0.62,
+          0.84
+        ],
+        "ghost": [
+          0.24,
+          0.44
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.08,
+        "velocityRamp": false
+      },
+      "openHat": {
+        "prob": 0.88,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      },
+      "pitchBendProb": 0
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "clave",
+        "woodblock",
+        "perc",
+        "perc2",
+        "cowbell"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "snareRollLadder": false,
+      "lane": "snare"
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "velocityRampRange": [
+        60,
+        104
+      ],
+      "grouping": [
+        "even"
+      ],
+      "buildAndStopProb": 0.5,
+      "rampJitter": 4,
+      "descendProb": 0.1,
+      "gapProb": 0.18,
+      "pitchWalk": 3
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "monoCutSelf": true,
+      "slideProb": 0.02,
+      "slideIntervals": {
+        "values": [
+          "P8"
+        ],
+        "weights": [
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        28,
+        45
+      ],
+      "distortion": "light"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 7
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.76,
+      "seventh": 0.2,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        44,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        6,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      16
+    ],
+    "susSubstitutionProb": 0.2
+  },
+  "melody": {
+    "register": [
+      55,
+      82
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.5,
+      "third": 0.26,
+      "leap": 0.24
+    },
+    "contour": {
+      "riff": 0.72,
+      "descend": 0.18,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.42,
+    "halfStepDissonance": 0.14,
+    "endVariation": false,
+    "octaveJumpProb": 0.18,
+    "straightEighthsProb": 0.5,
+    "emptyBarBias": 0.16,
+    "timbreHint": "detuned_stab",
+    "loopVerbatim": true
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": [
+      0.45,
+      0.8
+    ],
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick",
+        "octave_echo",
+        "bell_echo"
+      ],
+      "weights": [
+        4,
+        2,
+        2,
+        2
+      ]
+    },
+    "echoOffset": "8th"
+  },
+  "kit": {
+    "preview": "club-default"
+  },
+  "modes": [
+    {
+      "name": "minimal",
+      "weight": 4,
+      "drums": {
+        "percs": {
+          "densityPerBar": [
+            1,
+            3
+          ],
+          "gainOffsetDb": -7
+        },
+        "hihat": {
+          "fillDensity": 0.5
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          1,
+          4
+        ],
+        "motifPitchCount": [
+          2,
+          3
+        ],
+        "emptyBarBias": 0.32
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "vamp"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "extensions": {
+          "triad": 0.94,
+          "seventh": 0.06,
+          "ninth": 0
+        }
+      }
+    },
+    {
+      "name": "detroit",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 130,
+          "max": 137,
+          "mode": 133
+        },
+        "scales": {
+          "values": [
+            "natural_minor",
+            "dorian",
+            "minor_pentatonic"
+          ],
+          "weights": [
+            4,
+            3,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.7,
+          "seventh": 0.26,
+          "ninth": 0.04
+        },
+        "progressionFamilies": [
+          {
+            "roman": [
+              "i"
+            ],
+            "weight": 5
+          },
+          {
+            "roman": [
+              "i",
+              "VI"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "i",
+              "VII"
+            ],
+            "weight": 3
+          }
+        ]
+      },
+      "melody": {
+        "densityPerBar": [
+          3,
+          7
+        ],
+        "chordToneBias": 0.54,
+        "contour": {
+          "riff": 0.6,
+          "descend": 0.26,
+          "arch": 0.14
+        },
+        "timbreHint": "detuned_bell"
+      },
+      "countermelody": {
+        "densityRatio": 0.4
+      }
+    },
+    {
+      "name": "hard",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 138,
+          "max": 140,
+          "mode": 140
+        },
+        "scales": {
+          "values": [
+            "phrygian",
+            "natural_minor"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        }
+      },
+      "drums": {
+        "hihat": {
+          "fillDensity": 0.74,
+          "openHat": {
+            "prob": 0.94,
+            "perBar": [
+              3,
+              4
+            ]
+          }
+        },
+        "snare": {
+          "ghost": {
+            "prob": 0.2
+          }
+        }
+      },
+      "melody": {
+        "register": [
+          52,
+          78
+        ],
+        "halfStepDissonance": 0.2,
+        "densityPerBar": [
+          2,
+          5
+        ]
+      }
+    }
+  ]
+}

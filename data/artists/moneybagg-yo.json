@@ -166,19 +166,18 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "32nd"
+        "16t"
       ],
       "grouping": [
         "even"
       ],
       "velocityRampRange": [
-        61,
-        96
+        56,
+        100
       ],
       "rampJitter": 23,
-      "descendProb": 0.31,
-      "gapProb": 0.12,
-      "pitchWalk": 4
+      "descendProb": 0.28,
+      "gapProb": 0.16
     },
     "bass808": {
       "sustain": "legato",

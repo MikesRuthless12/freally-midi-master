@@ -355,15 +355,38 @@ pub struct Report {
 
 /// Which parts carry a hook, and are therefore worth screening.
 ///
-/// ⛔ **Three parts are left out for three different reasons, and none of them
+/// ⛔ **Two parts are left out for two different reasons, and neither of them
 /// is "later".** Drums have no pitch, so there is no contour to take. Chords are
 /// polyphonic, and the interval line through a stack of voicings describes
-/// nothing anybody could recognise. A bassline is locked to the kick —
-/// `mirror_kick` copies its ticks outright — so rerolling it to dodge a contour
-/// would trade the thing that makes it sit with the drums for a match that
-/// cannot be heard as a quotation anyway.
-pub fn screens(part: Part) -> bool {
-    matches!(part, Part::Melody | Part::Counter)
+/// nothing anybody could recognise — and a chord *progression* is common
+/// property in a way a melody is not, so screening one would be a claim nothing
+/// supports.
+///
+/// ⛔⛔ **THE BASS IS SCREENED WHEN IT IS NOT LOCKED TO THE KICK, and the rule
+/// this replaces was right about one bassline in five.** It read: *"A bassline
+/// is locked to the kick — `mirror_kick` copies its ticks outright — so
+/// rerolling it to dodge a contour would trade the thing that makes it sit with
+/// the drums for a match that cannot be heard as a quotation anyway."* That
+/// holds exactly while the rhythm **is** `mirror_kick`, and `bass.rs` reads five:
+/// `independent_riff`, `boom_chick`, `offbeat_8ths` and `reese_sustain` all
+/// place their own onsets, and an independent riff is as recognisable as any
+/// topline — a bass figure is what a great many records are known by. So the
+/// exclusion now follows the *rhythm* rather than the part, and
+/// [`crate::generators::bass::follows_the_kick`] is the one place that question
+/// is answered.
+///
+/// ▶ **This matters more since the roster was returned to its researched
+/// values** (owner's instruction, 2026-08-15): models are deliberately allowed
+/// to overlap so that an artist sounds like themselves, which means two models
+/// can now reach the same figure by design. What must never happen is that the
+/// figure is one somebody already owns, and this guard — not model-to-model
+/// difference — is what prevents that.
+pub fn screens(part: Part, bass_follows_the_kick: bool) -> bool {
+    match part {
+        Part::Melody | Part::Counter => true,
+        Part::Bass => !bass_follows_the_kick,
+        Part::Drums | Part::Chords => false,
+    }
 }
 
 /// Generate `part`, and keep drawing until the take is not a known hook.
@@ -376,16 +399,23 @@ pub fn screens(part: Part) -> bool {
 /// ⚠ **Still a pure function of its inputs.** The retry seeds are derived, not
 /// drawn, so the same seed always walks the same chain and a saved seed rebuilds
 /// the pattern the producer heard.
+///
+/// ⚠ **`bass_follows_the_kick` is asked of the model by the caller**, because
+/// this module has no model — see [`screens`] for what the answer decides and
+/// [`crate::generators::bass::follows_the_kick`] for how it is read. It is
+/// meaningless for every part except the bass, and callers that cannot have one
+/// pass `true`, which is the "leave it alone" answer.
 pub fn screen<F>(
     table: &Table,
     part: Part,
+    bass_follows_the_kick: bool,
     take: u64,
     mut generate: F,
 ) -> (Vec<LaneTrack>, u64, Report)
 where
     F: FnMut(u64) -> Vec<LaneTrack>,
 {
-    if !screens(part) || table.is_empty() {
+    if !screens(part, bass_follows_the_kick) || table.is_empty() {
         return (
             generate(take),
             take,
@@ -635,7 +665,7 @@ mod tests {
     #[test]
     fn an_empty_table_screens_nothing() {
         let table = Table::default();
-        let (lanes, seed, report) = screen(&table, Part::Melody, 7, |s| {
+        let (lanes, seed, report) = screen(&table, Part::Melody, true, 7, |s| {
             vec![LaneTrack {
                 lane: crate::pattern::Lane::Melody,
                 notes: vec![note(0, 60 + (s % 12) as u8)],
@@ -648,12 +678,26 @@ mod tests {
 
     #[test]
     fn the_parts_without_a_hook_are_not_screened() {
-        for part in [Part::Drums, Part::Chords, Part::Bass] {
-            assert!(!screens(part), "{part:?}");
+        // ⚠ **The bass answers to its rhythm rather than to its part** since
+        // 2026-08-15 — a line that copies the kick's ticks is not a figure, and
+        // one that places its own onsets is. Both directions are asserted here
+        // because the flag is the whole rule.
+        for part in [Part::Drums, Part::Chords] {
+            assert!(!screens(part, true), "{part:?}");
+            assert!(!screens(part, false), "{part:?}");
         }
         for part in [Part::Melody, Part::Counter] {
-            assert!(screens(part), "{part:?}");
+            assert!(screens(part, true), "{part:?}");
+            assert!(screens(part, false), "{part:?}");
         }
+        assert!(
+            !screens(Part::Bass, true),
+            "a kick-locked bass has no figure of its own to screen"
+        );
+        assert!(
+            screens(Part::Bass, false),
+            "a bass that places its own onsets is a figure, and 207 shipped models write one"
+        );
     }
 
     #[test]

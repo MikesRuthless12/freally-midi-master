@@ -100,6 +100,21 @@ pub fn resolve_over(
     base: Option<&str>,
     registry: &BTreeMap<String, Value>,
 ) -> Result<Value, DatasetError> {
+    let order = ancestor_order(id, base, registry)?;
+    let merged = merge_ancestors(&order, registry)?;
+    child_over(id, merged, registry)
+}
+
+/// `id`'s ancestors, lowest precedence first — the list the merge walks.
+///
+/// Split out of [`resolve_over`] so [`resolve_memoized`] can use it as a cache
+/// key. It is exactly the ordering [`resolve_over`] always did, comments and
+/// all; nothing about the walk changed when it moved.
+fn ancestor_order(
+    id: &str,
+    base: Option<&str>,
+    registry: &BTreeMap<String, Value>,
+) -> Result<Vec<String>, DatasetError> {
     let mut seen = BTreeMap::new();
     let mut visiting = Vec::new();
     let mut next_index = 0;
@@ -140,16 +155,27 @@ pub fn resolve_over(
         let (depth, index) = seen[*k];
         (std::cmp::Reverse(depth), index)
     });
+    Ok(order.into_iter().cloned().collect())
+}
 
-    // Merge each ancestor's OWN body, lowest precedence first.
-    //
-    // Merging fully *resolved* parents instead is the subtle way to get this
-    // wrong, and it was: with `"extends": ["p1", "p2"]` where both descend from
-    // `_defaults`, resolved-p2 carries `_defaults`' values for everything p2
-    // never mentions — so merging it over resolved-p1 let p2's *inherited
-    // defaults* silently overwrite p1's *explicit* declarations. An artist
-    // model with two parents got `_defaults`' straight timing and generic BPM
-    // back, with nothing reported anywhere.
+/// The merged bodies of an ancestor list, lowest precedence first.
+//
+// ⛔⛔ Merging fully *resolved* parents instead is the subtle way to get this
+// wrong, and it was: with `"extends": ["p1", "p2"]` where both descend from
+// `_defaults`, resolved-p2 carries `_defaults`' values for everything p2
+// never mentions — so merging it over resolved-p1 let p2's *inherited
+// defaults* silently overwrite p1's *explicit* declarations. An artist
+// model with two parents got `_defaults`' straight timing and generic BPM
+// back, with nothing reported anywhere.
+//
+// ⛔ **This is also what makes the ancestor list a sound cache key.** The
+// result depends on the ordered list and on the ancestors' own bodies —
+// never on which child asked — so two models with the same ancestors have
+// the same base by construction.
+fn merge_ancestors(
+    order: &[String],
+    registry: &BTreeMap<String, Value>,
+) -> Result<Value, DatasetError> {
     let mut merged = Value::Object(Map::new());
     for ancestor in order {
         let model = registry
@@ -157,7 +183,15 @@ pub fn resolve_over(
             .ok_or_else(|| DatasetError::UnknownParent(ancestor.clone()))?;
         merged = deep_merge(merged, model);
     }
+    Ok(merged)
+}
 
+/// The child's own body over its merged ancestors, with identity restored.
+fn child_over(
+    id: &str,
+    merged: Value,
+    registry: &BTreeMap<String, Value>,
+) -> Result<Value, DatasetError> {
     let model = registry
         .get(id)
         .ok_or_else(|| DatasetError::UnknownParent(id.to_owned()))?;
@@ -186,6 +220,35 @@ pub fn resolve_over(
     }
 
     Ok(merged)
+}
+
+/// [`resolve`], reusing an ancestor merge an earlier model already paid for.
+///
+/// ⛔ **For bulk resolution only** — `resolve_all` walks 590 models and most of
+/// them are artists over the same handful of genre archetypes, so the same
+/// ancestor chain was being merged from scratch dozens of times. The cache is
+/// the caller's, lives for one `resolve_all`, and is keyed on the ordered
+/// ancestor list for the reason [`merge_ancestors`] states.
+///
+/// ⚠ **Not a global or a `OnceLock`.** The registry is what the merge reads,
+/// and a cache that outlived one call would answer from a registry that has
+/// since changed — which is precisely what a user model saved through the
+/// editor does.
+pub fn resolve_memoized(
+    id: &str,
+    registry: &BTreeMap<String, Value>,
+    cache: &mut BTreeMap<Vec<String>, Value>,
+) -> Result<Value, DatasetError> {
+    let order = ancestor_order(id, None, registry)?;
+    let merged = match cache.get(&order) {
+        Some(merged) => merged.clone(),
+        None => {
+            let merged = merge_ancestors(&order, registry)?;
+            cache.insert(order, merged.clone());
+            merged
+        }
+    };
+    child_over(id, merged, registry)
 }
 
 /// Append `id` and everything it inherits from to `order`, lowest precedence

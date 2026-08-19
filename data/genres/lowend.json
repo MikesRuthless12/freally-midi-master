@@ -1,0 +1,521 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "lowend",
+  "type": "genre",
+  "name": "Lowend",
+  "aliases": [
+    "milwaukee lowend",
+    "milwaukee rap",
+    "low end",
+    "certified trapper type beat",
+    "milwaukee clap",
+    "414 rap"
+  ],
+  "tier": "standard",
+  "extends": [
+    "_defaults"
+  ],
+  "era": "2018–present",
+  "genres": [
+    "rap",
+    "midwest",
+    "club"
+  ],
+  "relatedGenres": [
+    "jerk",
+    "digicore",
+    "plugg",
+    "jersey-club",
+    "detroit-bounce",
+    "michigan-offgrid"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.3 — finding 7: `lowend` (Milwaukee — sourced as \"8th-note handclaps + snares on 1 and 3\", and it is the two-tier kit that `jerk` destabilises); `jerk` claims Certified Trapper and J.P. as a declared exception precisely because no `lowend` model exists to hold them",
+    "style-research-extended vol.3 jerk — \"Lowend is documented as using 'synthesized eighth-note handclaps in steady, metronome-like rhythm' with 'snares on beats 1 and 3' and characterised as 'uptempo, metronome-like clapping rhythms, heavy bass, and snares', 'danceable and minimalistic'\"",
+    "style-research-extended vol.3 jerk — \"Note the inverted convention: snares on 1 and 3, claps on the 8ths — not the usual backbeat-on-2&4 arrangement\"",
+    "style-research-extended vol.3 jerk — the tempo spine: \"Lowend's own tempo spine reads 170–186 (`Opp Bxtch` 181, `Slipped Up` 186, `Slime` 184, `Palm Angels` 178, `Certified Trapper Meter`/`TC`/`Trapper Of The Year` 178, `Morty` 177, `Each Smack` 172) with the halved twin at 92–99\"",
+    "style-research-extended vol.3 jerk — \"Lowend contributes the movement: its bass is 'rumbling, heavy' and continuous rather than punctual\"",
+    "https://en.wikipedia.org/wiki/Lowend"
+  ],
+  "notes": "Milwaukee's own lane, and the archetype `jerk` was documented as *borrowing from* while having nowhere to send it. ⛔⛔ **THE ENGINE COULD NOT SPELL THIS GENRE UNTIL 2026-08-15, AND THAT IS THE HEADLINE.** The research states the cell as an inversion — *\"snares on 1 and 3, claps on the 8ths — not the usual backbeat-on-2&4 arrangement\"* — and `SnarePlacement::parse` read exactly two names, `halftime_3` and `backbeat_24`. A snare on 1 and 3 is neither. `drums.rs` now carries a third, `downbeat_1_3`, and this is the model it was added for; without it the lane could only have been faked with a backbeat, which is the one thing the research says it is not. ⛔ **The two-tier kit is the second half, and it is what `jerk` destabilises.** *\"A rigid, perfectly-quantised 8th-note clap stream running underneath a violently off-grid snare cluster tier. Build it as two separate instruments — the clap is a metronome, the snare is the improviser.\"* Here the metronome wins: `quantizeStrength` is 0.95 and the jitter is near zero, because *this* lane is the rigid one — `jerk` is the model that takes the same DNA and randomises the snare, and its own gate (`jerk_is_the_one_genre_that_asks_to_be_loosened`) exists to keep it the loosest thing on the roster. ⚠ **The clap stream is authored as the hat lane, and the reason is structural.** `Lane::Clap` is not in `PERC_LANES` — the clap in this engine is a *layer on the snare*, placed by `layerClapOffsetMs` — so an independent eighth-note clap stream has no lane of its own. What is authored is the **grammar**: `hihat.base` is `\"8th\"`, `continuous`, at a flat velocity band and with rolls all but switched off, which is a metronome. Which sample voices it is a kit decision, the same answer `chicago-bounce` gives for its ride. ⚠ **The bass is continuous rather than punctual**, which is the sourced word: *\"rumbling, heavy\"*, and the movement Milwaukee contributes to jerk is *\"a walking 808, 4 to 8 onsets per bar stepping through the scale\"*. The 808 is the bass here (`role: \"bassline\"`) and it is locked to a busy kick, because this engine's 808 plays a subset of the kick's onsets and nothing else — so the walk has to be authored as kick density, which is what `densityPerBar: [4, 7]` with `lockTo808: 1` is doing. ⚠ **Tempo: the fast spine, not the halved twin.** 170–186 centred on 178, from eight catalogue readings. The halved 92–99 reading is the same records notated at half speed and is deliberately not a second mode — unlike `michigan-offgrid`, where two *different* bodies of work sit in the two bands. ⚠ **INFERRED, hence `medium`.** Sourced: the tempo spine and its eight readings, the snare on 1 and 3, the eighth-note clap stream, the metronomic quantisation, the heavy continuous bass and the \"danceable and minimalistic\" framing. Inferred: every velocity tier, every register, the key and scale lists, the whole harmony block (the research names none for this lane, which is consistent with \"minimalistic\"), and the mode names. ⚠ **Nothing was moved onto this model.** `jerk` still carries Certified Trapper and J.P. as its declared exception; moving them is a roster change with its own gates.",
+  "session": {
+    "bpm": {
+      "min": 170,
+      "max": 186,
+      "mode": 178
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Fm",
+        "Cm",
+        "Gm",
+        "Bbm",
+        "Dm",
+        "Am",
+        "Ebm",
+        "F#m"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.95,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 1,
+        "clap": 1,
+        "closedHat": 1,
+        "openHat": 1,
+        "perc": 2,
+        "bass808": 1
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.4,
+      "tresilloBias": 0.2,
+      "offbeat8thShare": 0.3,
+      "lockTo808": 1
+    },
+    "snare": {
+      "placement": "downbeat_1_3",
+      "layered": true,
+      "transient": "hard",
+      "layerClapOffsetMs": [
+        0,
+        2
+      ],
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "vel": [
+          0.28,
+          0.44
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.72,
+      "velocities": {
+        "main": [
+          0.86,
+          0.96
+        ],
+        "ghost": [
+          0.5,
+          0.62
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.04,
+        "velocityRamp": false
+      },
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "any",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false,
+      "lane": "snare"
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "8th"
+      ],
+      "velocityRampRange": [
+        62,
+        108
+      ],
+      "grouping": [
+        "even"
+      ],
+      "buildAndStopProb": 0.5,
+      "rampJitter": 6,
+      "descendProb": 0.1,
+      "gapProb": 0.2,
+      "pitchWalk": 2
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.22,
+      "slideIntervals": {
+        "values": [
+          "m3",
+          "P4",
+          "P5",
+          "m7"
+        ],
+        "weights": [
+          3,
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_4"
+      ],
+      "register": [
+        24,
+        43
+      ],
+      "distortion": "medium"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.25,
+      "ninth": 0.05
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      16
+    ],
+    "susSubstitutionProb": 0.12
+  },
+  "melody": {
+    "register": [
+      62,
+      86
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.56,
+      "third": 0.28,
+      "leap": 0.16
+    },
+    "contour": {
+      "riff": 0.66,
+      "descend": 0.22,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.06,
+    "endVariation": false,
+    "octaveJumpProb": 0.1,
+    "straightEighthsProb": 0.3,
+    "emptyBarBias": 0.18,
+    "timbreHint": "detuned_piano",
+    "loopVerbatim": true
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": [
+      0.45,
+      0.8
+    ],
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo",
+        "arp",
+        "bell_echo"
+      ],
+      "weights": [
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "echoOffset": "8th"
+  },
+  "kit": {
+    "preview": "plugg-default"
+  },
+  "modes": [
+    {
+      "name": "metronome",
+      "weight": 4,
+      "session": {
+        "humanize": {
+          "quantizeStrength": 0.98,
+          "velocityVar": 0.06
+        }
+      },
+      "drums": {
+        "hihat": {
+          "fillDensity": 0.8,
+          "velocities": {
+            "main": [
+              0.9,
+              0.96
+            ],
+            "ghost": [
+              0.55,
+              0.65
+            ]
+          }
+        },
+        "percs": {
+          "densityPerBar": [
+            0,
+            1
+          ]
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          1,
+          4
+        ],
+        "emptyBarBias": 0.32
+      }
+    },
+    {
+      "name": "trapper",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 174,
+          "max": 186,
+          "mode": 180
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            5,
+            8
+          ],
+          "syncopation": 0.5
+        },
+        "bass808": {
+          "slideProb": 0.3
+        },
+        "snare": {
+          "ghost": {
+            "prob": 0.24
+          }
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          3,
+          6
+        ],
+        "emptyBarBias": 0.18
+      }
+    },
+    {
+      "name": "dance",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 170,
+          "max": 178,
+          "mode": 174
+        },
+        "scales": {
+          "values": [
+            "minor_pentatonic",
+            "natural_minor",
+            "dorian"
+          ],
+          "weights": [
+            4,
+            3,
+            2
+          ]
+        }
+      },
+      "drums": {
+        "hihat": {
+          "openHat": {
+            "prob": 0.35,
+            "perBar": [
+              1,
+              2
+            ]
+          }
+        },
+        "percs": {
+          "densityPerBar": [
+            1,
+            3
+          ],
+          "gainOffsetDb": -4
+        }
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.7,
+          "seventh": 0.26,
+          "ninth": 0.04
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          3,
+          7
+        ],
+        "contour": {
+          "riff": 0.7,
+          "descend": 0.18,
+          "arch": 0.12
+        },
+        "emptyBarBias": 0.14,
+        "timbreHint": "bright_pluck"
+      }
+    }
+  ]
+}

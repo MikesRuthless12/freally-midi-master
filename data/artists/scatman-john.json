@@ -1,0 +1,342 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "scatman-john",
+  "type": "artist",
+  "name": "Scatman John",
+  "aliases": [
+    "scatman john",
+    "scatman",
+    "john paul larkin"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "1994-1996",
+  "genres": [
+    "dance-pop",
+    "eurodance",
+    "jazz-pop",
+    "pop"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "house",
+    "pop-2000s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Scatman John",
+    "Wikipedia — Scatman John (https://en.wikipedia.org/wiki/Scatman_John)",
+    "Eurodance (https://en.wikipedia.org/wiki/Eurodance)"
+  ],
+  "notes": "Scat-vocal Eurodance with a genuine jazz vocal technique. `confidence` is low because the research rates the entry medium-low: only the scat-over-Eurodance premise and the era are documented, and it states that the parameters are genre-derived. Two entry facts drive what is authored. The first is the vocal: \"extremely fast syllabic jazz scat used as the rhythmic hook, functioning where a rap verse would sit, with a sung chorus behind it\", which is the highest melody density in this section at 10-16 notes a bar, staccato, in a mid band rather than a topline one. The second is the grid: \"the scat lines are phrased against a strict grid, which is the whole point of the record\", so `quantizeStrength` is 1.0 with zero jitter and the velocity spread is the narrowest here — the machine has to be rigid for the vocal to swing against it. The jazz-derived ii-V motion under the scat sections is the entry's own claim, marked `[LOW-CONF]` there and repeated here, and it is why the seventh weight is high for a Eurodance model. ⚠ Every velocity, density and probability above is INFERRED from those two sentences. ⚠ **The countermelody reached 902/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor), and every other lever this gate has was already clean here** — no empty-bar bias, no one-bar phrase length, and no lead allowed to thin below two notes a bar. What was left was the style pool: `generators::counter` can play five answer shapes and this block asked for 2. `arp` is added at weight 2 because the entry already names it — \"piano stabs and saw riffs; loops are 4 bars\" — and a saw riff over a minor vamp is chord tones walked on the grid, which is what `arp` writes; the block had only the sung answer and the pad. ⚠ The weight is INFERRED; the layer it weights is not. ⚠ **The countermelody still reached only 923/1000 against the floor of 980 (2026-08-17), and the cause was `answer_lick`.** Forced to one style at a time over 1,000 seeds it measures 827 — and **137 of those seeds produced no counter at all**, every one of them the same empty shape. `generators::counter` writes an answer lick only inside the last beat of each bar, and this lead is the highest melody density in the section at 10–16 staccato notes a bar quantized hard to the grid, so the last beat is usually already attacked and the lick has nowhere to land. It is also the one shape in the block the entry never names: it names \"piano stabs and saw riffs\" and \"a sung chorus behind it\". So `answer_lick` comes out and `bell_echo` goes in at the top weight — a piano stab is a struck, short, quieter answer, which is exactly what `bell_echo` writes — leaving the three colours the entry does name: the stab, the saw riff (`arp`, already here) and the sung chorus behind the scat (`sustain_pad`). Measured 923 → 984 distinct per 1,000, with the empty answers down from 137 to 15. ⚠ The weights are INFERRED; all three layers are the entry’s own words.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 145,
+      "mode": 140
+    },
+    "keys": {
+      "values": [
+        "Am",
+        "Dm",
+        "Cm",
+        "Gm",
+        "Em"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 1,
+      "velocityVar": 0.06,
+      "timingJitterMs": {
+        "kick": 0,
+        "snare": 0,
+        "clap": 0,
+        "closedHat": 0,
+        "openHat": 0
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        98,
+        108
+      ],
+      "main": [
+        76,
+        86
+      ],
+      "ghost": [
+        30,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0,
+      "offbeat8thShare": 0
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        0,
+        1
+      ],
+      "ghost": {
+        "prob": 0.04,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.26,
+      "openHat": {
+        "prob": 0.94,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          4,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.09
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "woodblock"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "any",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.36,
+      "seventh": 0.48,
+      "ninth": 0.16
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      84
+    ],
+    "densityPerBar": [
+      10,
+      16
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.62,
+      "third": 0.26,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.48,
+      "descend": 0.28,
+      "arch": 0.24
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.06,
+    "octaveJumpProb": 0.05,
+    "articulation": "staccato",
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "piano_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.38,
+    "styles": {
+      "values": [
+        "bell_echo",
+        "arp",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.62,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.3,
+        "beats": 2
+      },
+      "switchUpProb": 0.07
+    }
+  }
+}

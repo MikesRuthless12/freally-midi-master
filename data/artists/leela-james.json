@@ -1,0 +1,340 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "leela-james",
+  "type": "artist",
+  "name": "Leela James",
+  "aliases": [
+    "leela james",
+    "la retro soul",
+    "stax style shouter"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2005-2018",
+  "genres": [
+    "soul",
+    "neo-soul",
+    "blues",
+    "funk"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "funk",
+    "rnb-2000s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Leela James",
+    "Wikipedia — Leela James (https://en.wikipedia.org/wiki/Leela_James)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "LA's raw retro-soul shouter, \"the lane's closest thing to a 60s Stax voice\". `confidence` is **low** — the research rates the entry medium-low, sourcing the lane position and the covers practice but marking the parameters as inference. The kit is \"live, played hard and dry — kick on 1 and 3, snare cracked on 2&4, tambourine doubling, triplet fills, and no 16th hat carpet\", so the kick anchors are literally 1 and 3 at a syncopation of 0.16, the velocity tiers are among the hardest in the section, the hat is an 8th at a fill density of 0.16, and `snareRoll.subdivisions` are triplets for the stated fills. \"Stop-time hits and a half-time double-length chorus are section devices\", which is `fillBeforeSection`. Harmony is \"major-mode blues-soul — 12-bar and `I–IV–V` forms with dominant 7ths and blues thirds in the melody\", giving the highest triad weight and nearly no ninths, plus a blues scale in the set and a raised `halfStepDissonance` for the third. Melody is stated as dynamics rather than range: \"mid-alto delivered at high volume with a hard rasp, short repeated phrases, heavy blues ornament and shouted interjections — the parameter is sustained loud dynamics rather than range\", which is the riff-loop structure over two-and-four-bar phrases with a narrow register. Bass is \"thick and short, root-and-blues-fill\". ⚠ Every drum, melody and bass number here is INFERRED. ⚠ Her chord families and her bass behaviour overlap Anthony Hamilton's because the research describes both as I–IV–V church-and-blues players; the separation between the two models is authored in tempo, kit hardness and hat behaviour rather than invented in the harmony.",
+  "session": {
+    "bpm": {
+      "min": 76,
+      "max": 110,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "major",
+        "blues",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.62,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 6,
+        "tambourine": 8,
+        "cowbell": 8
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        106,
+        122
+      ],
+      "main": [
+        78,
+        96
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.16,
+      "tresilloBias": 0.03
+    },
+    "snare": {
+      "offGridMs": [
+        0,
+        5
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.44
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.16,
+      "velocities": {
+        "main": [
+          0.56,
+          0.88
+        ],
+        "ghost": [
+          0.18,
+          0.4
+        ]
+      },
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "rim",
+        "cowbell"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -3,
+      "tambourineMirrorsClap": true
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        54,
+        108
+      ],
+      "rampJitter": 12,
+      "gapProb": 0.26,
+      "descendProb": 0.24
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.44,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        47,
+        77
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      76
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.46,
+      "descend": 0.32,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.62,
+    "halfStepDissonance": 0.2,
+    "octaveJumpProb": 0.1,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "overdriven_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0.08,
+    "passingTones": [
+      "P5",
+      "m7",
+      "P4"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "b7"
+      ]
+    ],
+    "anticipationProb": 0.26
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.24
+    }
+  }
+}

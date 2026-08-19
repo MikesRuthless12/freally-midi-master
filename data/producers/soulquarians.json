@@ -1,0 +1,287 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "soulquarians",
+  "type": "producer",
+  "name": "The Soulquarians (collective preset)",
+  "aliases": [
+    "soulquarians",
+    "electric lady soul",
+    "soulquarian",
+    "the soulquarians"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1997-2006",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "boom-bap",
+    "rnb-2000s",
+    "funk"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — The Soulquarians (collective preset)",
+    "Wikipedia — Soulquarians (https://en.wikipedia.org/wiki/Soulquarians)",
+    "Wikipedia — Voodoo (https://en.wikipedia.org/wiki/Voodoo_(D%27Angelo_album))",
+    "Red Bull Music Academy — The Soulquarians (https://daily.redbullmusicacademy.com/2015/03/soulquarians-feature)"
+  ],
+  "notes": "The scene preset for the lane's core, based at Electric Lady with D'Angelo, Questlove, J Dilla and James Poyser at the centre; the entry says outright to \"use as a global preset that other entries in this section inherit from\". The band is the collective's stated 64–100 straight on 2&4 \"with a heavy behind-the-beat drag\", and the drum block is the working method: \"1968 Ludwig kit, no click, first take, no overdubs; snare late, kick early, deliberate glitches inserted on purpose. Drum programming (Dilla's) and live drumming (Questlove's) are treated as the same instrument and are interchanged within a track.\" No click is `quantizeStrength` 0.42; the glitches are the wide snare window and the high `velocityVar`; the first-take-no-overdub rule is why the fills are pushed out to 8 and 16 bars. Harmony is described as \"unconventional — offbeat rhythms, irregular chords\", with m9/m11 tonics and \"no functional cadence for bars at a time\", so no progression families are authored at all and the delta is a triad weight of 0.03, a large `susSubstitutionProb` and long chord durations. The low end is \"1950s-vintage bass guitars from the studio's collection plus Pino Palladino's Precision; no 808 or synth-sub anywhere in the collective's output\" — hence no `bass808` block and a bass that climbs to 48 with the chord voicing lifted to 50 to clear it. The melody encodes the working method rather than a hook: jam-derived material, \"songs settle into a mid-tempo groove with minimal verse-chorus-bridge progression\", which is the long arc, the low chord-tone bias and the long intro/outro sections. ⚠ The INFERRED parameters are every drum probability and velocity band and all melody/countermelody numbers — the research documents membership, studio, gear and philosophy, not figures.",
+  "session": {
+    "bpm": {
+      "min": 64,
+      "max": 100,
+      "mode": 82
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major",
+        "blues"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.42,
+      "velocityVar": 0.3,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 17,
+        "rim": 15,
+        "closedHat": 10,
+        "conga": 12
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.5,
+      "tresilloBias": 0.1
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "offGridMs": [
+        9,
+        20
+      ],
+      "ghost": {
+        "prob": 0.58,
+        "pos": [
+          "1e",
+          "1a",
+          "2a",
+          "3e",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.46,
+      "velocities": {
+        "main": [
+          0.38,
+          0.64
+        ],
+        "ghost": [
+          0.12,
+          0.32
+        ]
+      },
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "2&",
+          "3a"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "conga",
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.03,
+      "seventh": 0.44,
+      "ninth": 0.53
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        82
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.3,
+    "chordDurationBeats": [
+      4,
+      12
+    ]
+  },
+  "melody": {
+    "register": [
+      54,
+      79
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.76,
+      "third": 0.2,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.42,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.44,
+    "emptyBarBias": 0.18,
+    "octaveJumpProb": 0.07,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "electric_piano_and_clav"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.34,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.52
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": [
+        8,
+        16
+      ],
+      "outro": [
+        8,
+        32
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.38
+    }
+  }
+}

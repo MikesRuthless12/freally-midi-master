@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const invoke = vi.fn();
@@ -102,5 +102,112 @@ describe('the Generate in chip', () => {
     const chip = screen.getByRole('combobox', { name: 'Generate in' });
     expect(chip).toBeTruthy();
     expect(screen.queryByText('gone')).toBeNull();
+  });
+});
+
+/**
+ * The Simple/Complex switch and the As Written switch (TASK-125).
+ *
+ * ⛔ **Three engine states behind two switches** (2026-08-16). `authored` is
+ * still what the app opens in — it generates exactly what the app did before the
+ * switch existed, so a saved seed still rebuilds its own beat — but it is no
+ * longer a middle button a producer has to notice. It is a switch that visibly
+ * disables the other one.
+ *
+ * ⚠ What the *engine* does with the setting is `engine/tests/complexity.rs`,
+ * which measures it over the shipped roster. What only this can show is that the
+ * two switches say which state they are in, disable each other in the one
+ * direction they should, and write to the session.
+ */
+describe('the busy switch', () => {
+  const side = () => screen.getByRole('switch', { name: 'Simple/Complex' });
+  const held = () => screen.getByRole('switch', { name: 'As Written' });
+  // ⚠ **`fireEvent`, not `element.click()`, and the difference is the point of
+  // these tests.** A bare click leaves React un-rendered, so the *next* line
+  // reaches the previous render's button — still disabled, still holding the
+  // old handler — and a two-click sequence silently tests one click twice.
+  const flip = (control: HTMLElement) => fireEvent.click(control);
+
+  beforeEach(() => {
+    useSession.setState({
+      selectedId: 'mock-artist',
+      roster: [entry(), ...GENRES],
+      complexity: 'authored',
+      lean: 'simple',
+    });
+  });
+
+  it('starts on the model as written, with the other switch held off', () => {
+    render(<SessionChips />);
+    expect(held().getAttribute('aria-checked')).toBe('true');
+    // ⛔ Disabled rather than absent: the control a producer cannot move must
+    // still say which side it will hand back.
+    expect((side() as HTMLButtonElement).disabled).toBe(true);
+    expect(side().getAttribute('aria-checked')).toBe('false');
+  });
+
+  it('writes the producer’s choice to the session', () => {
+    render(<SessionChips />);
+    flip(held());
+    expect(useSession.getState().complexity).toBe('simple');
+
+    flip(side());
+    expect(useSession.getState().complexity).toBe('complex');
+
+    cleanup();
+    render(<SessionChips />);
+    // ...and the control says so on the way back, rather than only on the way in.
+    expect(side().getAttribute('aria-checked')).toBe('true');
+    expect(held().getAttribute('aria-checked')).toBe('false');
+  });
+
+  it('hands back the side it was on when As Written is turned off again', () => {
+    // ⛔ The reason `lean` exists. Without it, `authored` would forget that the
+    // producer was on Complex and turning the switch off would silently answer
+    // Simple — a control that changes what an artist sounds like by being
+    // switched on and off again.
+    useSession.setState({ complexity: 'complex', lean: 'complex' });
+    render(<SessionChips />);
+
+    flip(held());
+    expect(useSession.getState().complexity).toBe('authored');
+    // ⚠ Still reading Complex while it is disabled, so what comes back is what
+    // the knob is showing.
+    expect(side().getAttribute('aria-checked')).toBe('true');
+    expect((side() as HTMLButtonElement).disabled).toBe(true);
+
+    flip(held());
+    expect(useSession.getState().complexity).toBe('complex');
+  });
+
+  it('remembers the side a project was saved on when As Written goes on', () => {
+    // ⛔⛔ **The defect a review found, and the reason it was invisible.**
+    // `apply()` and `applySnapshot` write `complexity` straight into the store,
+    // so a project saved on Complex reopens with `lean` still at its initial
+    // `simple`. The knob rendered correctly — it prefers `complexity` whenever
+    // that names a side — so every render-only assertion passed. The bug only
+    // appears one click later: As Written on, then off, and the session that was
+    // Complex silently generates Simple.
+    useSession.setState({ complexity: 'complex', lean: 'simple' });
+    render(<SessionChips />);
+
+    flip(held());
+    expect(useSession.getState().complexity).toBe('authored');
+    // The side it was left on, captured on the way out rather than lost.
+    expect(useSession.getState().lean).toBe('complex');
+    expect(side().getAttribute('aria-checked')).toBe('true');
+
+    flip(held());
+    expect(useSession.getState().complexity).toBe('complex');
+  });
+
+  it('follows an undo that restores a side without going through the setter', () => {
+    // ⚠ `applySnapshot` writes `complexity` straight into the store. Reading the
+    // remembered lean unconditionally would leave the knob on Simple over a
+    // session about to generate Complex — the readout-that-lies failure.
+    useSession.setState({ complexity: 'complex', lean: 'simple' });
+    render(<SessionChips />);
+    expect(side().getAttribute('aria-checked')).toBe('true');
+    expect((side() as HTMLButtonElement).disabled).toBe(false);
   });
 });

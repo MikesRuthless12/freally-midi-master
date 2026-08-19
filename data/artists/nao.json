@@ -1,0 +1,287 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "nao",
+  "type": "artist",
+  "name": "Nao",
+  "aliases": [
+    "nao",
+    "neo jessica joshua",
+    "wonky funk"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2016-present",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "uk-garage",
+    "house",
+    "funk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Nao",
+    "Wikipedia — Nao (singer) (https://en.wikipedia.org/wiki/Nao_(singer))",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "London's \"wonky funk\" — the lane's most electronic-forward UK entry. `confidence` is **low** because the research rates the entry medium-low, sourcing the idiom label and the lane position but marking tempo, drum and harmonic detail as inference. The drum instruction is the most specific thing the entry gives and it is followed literally: \"**broken-beat/UK-funky grammar** — a syncopated kick that avoids beat 3, snare or clap on 2&4, dense swung 16th hats with 32nd flams, and layered electronic percussion (rimshots, woodblocks, reversed hits). Model heavy off-grid kick placement rather than a four-on-the-floor.\" So the kick runs 4–7 hits a bar at the highest syncopation in the section (0.78) with `beatSkipProb` 0.55 carrying \"avoids beat 3\", the secondary anchor moves off the parent's 2a to 4e, the hat is the densest here at 0.78 with 32nd and 32nd-triplet rolls, and the percussion lanes are woodblock, reverse and a second perc rather than congas. Harmony is \"m9/m11 colour and 2-bar loops; UK broken-beat harmony, i.e. a single sonority with a moving bass line under it, plus abrupt unrelated-chord side-steps as a hook device\" — `maxChords` 2 with a vamp/syncopated-cell rhythm, and the moving bass under the static chord is why the bassline's root probability is 0.32. Melody is \"a **very high, thin, almost childlike soprano** — the timbre is the parameter — with high note-density, wide leaps, and heavily processed multi-tracked stacks\", giving the highest melodic register in the section and a leap share of 0.18. Bass is \"synth bass with a fast filter envelope and a plucked attack, syncopated against the kick in 16ths — a funk bass line played by a synth\", so it is a real bassline and **not** a `bass808` block; the entry's \"occasional sub-808 doubling\" doubles it rather than replacing it. ⚠ Every drum, melody and bass number here is INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 124,
+      "mode": 104
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "minor_pentatonic",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "closedHat": 5,
+        "rim": 8,
+        "perc": 8
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "4e",
+      "syncopation": 0.78,
+      "tresilloBias": 0.18,
+      "beatSkipProb": 0.55
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        0,
+        4
+      ],
+      "ghost": {
+        "prob": 0.34,
+        "pos": [
+          "1e",
+          "2a",
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.78,
+      "velocities": {
+        "main": [
+          0.4,
+          0.68
+        ],
+        "ghost": [
+          0.14,
+          0.32
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.36,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "woodblock",
+        "reverse",
+        "perc2",
+        "shaker"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -4
+    }
+  },
+  "chords": {
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.06,
+      "seventh": 0.44,
+      "ninth": 0.5
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        82
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      66,
+      92
+    ],
+    "densityPerBar": [
+      5,
+      10
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.58,
+      "third": 0.24,
+      "leap": 0.18
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.32,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.48,
+    "octaveJumpProb": 0.24,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "processed_vocal_stack"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.32,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "P4"
+    ],
+    "anticipationProb": 0.58
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.36
+    }
+  }
+}

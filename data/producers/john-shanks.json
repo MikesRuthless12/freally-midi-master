@@ -1,0 +1,254 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "john-shanks",
+  "type": "producer",
+  "name": "John Shanks",
+  "aliases": [
+    "john shanks",
+    "johnshanks"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2001-2007",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "country-pop",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — John Shanks",
+    "Wikipedia — John Shanks (https://en.wikipedia.org/wiki/John_Shanks)",
+    "Wikipedia — \"Pieces of Me\" (https://en.wikipedia.org/wiki/Pieces_of_Me_(Ashlee_Simpson_song))",
+    "Wikipedia — \"Come Clean\" (https://en.wikipedia.org/wiki/Come_Clean_(Hilary_Duff_song))"
+  ],
+  "notes": "\"The father of that guitar-driven kind of pop sound\" — acoustic guitars where the era's default was synths. 96–130 straight, backbeat on 2&4. Harmony spans both documented flagships: a two-chord sus/maj7 vamp (vi–IV in B major, \"rather than functional movement\") and the ordinary I–V–vi–IV and vi–IV–I–V, so the vamp is authored alongside them and `susSubstitutionProb` runs at 0.34 with real sevenths. Three drum deltas are quoted: \"kick 1 and the '&' of 2\", \"hat 8ths in verse and open-hat/ride 8ths in the chorus\" (a high open-hat probability with a ride lane), and \"tambourine on the chorus backbeat\"; the fourth fact separates his electronica-leaning productions — \"a filtered 16th programmed hat runs under the kit\" — which is why the hat base is weighted rather than pinned. The bass claim is the sharpest and it is where this model differs from every artist it produced: **he plays the bass himself as well as all guitars, so bass and guitar share one rhythmic figure** — root 8ths, no fills, \"occasionally an octave lift into the chorus\", which is `mirror_kick` at 0.95 with the octave as its only passing tone. The identity is \"a short 'stringy' clean-guitar riff restated between vocal phrases\", i.e. a `riff_loop` melody with an answer-lick counter. ⚠ `confidence` is medium because the research rates it high-medium. ⚠ The **INFERRED** parameters are every drum probability and `bpm.mode` 112.",
+  "session": {
+    "bpm": {
+      "min": 96,
+      "max": 130,
+      "mode": 112
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "lydian"
+      ],
+      "weights": [
+        6,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.17
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        124
+      ],
+      "main": [
+        80,
+        96
+      ],
+      "ghost": [
+        28,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.28
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.15,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          4,
+          3
+        ]
+      },
+      "fillDensity": 0.5,
+      "openHat": {
+        "prob": 0.54,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.14
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "ride"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      }
+    ],
+    "extensions": {
+      "triad": 0.44,
+      "seventh": 0.38,
+      "ninth": 0.18
+    },
+    "susSubstitutionProb": 0.34
+  },
+  "melody": {
+    "register": [
+      57,
+      80
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.48,
+      "descend": 0.26,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.14,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.58,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.95,
+    "rhythm": "mirror_kick",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P8"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    }
+  }
+}

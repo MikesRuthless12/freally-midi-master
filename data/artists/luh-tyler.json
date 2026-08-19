@@ -69,44 +69,21 @@
     },
     "kick": {
       "densityPerBar": [
-        4,
-        7
+        2,
+        4
       ],
       "anchors": [
         "1"
       ],
-      "syncopation": 0.5,
-      "tresilloBias": 0.15,
-      "secondaryAnchor": "2a",
-      "andOf4EveryOtherBar": 0.5,
-      "avoidPreSnareGap": "8th",
-      "lockTo808": 1
+      "syncopation": 0.3,
+      "tresilloBias": 0.12
     },
     "snare": {
       "placement": "halftime_3",
       "offGridMs": [
         3,
         8
-      ],
-      "layerClapOffsetMs": [
-        3,
-        8
-      ],
-      "detuneSemis": [
-        -2,
-        -1
-      ],
-      "ghost": {
-        "prob": 0.24,
-        "pos": [
-          "4&"
-        ],
-        "vel": [
-          0.4,
-          0.6
-        ]
-      },
-      "fullTimeVariantProb": 0.1
+      ]
     },
     "hihat": {
       "base": "16th",
@@ -165,8 +142,8 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        63,
-        104
+        64,
+        108
       ],
       "rampJitter": 23,
       "descendProb": 0.42,

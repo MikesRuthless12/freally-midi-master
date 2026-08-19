@@ -68,6 +68,27 @@ fn roll_pitches(model: &StyleModel, seeds: u64) -> BTreeSet<u8> {
     seen
 }
 
+/// How far this model lets a roll travel, in semitones, if it says.
+///
+/// ⛔ **The authored span, not a list of ids — and that distinction is the
+/// whole of this file's second bug.** The exemption below used to read
+/// `id != "country-train"`, so the one genre that authors `pitchWalk: 0` was
+/// excused and the **33 artists that extend it and author no `snareRoll` of
+/// their own** were not: `bela-fleck`, `ricky-skaggs`, `travis-tritt` and the
+/// rest of the bluegrass and country-train lane inherit that zero and were
+/// reported as writing "a flat roll" for obeying it. The same rule the melody
+/// variety gate states applies here — *the property is what is being excused,
+/// so the property is what is tested* — and it also survives Phase 5's next
+/// five hundred artists, which an id list would not.
+fn authored_walk(model: &StyleModel) -> Option<u8> {
+    model
+        .blocks
+        .get("drums")?
+        .pointer("/snareRoll/pitchWalk")?
+        .as_f64()
+        .map(|walk| walk.round().clamp(0.0, 24.0) as u8)
+}
+
 #[test]
 fn a_roll_climbs_and_falls_rather_than_sitting_on_one_note() {
     // ⛔ The gate for the whole task. Before it, this set had exactly one member
@@ -76,17 +97,27 @@ fn a_roll_climbs_and_falls_rather_than_sitting_on_one_note() {
     let mut flat = Vec::new();
 
     for (id, model) in &models {
-        // `country-train` authors `pitchWalk: 0` on purpose — a train beat does
-        // not pitch its snare — so a single pitch there is the style, not a bug.
-        let expects_walk = id != "country-train";
+        // ⚠ **The floor is three pitches or whatever the model's own span can
+        // reach, whichever is smaller.** `rolls::Roll::pitch_at` interpolates
+        // across `0..=pitchWalk`, so a span of `w` can put a roll on exactly
+        // `w + 1` notes and no arrangement of seeds makes it more: the six
+        // models authoring `pitchWalk: 1` — `darude`, `armin-van-buuren`,
+        // `alice-deejay`, `ian-van-dahl`, `danny-l-harle`, `anthony-dent` —
+        // reach two, which is a roll that moves rather than one sitting on a
+        // note. A model that authors nothing still owes the full three; three
+        // is what `_defaults` gives it.
+        let walk = authored_walk(model);
+        let floor = walk.map_or(3, |walk| usize::from(walk).saturating_add(1).min(3));
         let pitches = roll_pitches(model, 60);
         if pitches.is_empty() {
             continue;
         }
-        if expects_walk && pitches.len() < 3 {
-            flat.push((id.clone(), pitches.len()));
+        if pitches.len() < floor {
+            flat.push((id.clone(), pitches.len(), floor));
         }
-        if !expects_walk {
+        // The positive half: a model that says its snare does not pitch — a
+        // train beat does not — must actually stay on one note.
+        if walk == Some(0) {
             assert_eq!(
                 pitches.len(),
                 1,
@@ -97,7 +128,7 @@ fn a_roll_climbs_and_falls_rather_than_sitting_on_one_note() {
 
     assert!(
         flat.is_empty(),
-        "these models still write a flat roll: {flat:?}"
+        "these models still write a flat roll, as (model, pitches reached, its own floor): {flat:?}"
     );
 }
 

@@ -1,0 +1,335 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "junior-brown",
+  "type": "artist",
+  "name": "Junior Brown",
+  "aliases": [
+    "junior brown",
+    "guit steel"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-shuffle"
+  ],
+  "era": "1990-2018",
+  "genres": [
+    "country",
+    "country-shuffle",
+    "honky tonk",
+    "western swing"
+  ],
+  "relatedGenres": [
+    "country-shuffle",
+    "country-pop",
+    "country-train"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-shuffle — Junior Brown",
+    "Wikipedia — Junior Brown (https://en.wikipedia.org/wiki/Junior_Brown)",
+    "bpmdatabase — Junior Brown (https://www.bpmdatabase.com/music/search/?artist=Junior+Brown)",
+    "Wikipedia — Western swing (https://en.wikipedia.org/wiki/Western_swing)"
+  ],
+  "notes": "Honky-tonk and western swing played on the \"guit-steel\", the purpose-built hybrid of a six-string neck over a full lap-steel neck, and the instrument is the entry's defining parameter. The research asks for a lead voice that switches abruptly within one solo between \"sharp-attack Telecaster-style double-stops and chicken-picked staccato\" and \"legato, portamento-heavy lap-steel glissandi\", so the melody is authored staccato with a third-heavy interval spread (0.38, for the double-stops), a wide 55–84 register for the instrument's stated \"enormous frequency range\", and an octave-jump probability of 0.05–0.14 standing in for the neck switch. Drums follow the documented constraint that the kit is \"deliberately minimal because the guit-steel occupies an enormous frequency range — model low cymbal density and a narrow, dry snare\": the inherited ride lane falls to 0–2 hits at −12 dB, the open hat to 0.08, the hat fill to 0.28, the velocity tiers to 100–120 over 70–88, and fills move out to 8/16 bars. The kick is the entry's shuffled two-beat at the 101–121 band. Harmony is the entry's own list — I–IV–V with V7, twelve-bar frames, I–I7–IV turns, and the western-swing ii–V and VI7–II7–V7–I turnarounds — written as degrees with the sevenths in extensions. Keys are constrained by the documented fact that the steel neck is tuned to an open chord, so E/A/D/G carry the weight. The vocal is the documented \"deep, dry, deadpan baritone with almost no ornament — the vocal is a straight man to the instrument\", which is why the counter (the steel neck answering) carries more density than the melody's own ornament. ⚠ The INFERRED parameters are swing.amount 0.66, all velocity tiers, ghost probability and positions, and the ride/hat densities that express \"low cymbal density\"; the section's swing-ratio percentages are [LOW-CONF] by their author's own mark and the BPM readings are bpmdatabase values, [LOW-CONF] as a class. Confidence is medium because the research rates the entry medium-high and states its harmony is generalised from the western-swing frame [LOW-CONF].",
+  "session": {
+    "bpm": {
+      "min": 101,
+      "max": 152,
+      "mode": 121
+    },
+    "keys": {
+      "values": [
+        "E",
+        "A",
+        "D",
+        "G"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_blues",
+        "major_pentatonic"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.66
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        100,
+        120
+      ],
+      "main": [
+        70,
+        88
+      ],
+      "ghost": [
+        24,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.08,
+      "offbeat8thShare": 0.04
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.28,
+      "velocities": {
+        "main": [
+          0.48,
+          0.68
+        ],
+        "ghost": [
+          0.2,
+          0.36
+        ]
+      },
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "gainOffsetDb": -12
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V",
+          "IV",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "VI",
+          "II",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "ii",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 6,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.44,
+      "ninth": 0.06
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "intervals": {
+      "step": 0.5,
+      "third": 0.38,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.45,
+      "descend": 0.3,
+      "arch": 0.25
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": [
+      0.05,
+      0.14
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "articulation": "staccato",
+    "timbreHint": "guit_steel"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.4,
+      0.65
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M6",
+      "M2"
+    ],
+    "anticipationProb": 0.08
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "bridge",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": {
+        "values": [
+          16,
+          24
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.14
+    }
+  }
+}

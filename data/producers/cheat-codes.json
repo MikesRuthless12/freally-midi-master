@@ -1,0 +1,355 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "cheat-codes",
+  "type": "producer",
+  "name": "Cheat Codes",
+  "aliases": [
+    "cheat codes",
+    "cheatcodes",
+    "trevor dahl"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "2015-present",
+  "genres": [
+    "dance-pop",
+    "tropical-house",
+    "future-bass",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "future-bass",
+    "house",
+    "pop-2020s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Cheat Codes",
+    "Wikipedia — Cheat Codes (https://en.wikipedia.org/wiki/Cheat_Codes)",
+    "Tropical house (https://en.wikipedia.org/wiki/Tropical_house)",
+    "Future bass (https://en.wikipedia.org/wiki/Future_bass)"
+  ],
+  "notes": "An American trio making vocal-led dance-pop across tropical, future-bass and house modes. `confidence` is low because the research rates the entry medium-low — \"era and sub-genre set documented; parameters are convention-derived and marked\" — and its harmony claim carries an explicit `[LOW-CONF]`, repeated here. The kit is written as the composite the entry describes: \"a soft four-square kick with clap on 2&4 and offbeat shaker in the tropical mode; a half-time-feeling snare-on-3 drop in the future-bass mode. Riser-and-snare-roll builds.\" A single-mode model states one kick, so this one keeps the four-square anchors and the 2&4 backbeat of the tropical side and lets the syncopation and the ghost set on the fourth beat carry the future-bass drop — a composite, marked INFERRED. What the entry does give as a fact is the melodic identity: \"plucked and bell leads plus chopped vocal hooks as the drop's melody; they sing on their own records as well as hosting guests, so the topline and the chopped hook are frequently the same voice\", which is why the countermelody is a bell echo doubling the lead at a high density rather than an independent answer. Harmony is \"major and modal-major four-chord loops with maj7/add9 colour, kept static under the topline\", loops are 4 bars, and the bass is a detuned chord stack in the drop over a rounded tropical sub. ⚠ Every velocity, density and register above is INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 128,
+      "mode": 118
+    },
+    "keys": {
+      "values": [
+        "C",
+        "G",
+        "D",
+        "F",
+        "Am"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "lydian"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.93,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 2,
+        "clap": 3,
+        "closedHat": 3,
+        "shaker": 5,
+        "snap": 4
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        104,
+        118
+      ],
+      "main": [
+        78,
+        92
+      ],
+      "ghost": [
+        30,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.2,
+      "offbeat8thShare": 0.24
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        3,
+        8
+      ],
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.44
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.4,
+      "openHat": {
+        "prob": 0.56,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.3
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "snap",
+        "riser",
+        "bongo"
+      ],
+      "densityPerBar": [
+        2,
+        6
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16,
+      "snareRollLadder": true,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V",
+          "vi"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.42,
+      "ninth": 0.24
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        53,
+        88
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "susSubstitutionProb": 0.2
+  },
+  "melody": {
+    "register": [
+      70,
+      92
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.26,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.8,
+    "styles": {
+      "values": [
+        "bell_echo",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "offbeat_8ths",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "M2",
+      "P8"
+    ],
+    "anticipationProb": 0.26
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

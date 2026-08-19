@@ -317,15 +317,40 @@ fn two_different_artists_do_not_write_the_same_melodic_part() {
         println!("    {count:>4} / {SEEDS}  {part:>8}  {pair}");
     }
 
+    // ⛔⛔ **THE OWNER WITHDREW THE DISTINCTNESS REQUIREMENT ON 2026-08-15.** Mike:
+    // *"i don't care that they overlap, just ensure that it doesn't use
+    // copyrighted material when it does generate them."* The roster was returned
+    // to its researched values in the same change, so two artists in one lane are
+    // now *expected* to write the same line sometimes — that is what makes each
+    // sound like themselves. `drum_variety.rs` carries the same note at length.
+    //
+    // ⛔ **The 100%-collision case still fails, and it is the case this gate's own
+    // comment above says it was built for**: *"What this catches is a model that
+    // inherits its parent wholesale, which produces a 100% collision rate — six
+    // trap flagships shared one melody on 200 seeds of 200."* A model that never
+    // once diverges from another has authored nothing of its own, which is a
+    // dataset defect rather than a family resemblance. The per-part ceilings above
+    // are still computed and printed so a pair drifting together stays visible.
     let over: Vec<(&str, &str, usize)> = hits
         .iter()
         .filter(|((part, _), count)| **count > ceiling_for(part))
         .map(|((part, pair), count)| (*part, pair.as_str(), *count))
         .collect();
+    println!(
+        "\n  above the per-part ceiling (reported, not failed): {} pair(s)",
+        over.len()
+    );
+
+    let wholesale: Vec<(&str, &str, usize)> = hits
+        .iter()
+        .filter(|(_, count)| **count as u64 == SEEDS)
+        .map(|((part, pair), count)| (*part, pair.as_str(), *count))
+        .collect();
     assert!(
-        over.is_empty(),
-        "these models write the same part as each other too often in {SEEDS} seeds: \
-         {over:?}\n\
-         The cure is an authored block in the child, not a looser gate."
+        wholesale.is_empty(),
+        "these models write an identical part at every one of {SEEDS} seeds, so the \
+         child has authored nothing of its own: {wholesale:?}\n\
+         Overlap is allowed by the owner's decision of 2026-08-15; inheriting a whole \
+         block and calling it a second artist is not."
     );
 }

@@ -1032,6 +1032,35 @@
   opacity: 0.5;
 }
 
+/* ⛔ **Applied since TASK-120 and defined nowhere until 2026-08-15**, so
+   "Generate all" rendered as a *second full-weight primary* immediately beside
+   Generate — two identical buttons where one is the thing a producer presses all
+   day and the other is the thing they press to start. The class was on the
+   element the whole time; nothing in `src/` matched it.
+
+   ⛔⛔ **Colour only, and that is the trap this task carries.**
+   `.stage__controls` sits under `.stage__body`, so anything that makes this row
+   taller takes the height out of the *editor above it* — a previous attempt cost
+   enough of the velocity lane that a drag to 96 landed on 85, and
+   `piano-roll.spec.ts` caught it. So: no padding change, no `border` (which
+   would add 2px to a 44px box), no font change. `box-shadow: inset` draws the
+   outline inside the box the button already occupies and takes no layout at all.
+
+   ⚠ **The hover rule is repeated rather than inherited.** `.btn-generate:hover`
+   sets the solid primary background, and at equal specificity the later rule
+   wins — without this, hovering turned the secondary back into a primary. */
+.btn-generate--secondary {
+  background: transparent;
+  color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+.btn-generate--secondary:hover:not(:disabled) {
+  background: var(--color-surface-2);
+  box-shadow: inset 0 0 0 1px var(--color-primary-hot);
+  color: var(--color-primary-hot);
+}
+
 .btn-ghost {
   display: inline-flex;
   align-items: center;

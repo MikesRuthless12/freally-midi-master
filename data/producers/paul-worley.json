@@ -1,0 +1,307 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "paul-worley",
+  "type": "producer",
+  "name": "Paul Worley",
+  "aliases": [
+    "paul worley",
+    "paulworley",
+    "paul wourley"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1990-2012",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s",
+    "country-train"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Paul Worley",
+    "Mix — Classic Tracks: \"Independence Day\" (https://www.mixonline.com/recording/classic-tracks/classic-tracks-martina-mcbrides-independence-day)",
+    "Wikipedia — Paul Worley (https://en.wikipedia.org/wiki/Paul_Worley)",
+    "Wikipedia — Goodbye Earl (https://en.wikipedia.org/wiki/Goodbye_Earl)",
+    "Wikipedia — Need You Now (https://en.wikipedia.org/wiki/Need_You_Now_(Lady_Antebellum_song))"
+  ],
+  "notes": "A session guitarist turned producer, and the man behind the benchmark 90s female narrative ballad. Two progressions are documented from his own productions and they give the vocabulary directly: \"C–F/C–C–Gsus4 (I – IV/1 – I – Vsus4) on one hit, and an extended-piano-intro four-chord loop on another,\" with the entry naming \"the sus4-over-V and IV-over-tonic-pedal\" as his harmonic fingerprints — so I–IV–I–V leads the families and `susSubstitutionProb` is the highest of any producer here, because a sus is a quality the numeral parser cannot carry. The drum session is \"the most fully documented in this whole file,\" and the part of it that reaches a note generator is the grammar and the dynamic: \"cross-stick verse, 2&4 from the chorus, room-mic-driven fills into the final chorus,\" with the \"Sky Hook\" compressed room mic fourteen feet above the kit creating \"the explosive chorus character\" — authored as an accent tier that runs to the ceiling against a quiet main tier, not as a mic. The vocal method is the transferable arrangement parameter: \"six to seven complete takes per session, comped, with the singer doing 'homework' between sessions,\" i.e. a story-song build with a maximal final chorus. The palette adds \"orchestra bells sampled on a synthesizer as the high colour,\" which is the counter's bell echo. ⚠ The bass is \"live electric bass … root motion with walking pickups; no programmed low end,\" so no `bass808` block. ⚠ The INFERRED parameters are the velocity tiers, the perc density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 55,
+      "max": 145,
+      "mode": 100
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "mixolydian"
+      ],
+      "weights": [
+        7,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.83,
+      "velocityVar": 0.23,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 5,
+        "closedHat": 5,
+        "tom": 7,
+        "crash": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        122,
+        127
+      ],
+      "main": [
+        64,
+        92
+      ],
+      "ghost": [
+        22,
+        38
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.13,
+      "offbeat8thShare": 0.15
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.17,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.14,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.22,
+      "openHat": {
+        "prob": 0.17,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tomHigh",
+        "tomLow",
+        "crash",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        5
+      ],
+      "gainOffsetDb": -2,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.68,
+      "seventh": 0.27,
+      "ninth": 0.05
+    },
+    "susSubstitutionProb": 0.64,
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      86
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.68,
+      "third": 0.22,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.1,
+      "descend": 0.28,
+      "arch": 0.62
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": [
+      0.08,
+      0.18
+    ],
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "bell_echo",
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.87,
+    "register": [
+      28,
+      45
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.15
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        8
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.3,
+        "beats": 4
+      },
+      "switchUpProb": 0.18
+    }
+  }
+}

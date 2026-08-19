@@ -61,6 +61,137 @@ impl Default for Humanize {
     }
 }
 
+/// How busy a reading of the style the producer asked for (TASK-125).
+///
+/// ⛔⛔ **It scales WITHIN what the model authored and never overrides it**, and
+/// that is the whole design rather than a caveat. The roadmap states the rule:
+/// *"Complex must not mean 'wrong for the style': a rage vamp made busy is no
+/// longer rage, so the switch scales within each model's authored ranges rather
+/// than overriding them."* So this only ever biases a **choice the model already
+/// offered** — a draw inside an authored range, or a pick from an authored
+/// weighted list. A model that authors one value gets that value at every
+/// setting, which is the correct answer for a lane whose whole identity is a
+/// one-chord vamp.
+///
+/// ⚠ **`Authored` is the default and means "exactly what the model says".** Every
+/// project written before this existed deserialises to it, so a saved seed keeps
+/// rebuilding the beat the producer heard — the same compatibility rule
+/// `auto_sync` follows.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
+pub enum Complexity {
+    /// The plainest reading the model allows.
+    Simple,
+    /// The model as written. The default, and byte-identical to no switch.
+    #[default]
+    Authored,
+    /// The busiest reading the model allows.
+    Complex,
+}
+
+impl Complexity {
+    /// Which end of an authored choice to lean towards: -1, 0 or +1.
+    fn lean(self) -> i8 {
+        match self {
+            Self::Simple => -1,
+            Self::Authored => 0,
+            Self::Complex => 1,
+        }
+    }
+
+    /// Draw from an authored `min..=max`, leaning to one end.
+    ///
+    /// ⛔ **A lean, not a clamp.** Complex on `[2, 6]` must not always give 6:
+    /// the range is the model's statement about its own spread, and collapsing it
+    /// would turn a switch into a different model. Two draws and the higher (or
+    /// lower) of them keeps every value reachable while moving the *average*,
+    /// which is what "a busier reading" means — and it costs one extra number
+    /// from the same stream rather than a distribution nobody can reason about.
+    ///
+    /// ⚠ **`Authored` draws exactly once**, so it consumes the stream identically
+    /// to the code that existed before this type — which is what keeps every
+    /// saved seed reproducing its own beat.
+    ///
+    /// ⛔⛔ **Generic over the number type, and that is load-bearing rather than
+    /// tidy.** `chords.rs` drew `rng.random_range(min..=max)` over `u32`; routing
+    /// whole numbers through an `f64` draw and rounding gives a different value
+    /// from the same stream *and* a different distribution — half weight to each
+    /// endpoint — so every golden snapshot would have moved at the default
+    /// setting. One function with `T` keeps each type on its own
+    /// `random_range` and so consumes the stream exactly as its own old code
+    /// did. It was two byte-identical copies; a change to what "lean" means
+    /// could have landed in one and not the other.
+    ///
+    /// ⚠ **Guarded on `partial_cmp` rather than on `min >= max`, so a NaN bound
+    /// returns instead of panicking.** `random_range` asserts its range is
+    /// non-empty, and for `RangeInclusive<f64>` that assert is `start <= end` —
+    /// `false` for NaN, which fires. `min >= max` is also `false` for NaN, so the
+    /// old guard let it straight through. Both call sites re-check their bounds
+    /// today and `serde_json::Value` cannot hold a non-finite number, so nothing
+    /// reaches it; this is a `pub fn` whose safety should not rest on every
+    /// future caller remembering that. Anything not strictly ordered — equal,
+    /// inverted, or incomparable — is the model being specific, and `min` is the
+    /// answer for all three.
+    pub fn draw<T>(self, min: T, max: T, rng: &mut impl rand::Rng) -> T
+    where
+        T: Copy + PartialOrd + rand::distr::uniform::SampleUniform,
+    {
+        if min.partial_cmp(&max) != Some(std::cmp::Ordering::Less) {
+            return min;
+        }
+        let first = rng.random_range(min..=max);
+        match self.lean() {
+            0 => first,
+            lean => {
+                let second = rng.random_range(min..=max);
+                if (lean > 0) == (second > first) {
+                    second
+                } else {
+                    first
+                }
+            }
+        }
+    }
+
+    /// Simple and Complex swapped, for a parameter where *smaller* is busier.
+    ///
+    /// A chord duration is the case: two beats is busier than eight. Naming the
+    /// inversion here rather than negating bounds at the call site keeps the
+    /// draw's arithmetic in one place — the negation trick was the first cut and
+    /// it silently turned an integer draw into a float one.
+    pub fn inverted(self) -> Self {
+        match self {
+            Self::Simple => Self::Complex,
+            Self::Authored => Self::Authored,
+            Self::Complex => Self::Simple,
+        }
+    }
+
+    /// Reweight an authored list whose entries run plain → busy.
+    ///
+    /// The caller owns the ordering, because busy-ness is a fact about the
+    /// parameter rather than about this type: `vamp` is the plainest harmonic
+    /// rhythm and `mirror_kick` the plainest bass, and only `chords.rs` and
+    /// `bass.rs` know that. Weights are scaled by position, so a value the model
+    /// never listed stays unreachable at every setting.
+    pub fn reweight(self, weights: &mut [f64]) {
+        let lean = self.lean();
+        if lean == 0 || weights.len() < 2 {
+            return;
+        }
+        let last = (weights.len() - 1) as f64;
+        for (index, weight) in weights.iter_mut().enumerate() {
+            // 0.0 at the plain end, 1.0 at the busy end.
+            let position = index as f64 / last;
+            let toward = if lean > 0 { position } else { 1.0 - position };
+            // ⚠ **Scaled rather than replaced**, so an authored weight of 1
+            // against another model's 5 still reads as the rarer choice.
+            *weight *= 0.25 + 1.75 * toward;
+        }
+    }
+}
+
 /// Everything a generator needs beyond the style model.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
@@ -78,6 +209,13 @@ pub struct SessionContext {
     /// stated BPM, which is how most trap and drill models are notated.
     pub half_time: bool,
     pub humanize: Humanize,
+    /// How busy a reading of the style to generate (TASK-125).
+    ///
+    /// ⚠ **`serde(default)` and it matters**: this arrives in a payload from the
+    /// page and in a project file written before it existed, and absent has to
+    /// mean [`Complexity::Authored`] rather than a parse error or a busier beat.
+    #[serde(default)]
+    pub complexity: Complexity,
 }
 
 impl Default for SessionContext {
@@ -92,6 +230,7 @@ impl Default for SessionContext {
             bars: 4,
             half_time: false,
             humanize: Humanize::default(),
+            complexity: Complexity::default(),
         }
     }
 }
@@ -263,6 +402,12 @@ pub struct SessionOverrides {
     /// the project.
     pub time_sig_num: Option<u8>,
     pub time_sig_den: Option<u8>,
+    /// How busy a reading of the style to generate (TASK-125).
+    ///
+    /// ⚠ Absent is [`Complexity::Authored`], which is what every payload and
+    /// every project written before the switch existed sends.
+    #[serde(default)]
+    pub complexity: Option<Complexity>,
 }
 
 /// The tempo a pinned session may ask for, wider than any authored model.
@@ -438,6 +583,12 @@ impl SessionContext {
                 .or_else(|| session.and_then(|s| s.half_time))
                 .unwrap_or(false),
             humanize,
+            // ⛔ **The producer's, and the model has no say in it** — unlike every
+            // other field here, which falls back to what the artist authored.
+            // "How busy do you want this" is a question about the session, not
+            // about the style: a model that offered its own would be answering it
+            // for every producer who ever loads it.
+            complexity: overrides.complexity.unwrap_or_default(),
         }
     }
 }

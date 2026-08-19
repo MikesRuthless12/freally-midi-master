@@ -5,11 +5,74 @@
   align-items: center;
 }
 
+/* ⛔⛔ **One column, and every right edge lands on the same line** — Mike,
+   2026-08-16: *"ensure that the Simple/Complex, Key, Scale, Mood and Swing
+   parts of the Session layout are all the same width as the Generate in
+   combobox so that it is all uniform"*, and *"ensure all the other combobox's
+   and stuff are meeting with the right side"*.
+
+   ▶ **Full width rather than matched to the widest chip.** `Generate in` was
+   the widest only because "Their own genre" is the longest value in the panel —
+   matching *that* would make the whole column's width depend on which artist is
+   selected, and a layout that reflows when you change artist is the thing this
+   is fixing. Every chip taking the panel is the same alignment, held by
+   something that cannot move. */
+.session > * {
+  flex: 1 1 100%;
+  /* ⛔ **Without this the four combobox chips render wider than the panel.** A
+     flex item's automatic minimum size is its min-content, and for these that
+     includes the intrinsic width of the `<input>` inside the combobox — 145px
+     of it, on top of the label. `min-width: 0` on the input alone does not
+     reach the chip, so the floor was applied one element up and `Generate in`
+     came out 288px inside a 243px rail. Measured, 2026-08-16. */
+  min-width: 0;
+}
+
+/* The two pairs that share a line. The last control takes the slack, so the
+   row ends flush with the chips above and below it whatever is beside it —
+   and `Follow DAW` is absent outside a host, which is exactly when the tempo
+   box should be the one that stretches. */
+.session__row {
+  display: flex;
+  /* ⚠ Wraps rather than overflowing. The two controls fit on one line at every
+     rail width the app offers, but a chip pushed off the edge would be a
+     control nobody can reach — and a wrapped one still stretches to the margin
+     the rest of the column keeps. */
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ⛔ **`1 1 auto`, NOT `flex: 1`** — the shorthand's basis is `0%`, which lets
+   the control be squeezed *below* its natural width: `Follow DAW` came out
+   stretched to the margin and broken across two lines, which made the row
+   taller than every other one in a column whose whole point is that they
+   match. An `auto` basis grows from the natural width and never below it. */
+.session__row > :last-child {
+  flex: 1 1 auto;
+}
+
 .session__chip {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
   cursor: text;
+}
+
+/* The swing chip, whose label and number sit against the right edge of the
+   column rather than the left. */
+.session__chip--end {
+  justify-content: flex-end;
+}
+
+/* ⚠ **Right-aligned inside its own box**, so the digits sit against the margin
+   rather than against the label. The field must NOT grow to reach the edge —
+   `width: auto` on an `<input>` resolves to its intrinsic size, which pinned the
+   label left and the number right and pulled the pair apart. It keeps the
+   `width: 4ch` set on `.session__number` above, and `justify-content: flex-end`
+   on the chip is what carries the label and the number to the margin together. */
+.session__chip--end .session__number {
+  text-align: right;
 }
 
 .session__label {
@@ -28,6 +91,11 @@
 
 .session__number {
   width: 4ch;
+  /* ⛔ **The cursor says it is draggable** — Mike, 2026-08-16: *"when you have
+     the mouse over the numbers … the cursor changes to an Up & Down Arrow
+     cursor"*. It also overrides the chip's `cursor: text`, which was the field
+     advertising the only thing it used to do. */
+  cursor: ns-resize;
   font-variant-numeric: tabular-nums;
   /* The spinner arrows steal a third of a chip this narrow, and the value is
      typed or left alone rather than nudged. */
@@ -50,8 +118,13 @@
    giving the picker inside it `Combo`'s own border and surface would put a
    field inside a field, three times along one strip. The list it opens is
    `Combo`'s and is styled there; only the trigger is dressed down. */
+/* ⚠ **Fills the chip rather than a fixed 14ch.** The chips are the panel's
+   width now, so a fixed field would leave the dropdown arrow stranded in the
+   middle of its own box with dead space after it — the thing that reads as
+   *not* aligned even when the boxes are. */
 .session__chip .combo {
-  width: 14ch;
+  flex: 1;
+  min-width: 0;
 }
 
 .session__chip .combo__field {
@@ -153,9 +226,96 @@
   color: var(--color-text-3);
   font: inherit;
   cursor: pointer;
+  /* ⚠ The label is the whole control; breaking "Follow DAW" across two lines
+     makes its row taller than the column it is supposed to line up with. */
+  white-space: nowrap;
 }
 
 .session__sync[aria-checked='true'] {
   border-color: var(--color-primary);
   color: var(--color-text);
+}
+
+/* ── The Simple/Complex and As Written switches ─────────────────────────────
+   ⛔ **A drawn on/off switch, and the knob is the only thing that takes a
+   click** — Mike, 2026-08-16: *"an actual toggle switch button, not clicking
+   the text for them"*. The words are `<span>`s outside the `<button>` for that
+   reason, so `.session__switchbox` carries the chip's own layout rather than
+   `.session__chip`, whose `cursor: text` belongs to the fields it dresses. */
+
+.session__switchbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.session__side {
+  color: var(--color-text-3);
+}
+
+/* Which side the knob is on, said in words as well as in position — the pair
+   reads at a glance and still reads while the switch is disabled. */
+/* ⚠ **`start`/`end`, not the control's own value names.** This enumerated
+   `simple`, `complex` and `on` — two unrelated vocabularies in one selector list
+   — so renaming a `Complexity` value would silently drop the lit label with
+   nothing to catch it: no test reads a stylesheet, and the switch still renders
+   correctly in every other respect. Which side is lit is a property of a
+   two-sided control, so that is what the attribute says. */
+.session__switchbox[data-lit='start'] .session__side:first-child,
+.session__switchbox[data-lit='end'] .session__side:last-child {
+  color: var(--color-text);
+}
+
+.session__switch {
+  position: relative;
+  flex: none;
+  width: 26px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-2);
+  cursor: pointer;
+}
+
+.session__switch[aria-checked='true'] {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+/* ⚠ Dimmed as a whole, so the reason the switch cannot be moved is the *other*
+   switch being on rather than something wrong with this one. */
+.session__switchbox[data-held] {
+  opacity: 0.5;
+}
+
+.session__switch:disabled {
+  cursor: not-allowed;
+}
+
+.session__switch:focus-visible {
+  outline: 1px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.session__thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-text-3);
+  transition: transform 120ms ease;
+}
+
+.session__switch[aria-checked='true'] .session__thumb {
+  transform: translateX(12px);
+  background: var(--color-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session__thumb {
+    transition: none;
+  }
 }

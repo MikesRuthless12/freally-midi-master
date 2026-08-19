@@ -1,0 +1,310 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "my-chemical-romance",
+  "type": "artist",
+  "name": "My Chemical Romance",
+  "aliases": [
+    "my chemical romance",
+    "mcr",
+    "mychemicalromance"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2004-2008",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "theatrical rock"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — My Chemical Romance",
+    "Wikipedia — \"Welcome to the Black Parade\" (https://en.wikipedia.org/wiki/Welcome_to_the_Black_Parade)",
+    "bpmdatabase — My Chemical Romance (https://www.bpmdatabase.com/music/search/?artist=My+Chemical+Romance&title=)"
+  ],
+  "notes": "Theatrical emo-rock with marching-band and glam architecture, modelled on the anthem band because that is the half the research pairs with a backbeat class: \"64–120 for the anthems (half-time feel, backbeat on 3)\". `halfTime` is true and the snare is `halftime_3`; the 132–180 punk band is the other class and is named here. The **documented tempo architecture** is the entry's standout fact — the anthem \"starts at 75 BPM and shifts to 194 BPM 'in half-time', i.e. a double-time drum grid felt as a half-time backbeat\" — which is exactly what `halfTime` true at a mode of 75 encodes, and it is why the model is not simply a slow record. Three drum deltas follow: \"kick 1 and 3 under the march\", \"snare on the marching 16ths\" (a 16th snare roll with an even grouping and almost no gaps), and \"timpani/bass-drum for the theatrical fills\", which is the tom/tomLow/crash perc block on a 4-bar schedule. The melody is documented as G4–D6 — \"the widest range in this lane\" — and the \"gang-choir vocals as a chorus instrument\" are the sustained-pad and octave-echo counter. Sections run long: the entry says 4:30–5:15 with multiple parts, which is the extended `sectionBars` and the high `switchUpProb`. ⚠ The **INFERRED** parameters are every drum probability.",
+  "session": {
+    "bpm": {
+      "min": 64,
+      "max": 120,
+      "mode": 75
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.87,
+      "velocityVar": 0.16
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        84,
+        100
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.16
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2e",
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.38,
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.16
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tom",
+        "tomLow",
+        "crash"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        70,
+        122
+      ],
+      "rampJitter": 6,
+      "gapProb": 0.06,
+      "descendProb": 0.12
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.62,
+      "seventh": 0.28,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        84
+      ],
+      "topVoiceStepwise": true
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      86
+    ],
+    "densityPerBar": [
+      3,
+      9
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.22,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.26,
+      "arch": 0.5
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.2,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.18
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 16,
+      "outro": 16
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.3
+    }
+  }
+}

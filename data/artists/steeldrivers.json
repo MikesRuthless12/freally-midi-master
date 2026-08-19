@@ -1,0 +1,312 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "steeldrivers",
+  "type": "artist",
+  "name": "The SteelDrivers",
+  "aliases": [
+    "the steeldrivers",
+    "steeldrivers",
+    "steel drivers"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-train"
+  ],
+  "era": "2008-present",
+  "genres": [
+    "country-train",
+    "bluegrass",
+    "blues"
+  ],
+  "relatedGenres": [
+    "country-train",
+    "country-pop",
+    "country-shuffle"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-train — The SteelDrivers",
+    "Wikipedia — The SteelDrivers (https://en.wikipedia.org/wiki/The_SteelDrivers)",
+    "Wikipedia — Bluegrass music (https://en.wikipedia.org/wiki/Bluegrass_music)"
+  ],
+  "notes": "\"Uncle pen meets Muscle Shoals\" — bluegrass instrumentation playing blues form with a rasped soul lead, and therefore \"the one entry in this section where the twelve-bar blues and minor-mode writing dominate over I–IV–V\". The 2008–2010 Chris Stapleton lineup is the defining parameter set and the era starts there. Harmony is the identity: \"model i–iv–v, i–♭VII–♭VI–V, and twelve-bar blues in minor, alongside the conventional major I–IV–V\", with keys clustering in \"A minor, B minor, E minor and D minor, i.e. fiddle-friendly minors rather than the genre's usual bright majors\" — so the keys are authored as those four with `scales` weighted to natural_minor, dorian and blues, and the minor twelve-bar skeleton i–iv–i–V–iv–i sits at `maxChords` 6. The one drum parameter that is genuinely theirs is stated as a placement, not a feel: \"the backbeat the mandolin chop placed swung rather than driven — this band sits at the boundary with country-shuffle, and the swung-offbeat setting is what gives them their blues lope\". `snare.offGridMs` is therefore +7, the only positive backbeat offset in this section; the subdivision stays even, which is what keeps the band inside country-train rather than in country-shuffle. \"Where a kit appears on the Muscle Shoals material it plays a straight 8th stream with a heavy backbeat\", hence a stick-range accent tier despite the drummerless core. The bass is \"root–five with far more walking than the bluegrass norm (blues form demands it)\", so `rhythm` is independent_riff at `followRootsProb` 0.72 with a tritone in the passing tones for the blues fifth. The vocal is \"a rasped, blues-phrased baritone with heavy back-phrasing and melisma — the opposite of the Krauss/McCoury bluegrass vocal convention\", which is the low register, the raised `halfStepDissonance` and legato articulation. ⚠ This entry models the BAND, not Chris Stapleton; his full entry is in country-pop and is not duplicated here. ⚠ The entry is explicit that \"the harmonic parameter set is inferred from the documented genre fusion and marked [LOW-CONF]\", including the key cluster, and that flag is repeated. ⚠ Also INFERRED: `bpm.mode` 130 (the entry states a 90–180 band and no centre), the velocity tiers, the +7 ms value itself, `percs` contents and every melody and countermelody number.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 180,
+      "mode": 130
+    },
+    "keys": {
+      "values": [
+        "Am",
+        "Bm",
+        "Em",
+        "Dm"
+      ],
+      "weights": [
+        3,
+        2,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "blues",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.84,
+      "velocityVar": 0.17,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 5,
+        "perc": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        102,
+        122
+      ],
+      "main": [
+        74,
+        88
+      ],
+      "ghost": [
+        36,
+        54
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ]
+    },
+    "snare": {
+      "offGridMs": 7
+    },
+    "hihat": {
+      "base": "4th",
+      "continuous": false,
+      "fillDensity": 0.075,
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.05
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -9
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "v"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "bVII",
+          "bVI",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "i",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "i",
+          "V",
+          "iv",
+          "i"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 6,
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.36,
+      "ninth": 0.04
+    }
+  },
+  "melody": {
+    "register": [
+      45,
+      69
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.7,
+      "third": 0.24,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.4,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.14,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "blues_fiddle"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.72,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      43
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "m3",
+      "m7",
+      "TT"
+    ],
+    "anticipationProb": 0.24
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        8,
+        12
+      ],
+      "verse": 12,
+      "chorus": 8,
+      "bridge": [
+        8,
+        12
+      ],
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.12,
+        "beats": 1
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

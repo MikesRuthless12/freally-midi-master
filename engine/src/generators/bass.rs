@@ -16,10 +16,10 @@ use rand::Rng;
 use serde_json::Value;
 
 use crate::context::SessionContext;
-use crate::dataset::StyleModel;
+use crate::dataset::{StrSpec, StyleModel};
 use crate::generators::chords::Chords;
 use crate::generators::grid;
-use crate::generators::read::{block, number, pair, text};
+use crate::generators::read::{block, number, pair, string_spec_leaning, text};
 use crate::pattern::{Lane, LaneTrack, Note};
 use crate::rng;
 use crate::theory;
@@ -75,6 +75,59 @@ pub fn can_read_rhythm(name: &str) -> bool {
     Rhythm::parse(name).is_some()
 }
 
+/// Does this model's bassline take its onsets from the kick?
+///
+/// ⛔ **The novelty guard's one question about the bass** — see
+/// [`crate::novelty::screens`]. `mirror_kick` copies the kick's ticks outright,
+/// so rerolling that line to dodge a contour would trade the lock that makes it
+/// sit with the drums for a match nobody could hear as a quotation. Every other
+/// rhythm places its own onsets and is a figure in its own right, which is what
+/// a screen exists for.
+///
+/// ⛔⛔ **Every rhythm the model *could* draw, not the one it happens to draw.**
+/// [`generate`] picks the rhythm with `string_spec_leaning`, which reads the
+/// weighted `{ values, weights }` form and leans it by the producer's setting —
+/// so the drawn rhythm depends on a seed and a switch this function has neither
+/// of. Asking the same question the generator asks is therefore impossible;
+/// asking a *safe* one is not. A model that lists `mirror_kick` alongside
+/// `independent_riff` can place its own onsets, so it is screened.
+///
+/// ⚠ **This was `text`, and that was a second reader with a different answer.**
+/// `text` only accepts a bare string: a model authoring the weighted form read
+/// as `None` → `mirror_kick` → unscreened, while the generator drew an
+/// independent riff and shipped it past the guard. No model in `data/` authors
+/// that form today — all 489 are bare strings, so nothing shipped wrong — but
+/// the weighted form is exactly what the new reader was added to support, and a
+/// user model saved through the style editor can reach it. Two answers to "what
+/// rhythm is this" is how the guard would come to screen a part the generator
+/// built differently; there is one answer now.
+///
+/// ⚠ **The default is `mirror_kick`**, exactly as [`generate`] reads it, and an
+/// unparseable name resolves the same way there.
+///
+/// ⚠ **A model whose 808 *is* the bass writes no bass part at all**
+/// ([`eight_o_eight_is_the_bass`]), so there is nothing to screen: it answers
+/// `true` and the guard leaves the empty lane alone rather than drawing four
+/// takes of nothing.
+pub fn follows_the_kick(model: &StyleModel) -> bool {
+    if eight_o_eight_is_the_bass(model) {
+        return true;
+    }
+    let Some(rhythm) = block(model.blocks.get("bassline"), "rhythm") else {
+        // Nothing authored: `generate` falls back to `mirror_kick`.
+        return true;
+    };
+    match serde_json::from_value::<StrSpec>(rhythm.clone()) {
+        // An unreadable spec is one `generate` also cannot read, and it falls
+        // back to `mirror_kick` there too.
+        Err(_) => true,
+        Ok(spec) => spec
+            .options()
+            .iter()
+            .all(|name| Rhythm::parse(name).unwrap_or(Rhythm::MirrorKick) == Rhythm::MirrorKick),
+    }
+}
+
 /// Is this cell-shape degree one the generator can act on?
 ///
 /// `cellShapes` are authored as scale degrees with optional accidentals —
@@ -102,9 +155,13 @@ fn cell_degree(text: &str) -> Option<(i32, i32)> {
 ///
 /// Read from the *drums* block, because that is where the 808 lives. The bass
 /// part deferring to it is the whole of FR-007's "unify with the 808 lane".
+/// ⚠ **Reads the block map directly rather than rebuilding a root `Value`.**
+/// It used to clone `model.blocks` whole — a mean of 819 JSON nodes, 1,454 at
+/// the worst model — to look at one string. `arrange.rs` asks this question once
+/// per section inside `render_section`, so a 64-section song paid ~130k heap
+/// allocations for a boolean that cannot change between sections.
 pub fn eight_o_eight_is_the_bass(model: &StyleModel) -> bool {
-    let root = Value::Object(model.blocks.clone().into_iter().collect());
-    text(block(block(Some(&root), "drums"), "bass808"), "role") == Some("bassline")
+    text(block(model.blocks.get("drums"), "bass808"), "role") == Some("bassline")
 }
 
 pub fn generate(
@@ -126,19 +183,42 @@ pub fn generate(
         return empty;
     }
 
-    let root = Value::Object(model.blocks.clone().into_iter().collect());
-    let Some(bass) = block(Some(&root), "bassline").cloned() else {
+    // ⚠ Borrowed from the block map rather than rebuilt into a root `Value` and
+    // cloned back out — see [`eight_o_eight_is_the_bass`] for what that cost.
+    let Some(bass) = model.blocks.get("bassline").filter(|v| !v.is_null()) else {
         return empty;
     };
-    let bass = Some(&bass);
+    let bass = Some(bass);
 
     let mut param_rng = rng::stream(seed, "bass/params");
     let mut place_rng = rng::stream(seed, "bass/place");
     let mut pitch_rng = rng::stream(seed, "bass/pitch");
 
-    let rhythm = text(bass, "rhythm")
-        .and_then(Rhythm::parse)
-        .unwrap_or(Rhythm::MirrorKick);
+    // ⛔ **Plain → busy for TASK-125, and `text` is kept as the fallback.** Almost
+    // every model authors one rhythm as a bare string, which `string_spec_leaning`
+    // returns untouched; the lean only reaches a model that authored a weighted
+    // choice, and then only among the values it listed. A sustained reese is the
+    // plainest thing this generator writes and an independent riff the busiest —
+    // *"a walking rather than root-following bass"* is the roadmap's phrase for
+    // that end.
+    const BUSYNESS: &[&str] = &[
+        "reese_sustain",
+        "mirror_kick",
+        "boom_chick",
+        "offbeat_8ths",
+        "independent_riff",
+    ];
+    let rhythm = string_spec_leaning(
+        "bassline",
+        bass,
+        "rhythm",
+        ctx.complexity,
+        BUSYNESS,
+        &mut param_rng,
+    )
+    .as_deref()
+    .and_then(Rhythm::parse)
+    .unwrap_or(Rhythm::MirrorKick);
     let follow_roots = number(bass, "followRootsProb", 0.85, &mut param_rng).clamp(0.0, 1.0);
     let glide = number(bass, "glideProb", 0.0, &mut param_rng).clamp(0.0, 1.0);
     let anticipation = number(bass, "anticipationProb", 0.0, &mut param_rng).clamp(0.0, 1.0);

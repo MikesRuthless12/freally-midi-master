@@ -53,6 +53,11 @@ const SEEDS: u64 = 200;
 /// asserted over 1,000 seeds and this walks 200, and a count can never exceed
 /// the seeds tried. What this is detecting is a swap that *collapses* a
 /// generator — a base that produces four beats is broken, not narrow.
+///
+/// ▶ **Which of the two it is, is decided by the model rather than by this
+/// number**: a pair under the floor is only reported when the same artist clears
+/// it over their own authored parent. See the test for the two ballad-and-space
+/// kits that proved the absolute reading wrong.
 const MIN_DISTINCT_SAMPLED: usize = 100;
 
 /// How many pairs the sampled measurement walks, unless the deep run is asked
@@ -278,22 +283,60 @@ fn a_swapped_model_does_not_collapse_to_a_handful_of_beats() {
         };
         walked += 1;
 
-        let mut beats: BTreeSet<Vec<(Lane, Vec<u32>)>> = BTreeSet::new();
-        for seed in 0..SEEDS {
-            beats.insert(shape(&generate(&model, &ctx, seed)));
+        let swapped = distinct_beats(&model, &ctx);
+        if swapped >= MIN_DISTINCT_SAMPLED {
+            continue;
         }
-        if beats.len() < MIN_DISTINCT_SAMPLED {
-            thin.push(format!("{artist} over {genre}: {} of {SEEDS}", beats.len()));
+
+        // ⛔⛔ **A count under the floor is only a finding when the model clears
+        // that floor over its OWN base**, and without this the two were
+        // indistinguishable. [`shape`] and [`SEEDS`] here are `drum_variety`'s to
+        // the line, and *that* gate's floor is **20** — deliberately, because
+        // `country-train` writes 24 beats and a train beat genuinely is
+        // four-on-the-floor with `syncopation: 0`. So a model can pass the
+        // roster-wide variety gate and still sit under 100 here with the swap
+        // having done nothing to it.
+        //
+        // ▶ Both models this caught are that case. `walter-afanasieff` is a
+        // support-layer ballad kit — research: "soft-attack kick on 1, gated or
+        // brushed snare on beat 3 of the doubled grid, **no hat lane**" — and
+        // every other lane he authors generates below the velocity 50 that
+        // `shape` counts, so his beat is a kick figure and a backbeat wherever he
+        // is played. `james-blake` is the same story in a different lane: "one
+        // deep sub-kick per bar and a single reverbed snare on 3 (half-time),
+        // with silence between hits used as a rhythmic event". Widening either to
+        // clear a floor would be authoring over the research.
+        //
+        // What must not happen — and what this still fails on — is a base that
+        // takes a model from a varied beat down to a handful.
+        let own = registry
+            .resolve(artist)
+            .map(|authored| distinct_beats(&authored, &ctx))
+            .unwrap_or(0);
+        if own >= MIN_DISTINCT_SAMPLED {
+            thin.push(format!(
+                "{artist} over {genre}: {swapped} of {SEEDS}, against {own} over its own base"
+            ));
         }
     }
 
     assert!(walked >= 20, "only {walked} pairs walked");
     assert!(
         thin.is_empty(),
-        "{} of {walked} sampled swaps collapse below {MIN_DISTINCT_SAMPLED} distinct beats in {SEEDS} seeds:\n{}",
+        "{} of {walked} sampled swaps collapse below {MIN_DISTINCT_SAMPLED} distinct beats in {SEEDS} seeds, \
+         from a model that clears it over its own base:\n{}",
         thin.len(),
         thin.join("\n")
     );
+}
+
+/// How many distinct beats a model writes over [`SEEDS`] seeds of one context.
+fn distinct_beats(model: &engine::StyleModel, ctx: &SessionContext) -> usize {
+    let mut beats: BTreeSet<Vec<(Lane, Vec<u32>)>> = BTreeSet::new();
+    for seed in 0..SEEDS {
+        beats.insert(shape(&generate(model, ctx, seed)));
+    }
+    beats.len()
 }
 
 #[test]

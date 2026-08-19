@@ -1,0 +1,241 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jo-dee-messina",
+  "type": "artist",
+  "name": "Jo Dee Messina",
+  "aliases": [
+    "jo dee messina",
+    "jodee messina",
+    "jodeemessina"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1996-2005",
+  "genres": [
+    "country-pop",
+    "country",
+    "uptempo radio country"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s",
+    "country-train"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Jo Dee Messina",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Jo+Dee+Messina)",
+    "Wikipedia — Byron Gallimore (https://en.wikipedia.org/wiki/Byron_Gallimore)"
+  ],
+  "notes": "Bright, brassy uptempo country-pop with a belted chorus — \"the most consistently *up* female catalogue of the late 90s.\" Drums are the stated pattern: \"bright and compressed; 8th hats with tambourine doubling through choruses, kick on 1 and 'and-of-3'; a snare-and-crash accent on the last beat of the pre-chorus as the lift device,\" so the kick takes a 3& secondary anchor, the tambourine runs dense, and fills are pinned to the section boundary. The arrangement's energy lever is quoted and is a bass parameter, not a drum one: \"live bass in driving 8ths under choruses, quarters under verses; the 8th-note switch at the chorus is the arrangement's main energy lever\" — hence a high anticipation figure against a high root-following probability. Harmony is the stated \"I–V–vi–IV and I–IV–V, with the chorus often starting on IV,\" which is why the IV-first rotation carries real weight. Melody is \"mid-register conversational verse, chorus a fifth or sixth higher, sustained and belted; hooks are short repeated rhythmic cells.\" ⚠ Confidence is medium and the research says why: \"tempo spine documented, producer method documented, harmony generalised [LOW-CONF].\" ⚠ The INFERRED parameters are the perc density, the crash placement and the countermelody ratio — \"tambourine doubling through choruses\" and \"steel and fiddle used as short answer licks\" are directions, and 3–6 and 0.56 are this author's reading of them.",
+  "session": {
+    "bpm": {
+      "min": 63,
+      "max": 148,
+      "mode": 118
+    },
+    "keys": {
+      "values": [
+        "A",
+        "Bb",
+        "D",
+        "G",
+        "C"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic"
+      ],
+      "weights": [
+        7,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.91,
+      "velocityVar": 0.12
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        88,
+        104
+      ],
+      "ghost": [
+        34,
+        48
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.26,
+      "offbeat8thShare": 0.46
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.26,
+      "openHat": {
+        "prob": 0.32,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "crash"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -3,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V",
+          "vi"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "IV",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.79,
+      "seventh": 0.18,
+      "ninth": 0.03
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      59,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.28,
+      "arch": 0.52
+    },
+    "chordToneBias": 0.83,
+    "octaveJumpProb": 0.07,
+    "twoBarCellRepeat": 0.42
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.56,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.88,
+    "register": [
+      28,
+      45
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.3
+  }
+}

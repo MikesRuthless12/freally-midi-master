@@ -1,0 +1,364 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "total",
+  "type": "artist",
+  "name": "Total",
+  "aliases": [
+    "total",
+    "total group",
+    "kima keisha pam",
+    "bad boy"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1995-1998",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "hip hop soul"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "boom-bap",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Total",
+    "bpmdatabase — Total (https://www.bpmdatabase.com/music/search/?artist=Total)",
+    "Wikipedia — Anthony Dent (https://en.wikipedia.org/wiki/Anthony_Dent)",
+    "Wikipedia — Stevie J (https://en.wikipedia.org/wiki/Stevie_J)"
+  ],
+  "notes": "Bad Boy girl trio on Hitmen loop-flip hip-hop soul, 1995–1998. The research gives \"77–95 straight (backbeat 2&4)\" and notes the tempos \"cluster tightly 86–95\", so the mode sits at 91 and `halfTime` is false. The drum deltas are the board's documented move: \"keep the source loop's groove and add a hard modern kick\" gives a low quantize strength, wide timing jitter and an accent tier well above the main tier so the added kick reads over the loop; \"extra clap on 2&4\" is a clap stack with a real offset; \"16th hats thin\" is a continuous 16th lane at a third of the parent's fill density. Harmony is \"whatever the interpolated 70s/80s source supplies — usually a 2- or 4-bar loop with static harmony\", so the families are one- and two-chord with a long `chordDurationBeats` and `harmonicRhythm` weighted to `vamp`. \"Group harmony is tight, low-register, conversational; note density low, lots of held notes\" is the low melody register and density, the legato articulation and the high empty-bar bias. The low end is \"the sample's bassline… sub-kick reinforcement under it rather than an independent bass voice\" — so no `bass808` block (which would silence the bass part) and a bass that follows roots closely with almost no independent motion. ⚠ Confidence is medium: the research sources the tempo spine but the loop-flip grammar only at board level, and the key claim carries a `[LOW-CONF]` mark, so the key weights are lane-level rather than name-specific. ⚠ The INFERRED parameters are every velocity and density number and the countermelody block. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry's harmony line is \"whatever the interpolated 70s/80s source supplies - usually a 2- or 4-bar loop with static harmony\", and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\") — so weighting `vamp` at the top rendered a **one**-chord bed the research nowhere describes. The chord motion the entry states is now carried by `1_per_bar` (the pair over a 2-bar cell) and `2_bars_per_chord` (the pair over a 4-bar cell), with `vamp` kept as the minority for the held reading. The 2-bar loop is `1_per_bar` and the 4-bar loop is `2_bars_per_chord`; both figures are the entry's own. ⚠ The split between those two rates is **INFERRED** — the entry names the device, not its rate. ⚠ **The countermelody reached 943/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.18 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. Second, `countermelody.densityRatio` became a range, [0.24, 0.45], rather than a flat 0.24. That parameter decides how many notes the part has at all, and at 0.24 it was two or three; a part that short has almost no shapes to be distinct in. The low end is kept because it is the thin reading the entry's texture implies, and it is now the bottom of a band rather than the only answer — so how much of the lead the pad answers varies take to take. ⚠ Every value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"whatever the interpolated 70s/80s source supplies — usually a 2- or 4-bar loop with static harmony. Group harmony is tight, low-register, conversational; note density low, lots of held notes.\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 77,
+      "max": 95,
+      "mode": 91
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Cm",
+        "Gm",
+        "Fm",
+        "Am"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.57
+    },
+    "humanize": {
+      "quantizeStrength": 0.6,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 9,
+        "clap": 9,
+        "closedHat": 10
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        126
+      ],
+      "main": [
+        70,
+        84
+      ],
+      "ghost": [
+        28,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.24,
+      "tresilloBias": 0.06,
+      "andOf4EveryOtherBar": 0.1
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        4,
+        9
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.28
+        ]
+      },
+      "offGridMs": [
+        3,
+        8
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.22,
+      "velocities": {
+        "main": [
+          0.42,
+          0.6
+        ],
+        "ghost": [
+          0.16,
+          0.3
+        ]
+      },
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.06
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "any",
+      "gainOffsetDb": -9
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.28,
+      "seventh": 0.52,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      24
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      76
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.26,
+      "descend": 0.44,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": 0.03,
+    "articulation": "legato",
+    "emptyBarBias": 0.1,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.24,
+      0.45
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.93,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.14
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 16,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.4,
+        "beats": 2
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

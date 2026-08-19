@@ -1,0 +1,358 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "carly-rae-jepsen",
+  "type": "artist",
+  "name": "Carly Rae Jepsen",
+  "aliases": [
+    "carly rae jepsen",
+    "carlyraejepsen",
+    "jepsen",
+    "crj"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2012-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "synth-pop",
+    "dance-pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "dance-pop",
+    "pop-2000s",
+    "house"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Carly Rae Jepsen",
+    "Wikipedia — Carly Rae Jepsen (https://en.wikipedia.org/wiki/Carly_Rae_Jepsen)",
+    "Wikipedia — Rostam Batmanglij (https://en.wikipedia.org/wiki/Rostam_Batmanglij)"
+  ],
+  "notes": "1980s-facing synth-pop with maximal hook density. The drums are the entry's: \"gated 1980s snare on 2&4, four-square kick, tambourine on offbeats, and a synth-generated 8th pulse in place of hats; drum fills are tom cascades.\" So the snare is hard-transient under a large tail, `hihat.base` is 8th with no roll vocabulary, `tambourine` sits at `offbeat` placement, and the fills are `tom`/`tomHigh`/`tomLow` with the snare-roll ladder off. The bass is explicitly not an 808: \"pumping analogue-style synth bass on 8ths with an octave jump per bar\", which is `offbeat_8ths` with an octave in the cell shapes — the \"1—8\" figure is the octave jump the entry names. Harmony is \"bright majors with a borrowed minor iv and a IV—V—vi—I lift habit\", so that lift is a named family and the borrowed iv is the `borrowed` map. The melody block is where this model earns its separation: \"toplines are hook-dense — pre-chorus, chorus and post-chorus each carry a distinct singable figure\", so `densityPerBar` runs 6—13, the arrangement authors a post-chorus-shaped structure with three separate hook slots, and \"contour is ascending and wide, with breathy doubles\" is the arch weighting, the high `octaveJumpProb` and the `octave_echo` counter. ⚠ `confidence` is medium and the research says the parameters are \"lane-derived\": every drum probability, the humanize pair, the melody register, `bpm.mode` 120 (the midpoint of the stated 110—130 band) and the `lydian` weight in `session.scales` are INFERRED — the entry says \"bright majors with a borrowed minor iv\" and names no mode, so lydian is an inferred bright colour at weight 2. ⚠ The entry's [LOW-CONF] mark on the soprano-placement claim is repeated here.",
+  "session": {
+    "bpm": {
+      "min": 110,
+      "max": 130,
+      "mode": 120
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "lydian",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.93,
+      "velocityVar": 0.13,
+      "timingJitterMs": {
+        "tambourine": 6,
+        "snare": 4
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.1,
+      "tresilloBias": 0.02,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "reverb": "large",
+      "transient": "hard",
+      "stack": [
+        "snare",
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.32,
+      "velocities": {
+        "main": [
+          0.58,
+          0.86
+        ],
+        "ghost": [
+          0.24,
+          0.44
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.34,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "tom",
+        "tomHigh",
+        "tomLow"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "IV",
+          "V",
+          "vi",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.28,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        53,
+        82
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ],
+    "borrowed": {
+      "iv": 0.26
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      88
+    ],
+    "densityPerBar": [
+      6,
+      13
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.62,
+      "third": 0.26,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.24,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": [
+      0.14,
+      0.28
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4,
+        2
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.6,
+      0.85
+    ],
+    "styles": {
+      "values": [
+        "octave_echo",
+        "bell_echo",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "offbeat_8ths",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.3,
+    "cellShapes": [
+      [
+        "1",
+        "8"
+      ],
+      [
+        "1",
+        "1",
+        "8"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": [
+        8,
+        16
+      ],
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

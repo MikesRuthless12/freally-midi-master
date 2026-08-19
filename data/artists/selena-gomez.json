@@ -1,0 +1,351 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "selena-gomez",
+  "type": "artist",
+  "name": "Selena Gomez",
+  "aliases": [
+    "selena gomez",
+    "selena marie gomez",
+    "selenagomez",
+    "selena"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "electropop",
+    "tropical house"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "dance-pop",
+    "house",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Selena Gomez",
+    "Wikipedia — Selena Gomez (https://en.wikipedia.org/wiki/Selena_Gomez)",
+    "Wikipedia — Julia Michaels (https://en.wikipedia.org/wiki/Julia_Michaels)"
+  ],
+  "notes": "Breathy, low-dynamic electropop with a whisper-forward vocal. The drum claim is about what is missing: \"soft-transient programmed kick and clap, brushed 16th percussion, and a lot of negative space; tropical-house-derived pluck patterns stand in for hats on the dance records.\" So the snare transient is soft, `hihat.continuous` is false at `fillDensity` 0.1 with the roll vocabulary off, the perc bed is a brushed 16th shaker at a low gain, and the fills are pushed out to 16 bars — the negative space is the parameter. The low end is a synth sub with no 808 named, so no `bass808` block is authored; \"low end enters with the chorus and often carries the hook when the vocal stays static\" is a moderate `followRootsProb` with real passing motion rather than a root drone. Harmony is \"4-bar minor vamps\". The melody block is where the entry is most specific: \"a small-range mezzo instrument, deliberately written inside a 6th-to-9th span with breath and air as the expressive parameter rather than power\", so the register runs a 9th and no more, and \"the hook as a repeated two-note figure\" is `motifPitchCount` 2—3 — the smallest motif in this section. \"Toplines are conversational, written by the Michaels/Tranter axis for speech rhythm\" is the high step share and the syllabic density; \"harmony stacks are close and whispered\" is a low counter density. ⚠ `confidence` is medium and the research says why: \"writing axis, vocal character and palette documented; rhythmic/harmonic bands inferred\". Every drum probability, the humanize numbers, the harmonic families and `bpm.mode` 107 (the midpoint of the stated 90—125 band) are INFERRED. ⚠ The entry's [LOW-CONF] mark on the 6th-to-9th span claim is repeated here.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 125,
+      "mode": 107
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        6,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.93,
+      "velocityVar": 0.12,
+      "timingJitterMs": {
+        "clap": 4,
+        "shaker": 6,
+        "kick": 2
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.26,
+      "tresilloBias": 0.1,
+      "offbeat8thShare": 0.12
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "transient": "soft",
+      "layerClapOffsetMs": [
+        3,
+        9
+      ],
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.1,
+      "velocities": {
+        "main": [
+          0.4,
+          0.62
+        ],
+        "ghost": [
+          0.14,
+          0.3
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "snap",
+        "triangle"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -9
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "V",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.52,
+      "seventh": 0.36,
+      "ninth": 0.12
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        74
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      74
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      2,
+      3
+    ],
+    "intervals": {
+      "step": 0.86,
+      "third": 0.12,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.62,
+      "descend": 0.28,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": [
+      0.01,
+      0.05
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "articulation": "legato",
+    "timbreHint": "close_whisper_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.2,
+      0.38
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "bell_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.74,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.3,
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "b7",
+        "5"
+      ],
+      [
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 4,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 4
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

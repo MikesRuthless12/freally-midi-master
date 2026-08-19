@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
-import { openPanel } from './app';
+import { openPanel, pickArtist } from './app';
 
 /**
  * The session chips and the keep-or-adopt prompt (TASK-033, FR-002).
@@ -13,6 +13,29 @@ import { openPanel } from './app';
  */
 
 const chip = (name: string) => `.session__chip:has-text("${name}")`;
+
+/**
+ * Grab a number box and pull it `by` pixels — negative is up, as on screen.
+ *
+ * ⛔ **`hover()` before `boundingBox()`, and that is a flake fix rather than
+ * politeness.** The first cut measured the box and then dragged from the
+ * coordinates it got; it passed alone and failed once in the full 297-spec run,
+ * because the rail is still sliding its panels in and under load the drag
+ * started from a position the input had already left. `hover()` runs
+ * Playwright's actionability checks, which include waiting for the bounding box
+ * to stop moving. Written once so the swing test cannot lose the reason.
+ */
+async function dragBy(page: Page, field: Locator, by: number): Promise<void> {
+  await field.hover();
+  const box = await field.boundingBox();
+  if (!box) throw new Error('the number box is not on screen');
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + by, { steps: 6 });
+  await page.mouse.up();
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -140,6 +163,78 @@ test('a tempo outside the musical range is corrected on the way out', async ({ p
   await expect(bpm).toHaveValue('900');
 });
 
+/**
+ * The tempo drag (2026-08-16).
+ *
+ * ⛔ **Mike asked for the DAW idiom** — *"ensure that this is a drag up and down
+ * numeric box"* — so the number is grabbable: pull up for faster, down for
+ * slower. Only a browser can show this, because the whole behaviour is pointer
+ * capture and a `preventDefault` that has to stop the caret without stopping the
+ * click.
+ *
+ * ⚠ **The click half is not a nicety, it is the risk.** Suppressing the default
+ * on `pointerdown` is what stops a drag selecting the digits it is dragging
+ * over; get it slightly wrong and the box stops being typeable, which would
+ * trade a feature for the one the chip already had.
+ */
+test('the tempo box drags up and down, and a plain click still types', async ({ page }) => {
+  await pick(page, 'trap');
+
+  const bpm = page.locator(`${chip('BPM')} input`);
+  // Unpinned, showing the artist's 140 as a placeholder — the number the drag
+  // must start from. Starting from 0, or from a pin that does not exist yet,
+  // would jump the tempo the instant it was touched.
+  await expect(bpm).toHaveValue('');
+  await expect(bpm).toHaveAttribute('placeholder', '140');
+
+  // 3px per BPM, up for faster: 30px above the start is 140 + 10.
+  await dragBy(page, bpm, -30);
+  await expect(bpm).toHaveValue('150');
+
+  // ...and back down past where it started, so the gesture is not one-way and
+  // the second drag reads the *pinned* number rather than the artist's.
+  await dragBy(page, bpm, 60);
+  await expect(bpm).toHaveValue('130');
+
+  // ⛔ The box is still a text field. A press that never moved is a click, and a
+  // click must leave it typeable exactly as it was before the drag existed.
+  await bpm.click();
+  await bpm.fill('96');
+  await expect(bpm).toHaveValue('96');
+});
+
+/**
+ * The swing drag (2026-08-16).
+ *
+ * ⛔ **The same gesture, deliberately not the same step.** Mike asked for both —
+ * *"ensure that the Swing is the same type of drag up and down as the BPM is"* —
+ * and then bounded it: *"only have the swing go up and down so much"*. Swing is
+ * a fraction between `SWING_MIN` and `SWING_MAX` (0.5–0.75), so a step of 1
+ * would take a straight feel to the ceiling on the first pixel. A hundredth per
+ * step puts the whole range in 75px.
+ */
+test('the swing drags in hundredths and stops at the ends of its range', async ({ page }) => {
+  await pick(page, 'trap');
+
+  const swing = page.locator(`${chip('Swing')} input`);
+  await expect(swing).toHaveAttribute('placeholder', '0.54');
+
+  // 3px per hundredth, up for more swing: 15px above the start is 0.54 + 0.05.
+  await dragBy(page, swing, -15);
+  await expect(swing).toHaveValue('0.59');
+
+  // ⛔ **Pulled far past the ceiling, and it stops at it.** This is the half of
+  // the request that is not the gesture: a drag that ran on past `SWING_MAX`
+  // would write a swing the engine refuses and the chip would then be showing a
+  // number nothing generates from.
+  await dragBy(page, swing, -400);
+  await expect(swing).toHaveValue('0.75');
+
+  // ...and the floor holds the same way.
+  await dragBy(page, swing, 400);
+  await expect(swing).toHaveValue('0.5');
+});
+
 test('the tempo box refuses anything that is not a digit', async ({ page }) => {
   // `<input type="number">` looks like it does this and does not — it accepts
   // `e`, `E`, `+`, `-` and `.`, so "1e5" is a legal value that arrives as
@@ -215,4 +310,59 @@ test.describe('keep or adopt', () => {
     await page.getByRole('button', { name: 'Use UK Drill’s' }).click();
     await expect(page.locator('.switch-prompt')).toHaveCount(0);
   });
+});
+
+/**
+ * The Simple / Complex switch (TASK-125).
+ *
+ * ⛔ **Mike asked for one control over all four melodic generators**, moving
+ * them together between a plain reading of the style and a busy one. What the
+ * engine does with the answer is `engine/tests/complexity.rs`, measured over the
+ * shipped roster; what only a browser can show is that the control is on screen,
+ * says which state it is in, and that the answer **leaves the page**.
+ *
+ * ⚠ **Asserted on what was SENT, not on what came back** — the same reasoning
+ * `generate-in.spec.ts` gives for the base pin. This mock has no engine, so it
+ * cannot answer a busy request with busier notes, and a spec that read only the
+ * reply could not tell a chip wired to the request from one wired to nothing.
+ */
+test('the busy switch starts on the model as written and travels with a generation', async ({
+  page,
+}) => {
+  await pickArtist(page, 'Mock Artist');
+
+  const side = () => page.getByRole('switch', { name: 'Simple/Complex' });
+  const held = () => page.getByRole('switch', { name: 'As Written' });
+  await expect(side()).toBeVisible();
+
+  // ⛔ **The app opens on the model as written**, which generates byte-for-byte
+  // what it did before this switch existed — that is what makes it safe for
+  // every saved seed. The other switch is disabled while that holds, which is
+  // the shape Mike asked for: the neutral state takes the control away rather
+  // than hiding as a middle button.
+  await expect(held()).toHaveAttribute('aria-checked', 'true');
+  await expect(side()).toBeDisabled();
+
+  // ⚠ **The switch is set BEFORE generating, and the panel is re-opened after.**
+  // The Stems panel reveals itself the moment anything is generated (TASK-131),
+  // and the rail shows one section at a time — so the chip is *unmounted* by a
+  // Generate, not merely scrolled off. The first cut of this test pressed
+  // Generate and then reached for the chip, and spent thirty seconds waiting for
+  // an element that no longer existed.
+  // ⚠ **Two clicks, because the neutral state owns the other switch.** Turning
+  // As Written off releases it on Simple; the second click is the side.
+  await held().click();
+  await side().click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
+  await expect
+    .poll(() => page.evaluate(() => window.__freallyGeneratedComplexity ?? []))
+    .toContain('complex');
+
+  // ...and back again, so the switch is not one-way.
+  await openPanel(page, 'session');
+  await held().click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
+  await expect
+    .poll(() => page.evaluate(() => window.__freallyGeneratedComplexity ?? []))
+    .toContain('authored');
 });

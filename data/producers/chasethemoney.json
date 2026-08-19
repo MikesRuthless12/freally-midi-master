@@ -61,12 +61,9 @@
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "4&",
+      "secondaryAnchor": "3",
       "syncopation": 0.35,
-      "lockTo808": 1,
-      "andOf4EveryOtherBar": 0.5,
-      "tresilloBias": 0.2,
-      "avoidPreSnareGap": "8th"
+      "lockTo808": 1
     },
     "snare": {
       "ghost": {
@@ -163,8 +160,8 @@
         "even"
       ],
       "velocityRampRange": [
-        41,
-        100
+        46,
+        96
       ],
       "gapProb": 0.64,
       "descendProb": 0.3,

@@ -1,0 +1,393 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "galantis",
+  "type": "producer",
+  "name": "Galantis",
+  "aliases": [
+    "galantis",
+    "christian karlsson",
+    "linus eklow",
+    "style of eye"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "2014-present",
+  "genres": [
+    "dance-pop",
+    "progressive-house",
+    "edm",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "house",
+    "pop-2020s",
+    "future-bass"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Galantis",
+    "Wikipedia — Galantis (https://en.wikipedia.org/wiki/Galantis)",
+    "Progressive house (https://en.wikipedia.org/wiki/Progressive_house)"
+  ],
+  "notes": "A Swedish duo with a pitched-vocal-hook signature, built song-first — and the song-first method is quoted in the research, which makes it the strongest harmonic evidence in the progressive-house block: \"We always start with the song. We use guitar, piano, and bass lines we don't keep to figure out which clothes we're going to put on each melody and lyric\", keeping the song \"naked\" until it works. That is the opposite of the lane's beat-first construction, so this model carries five major and modal-major families with real motion at `1_per_bar`, and the bass is a melodic line at 0.62 roots rather than a root pump — \"the bass line is often one of the discarded compositional scaffolds that survives\". The signature is the \"Galantis filter\", male and female vocals blended and pitch-processed into a single androgynous hook voice functioning as the lead instrument, which is the melody's timbre and its high narrow register. The kit is \"monumental drum arrangements over a deep-house groove — four-square kick, clap on 2&4, offbeat open hats — with simple foundations expanded by inventive flourishes rather than by density\", so the perc lanes are varied but the counts stay modest and the small fill lands every 4 bars. The breakdown \"returns the song to its naked state\". ⚠ The research calls the tempo and drum grammar convention-derived; that mark is repeated here, and the velocities, densities and registers are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 126,
+      "max": 130,
+      "mode": 128
+    },
+    "keys": {
+      "values": [
+        "C",
+        "G",
+        "F",
+        "D",
+        "Am"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "lydian",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        2,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 1,
+        "clap": 3,
+        "closedHat": 3,
+        "openHat": 3,
+        "tambourine": 4,
+        "snap": 4
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        126
+      ],
+      "main": [
+        86,
+        100
+      ],
+      "ghost": [
+        32,
+        48
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.05,
+      "offbeat8thShare": 0.07
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "2a",
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.44
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          3,
+          3
+        ]
+      },
+      "fillDensity": 0.44,
+      "openHat": {
+        "prob": 0.9,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          3,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.18
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "tambourine",
+        "woodblock",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "any",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16,
+      "snareRollLadder": true,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "iii",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "IV",
+          "V",
+          "iii",
+          "vi"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.36,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        55,
+        88
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      76,
+      97
+    ],
+    "densityPerBar": [
+      5,
+      10
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.26,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.24,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "pitched_vocal"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.62,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.34,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "3",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "6"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.65,
+        "beats": 4
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

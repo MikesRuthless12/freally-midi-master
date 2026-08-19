@@ -1,0 +1,381 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rostam",
+  "type": "producer",
+  "name": "Rostam",
+  "aliases": [
+    "rostam",
+    "rostam batmanglij",
+    "rostambatmanglij",
+    "rostam music"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2008-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "chamber pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "pop-2000s",
+    "neo-soul",
+    "afrobeats"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Rostam",
+    "Wikipedia — Rostam Batmanglij (https://en.wikipedia.org/wiki/Rostam_Batmanglij)"
+  ],
+  "notes": "Baroque-and-percussion chamber-pop producer/arranger. The documented signature is a percussion one and it is the model's spine: \"drum programming plus layered live percussion is his documented signature — tambourine, shaker and hand drums stacked over a programmed kick/snare; the kit is rarely a plain rock kit.\" So `percs.densityPerBar` runs 5—9, the highest in this section, across four hand-percussion lanes at a forward gain, while the kick and snare stay programmed and tight — the split between a gridded kit and hand-played percussion is authored as an uneven `timingJitterMs`, low on kick and snare and high on the perc lanes. `hihat.base` is 8th at a low fill density with no roll vocabulary, because the entry says the percussion stack replaces the hats. Harmony is his training: \"classical-harmony-trained (studied classical harmony at Columbia), so expect functional voice-leading, inverted-bass motion, suspensions and harpsichord/organ-idiomatic voicings inside pop forms\", which is `topVoiceStepwise` true, `susSubstitutionProb` 0.44, a ii—V—I family and `close` voicing. No `bass808` block: \"no 808 idiom. Synth-programmed or played bass with a walking, contrapuntal line under the vocal\", so the bassline is `independent_riff` at 0.28 with a full walking passing-tone set. \"Loops are 4 or 8 bars with real motion, and countermelody is a keyboard or string line rather than a synth pad\" is the `answer_lick` counter and the absence of `vamp`; \"arrangements are dense but each layer is thin and distinct\" is the quiet velocity tier table under a high perc count. ⚠ `confidence` is medium against a high-medium rating because the drum and harmonic numbers are INFERRED: the research documents an instrument list and a training, not a pattern. `bpm.mode` 115 is the midpoint of the stated 90—140 band.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 140,
+      "mode": 115
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "dorian",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 3,
+        "tambourine": 12,
+        "shaker": 13,
+        "conga": 14,
+        "bongo": 14
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        92,
+        110
+      ],
+      "main": [
+        62,
+        78
+      ],
+      "ghost": [
+        26,
+        38
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.22,
+      "tresilloBias": 0.06,
+      "offbeat8thShare": 0.14
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "transient": "medium",
+      "reverb": "short",
+      "stack": [
+        "snare"
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.12,
+      "velocities": {
+        "main": [
+          0.4,
+          0.66
+        ],
+        "ghost": [
+          0.14,
+          0.3
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "conga",
+        "bongo",
+        "triangle"
+      ],
+      "densityPerBar": [
+        5,
+        9
+      ],
+      "placement": "any",
+      "gainOffsetDb": -2
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "iii",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.42,
+      "ninth": 0.18
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      12
+    ],
+    "susSubstitutionProb": 0.44
+  },
+  "melody": {
+    "register": [
+      59,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.26,
+      "descend": 0.32,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": [
+      0.04,
+      0.12
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "articulation": "staccato",
+    "endVariation": true,
+    "timbreHint": "harpsichord"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.55,
+      0.8
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.28,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "M2",
+      "m3",
+      "M3",
+      "P4",
+      "P5",
+      "M6",
+      "M7"
+    ],
+    "anticipationProb": 0.36,
+    "cellShapes": [
+      [
+        "1",
+        "7",
+        "6",
+        "5"
+      ],
+      [
+        "1",
+        "3",
+        "5",
+        "3"
+      ],
+      [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        2,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.45,
+        "beats": 2
+      },
+      "switchUpProb": 0.14
+    }
+  }
+}

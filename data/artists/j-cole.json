@@ -145,40 +145,38 @@
         "8t"
       ],
       "grouping": [
-        "even",
-        "strong_weak_weak_weak"
+        "even"
       ],
       "velocityRampRange": [
-        83,
-        124
+        74,
+        123
       ],
-      "rampJitter": 19,
-      "gapProb": 0.22,
-      "descendProb": 0.42,
-      "pitchWalk": 2
+      "rampJitter": 18,
+      "gapProb": 0.2,
+      "descendProb": 0.38
     }
   },
   "melody": {
     "register": [
-      62,
-      86
+      61,
+      85
     ],
     "densityPerBar": [
       3,
-      8
+      7
     ],
     "intervals": {
-      "step": 0.59,
-      "third": 0.32,
-      "leap": 0.07
+      "step": 0.6,
+      "third": 0.3,
+      "leap": 0.1
     },
     "contour": {
-      "riff": 0.41,
-      "descend": 0.38,
-      "arch": 0.19
+      "riff": 0.42,
+      "descend": 0.36,
+      "arch": 0.22
     },
-    "chordToneBias": 0.78,
-    "octaveJumpProb": 0.12,
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.13,
     "phraseBars": {
       "values": [
         2,
@@ -186,7 +184,7 @@
       ],
       "weights": [
         3,
-        4
+        3
       ]
     },
     "timbreHint": "vocal_chop"

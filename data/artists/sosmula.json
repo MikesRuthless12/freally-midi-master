@@ -141,12 +141,12 @@
   },
   "melody": {
     "register": [
-      70,
-      94
+      64,
+      88
     ],
     "densityPerBar": [
       1,
-      5
+      4
     ],
     "phraseBars": {
       "values": [
@@ -155,36 +155,14 @@
       ],
       "weights": [
         3,
-        3
+        2
       ]
     },
-    "timbreHint": "chant_stab",
-    "structure": "riff_loop",
-    "twoBarCellRepeat": true,
-    "intervals": {
-      "step": 0.55,
-      "third": 0.26,
-      "leap": 0.1
-    },
-    "contour": {
-      "riff": 0.45,
-      "descend": 0.66,
-      "arch": 0.25
-    },
-    "chordToneBias": 0.95,
-    "halfStepDissonance": 0.3,
-    "monophonicBias": 0.85,
-    "endVariation": true,
-    "octaveJumpProb": 0.1,
-    "colorTones": [
-      2,
-      4,
-      6
-    ]
+    "timbreHint": "chant_stab"
   },
   "countermelody": {
     "registerOffset": 12,
-    "densityRatio": 0.57,
+    "densityRatio": 0.55,
     "styles": {
       "values": [
         "answer_lick",
@@ -194,12 +172,11 @@
       ],
       "weights": [
         3,
-        3,
-        3,
-        2
+        2,
+        2,
+        1
       ]
-    },
-    "fillGapsOnly": true
+    }
   },
   "chords": {
     "progressionFamilies": [

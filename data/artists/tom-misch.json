@@ -1,0 +1,302 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tom-misch",
+  "type": "artist",
+  "name": "Tom Misch",
+  "aliases": [
+    "tom misch",
+    "south london guitar",
+    "bedroom jazz guitar"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2018-present",
+  "genres": [
+    "soul",
+    "neo-soul",
+    "jazz",
+    "funk"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "boom-bap",
+    "lofi-hiphop",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Tom Misch",
+    "Wikipedia — Tom Misch (https://en.wikipedia.org/wiki/Tom_Misch)",
+    "songdata.io — Michael Kiwanuka (https://songdata.io/search?query=Michael+Kiwanuka)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "London's bedroom-jazz-guitar wing — \"boom-bap drums under jazz-funk guitar\". The drum block holds the entry's two options in one kit: \"a boom-bap-lineage programmed loop — a sampled or sampled-sounding kick and snare with the backbeat hard on 2&4, swung 16th hats, vinyl noise and MPC-style timing offsets; on the band material a live kit replaces it with heavy ghost-note density and displaced snares\". The MPC offsets and the live displacement together are why `quantizeStrength` sits at 0.6 with a 5–13 ms snare window and a 0.56 ghost probability across five positions — programmed, but not on the grid. Harmony is the entry's most-moving in this batch: \"maj7/m7/9 voicings, ii–V–I turnarounds, modal interchange, and 4-to-8-bar cycles with genuine motion. Chord changes are frequent by lane standards\", so the chord durations are 2–6 beats and the harmonic rhythm is one-per-bar and syncopated-cell rather than vamped. The lead voice is not the singer: \"clean or lightly-compressed electric guitar is the lead voice — chord-melody comping, single-note funk lines and long improvised solos… Vocals are soft, thin mid-tenor at low note-density and are frequently secondary to the guitar; instrumental tracks are common\". That is a low melodic density with a raised `emptyBarBias`, against the densest countermelody of any artist in this batch (0.7) carrying the guitar. Bass is \"funk-syncopated 16ths with slides and octave leaps, mixed forward. He plays bass and guitar himself.\" ⚠ The INFERRED parameters are all drum probabilities and velocities and every melody number, plus the second progression family — the entry names \"modal interchange\", and the borrowed I–iv is this author's reading of that phrase.",
+  "session": {
+    "bpm": {
+      "min": 80,
+      "max": 118,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "major",
+        "dorian",
+        "mixolydian",
+        "lydian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.6,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 11,
+        "closedHat": 8,
+        "rim": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.48,
+      "tresilloBias": 0.12
+    },
+    "snare": {
+      "offGridMs": [
+        5,
+        13
+      ],
+      "ghost": {
+        "prob": 0.56,
+        "pos": [
+          "1a",
+          "2e",
+          "2a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.6,
+      "velocities": {
+        "main": [
+          0.44,
+          0.74
+        ],
+        "ghost": [
+          0.14,
+          0.34
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.18
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker",
+        "perc",
+        "ride"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -7
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "iv"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.12,
+      "seventh": 0.52,
+      "ninth": 0.36
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      6
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      80
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.34,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.6,
+    "emptyBarBias": 0.2,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "jazz_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.7,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.36,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.18,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "P8",
+      "M3"
+    ],
+    "anticipationProb": 0.52
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        8,
+        24
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 4
+      },
+      "switchUpProb": 0.34
+    }
+  }
+}

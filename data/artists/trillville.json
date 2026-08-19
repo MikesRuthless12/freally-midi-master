@@ -128,8 +128,8 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th",
-        "32nd"
+        "16t",
+        "8t"
       ],
       "grouping": [
         "even"
@@ -140,13 +140,7 @@
       ],
       "rampJitter": 12,
       "descendProb": 0.58,
-      "gapProb": 0.48,
-      "ladder": [
-        "4",
-        "8",
-        "16"
-      ],
-      "pitchWalk": 3
+      "gapProb": 0.48
     },
     "bass808": {
       "register": [

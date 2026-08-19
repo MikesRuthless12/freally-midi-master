@@ -53,15 +53,14 @@
     "kick": {
       "densityPerBar": [
         2,
-        4
+        3
       ],
       "anchors": [
         "1"
       ],
       "secondaryAnchor": "2&",
-      "syncopation": 0.35,
-      "tresilloBias": 0.36,
-      "lockTo808": 1
+      "syncopation": 0.32,
+      "tresilloBias": 0.36
     },
     "snare": {
       "layerClapOffsetMs": [
@@ -69,7 +68,7 @@
         0
       ],
       "ghost": {
-        "prob": 0.19,
+        "prob": 0.22,
         "pos": [
           "3a",
           "4a"
@@ -78,9 +77,7 @@
           0.24,
           0.42
         ]
-      },
-      "placement": "halftime_3",
-      "offGridMs": 0
+      }
     },
     "hihat": {
       "base": "16th",
@@ -140,13 +137,12 @@
         "even"
       ],
       "velocityRampRange": [
-        53,
-        96
+        58,
+        104
       ],
-      "rampJitter": 13,
-      "descendProb": 0.37,
-      "gapProb": 0.39,
-      "pitchWalk": 4
+      "rampJitter": 12,
+      "descendProb": 0.34,
+      "gapProb": 0.38
     },
     "bass808": {
       "slideProb": 0.02,

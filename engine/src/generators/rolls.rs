@@ -25,6 +25,16 @@ use crate::generators::grid;
 use crate::generators::read::{flag, number, pair, string_spec, strings};
 use crate::pattern::{Articulation, Lane, Note};
 
+/// The most rolls a bar may be asked for.
+///
+/// ⛔ **A bound on a loop, not a musical opinion.** See [`hat_rolls`]: nothing in
+/// the shipped dataset exceeds 1.2, and the value reaches the engine from a
+/// user model the runtime lint does not check this key on.
+const MAX_ROLLS_PER_BAR: f64 = 16.0;
+
+/// The longest riser, matching `bridge::MAX_BARS`.
+const MAX_RISER_BARS: f64 = 128.0;
+
 /// Accent grouping inside a roll.
 ///
 /// `strong_weak_weak_weak` is the four-note grouping the snare-roll literature
@@ -237,6 +247,15 @@ pub enum RollPosition {
     PhraseEnd,
     /// The beat before a snare hit.
     PreSnare,
+    /// The last beat of every second bar.
+    ///
+    /// ⛔ **The dataset has always authored this name and only the 808 could
+    /// read it.** `drums::RollLikePosition` — the *slide* vocabulary — has
+    /// carried `bar_2` since it was written, and 36 shipped models list it
+    /// beside `bar_4` in `hihat.rolls.positions`; this reader did not know it,
+    /// so `rolls::every_roll_vocabulary_entry_in_the_dataset_is_a_note_value`
+    /// failed on `amerie` and the other 35 lost that roll type in silence.
+    Bar2,
     /// The last beat of every fourth bar.
     Bar4,
     /// The last beat of each two-beat group — the busiest option.
@@ -250,6 +269,7 @@ impl RollPosition {
         match text {
             "phrase_end" => Some(Self::PhraseEnd),
             "pre_snare" => Some(Self::PreSnare),
+            "bar_2" => Some(Self::Bar2),
             "bar_4" => Some(Self::Bar4),
             "two_beat_phrase_end" => Some(Self::TwoBeatPhraseEnd),
             "pre_downbeat" => Some(Self::PreDownbeat),
@@ -270,6 +290,15 @@ impl RollPosition {
             // A phrase is four bars; its end is the last beat of the fourth.
             Self::PhraseEnd => {
                 if (bar + 1).is_multiple_of(4) || u32::from(ctx.bars) == bar + 1 {
+                    vec![(last_beat, last_beat + beat)]
+                } else {
+                    vec![]
+                }
+            }
+            // The same rule as `Bar4` on a two-bar cycle — the unit the 808's
+            // own `bar_2` already uses (`drums::RollLikePosition::covers`).
+            Self::Bar2 => {
+                if (bar + 1).is_multiple_of(2) {
                     vec![(last_beat, last_beat + beat)]
                 } else {
                     vec![]
@@ -349,7 +378,17 @@ pub fn hat_rolls(
         return;
     }
 
-    let frequency = number(rolls, "freqPerBar", 0.4, rng).max(0.0);
+    // ⛔ **Clamped, not just floored at zero, because this number drives a
+    // loop.** `count` below is `frequency.floor()`, and each iteration allocates
+    // a window and its notes and does an O(n) `retain` over what is closed — so
+    // an unbounded value is not a busy hi-hat but a hung DAW. The key is not
+    // probability-suffixed, so `validate::lint` skips it, and the JSON Schema
+    // that *does* carry maxima is run by `datasetc` and the tests but never by
+    // `models::save` — a model saved or imported through the bridge with
+    // `freqPerBar: 1e9` writes clean and freezes the host on the next Generate.
+    // The dataset's own ceiling is 1.2, so 16 is headroom rather than a limit
+    // any real style can feel.
+    let frequency = number(rolls, "freqPerBar", 0.4, rng).clamp(0.0, MAX_ROLLS_PER_BAR);
     let (from_fraction, to_fraction) = pair(rolls, "rampRange").unwrap_or((0.5, 1.0));
     let ramping = flag(rolls, "velocityRamp", true);
     let gaps = flag(rolls, "insertGaps", false);
@@ -513,11 +552,16 @@ impl FillFigure {
 ///
 /// A value is already a triplet when two thirds of it is not a whole number,
 /// which is the same test as "the arithmetic would round".
-fn triplet_of(subdivision: u32) -> u32 {
+/// ⚠ `pub(crate)` and `Option`-returning since `drums.rs` grew its own copy for
+/// `hihat.tripletBarAlternationProb`. The two callers want opposite things from
+/// "cannot be tripled cleanly" — a fill keeps its own subdivision, an
+/// alternating bar keeps its own onsets — so the answer is handed back rather
+/// than decided here, and the guard above is stated once.
+pub(crate) fn triplet_of(subdivision: u32) -> Option<u32> {
     if (subdivision * 2).is_multiple_of(3) {
-        (subdivision * 2 / 3).max(1)
+        Some((subdivision * 2 / 3).max(1))
     } else {
-        subdivision
+        None
     }
 }
 
@@ -632,7 +676,8 @@ pub fn hat_fills(
             }
             FillFigure::Stutter => stutter_cluster(Lane::ClosedHat, start, subdivision, burst, rng),
             FillFigure::TripletBurst => {
-                stutter_cluster(Lane::ClosedHat, start, triplet_of(subdivision), burst, rng)
+                let subdivision = triplet_of(subdivision).unwrap_or(subdivision);
+                stutter_cluster(Lane::ClosedHat, start, subdivision, burst, rng)
             }
         };
 
@@ -945,7 +990,14 @@ pub fn riser(
     start_tick: u32,
     rng: &mut impl Rng,
 ) -> Vec<Note> {
-    let bars = number(block, "riserBars", 8.0, rng).round().max(1.0) as u32;
+    // ⛔ Bounded for [`hat_rolls`]' reason: `bars * ticks_per_bar()` sets the
+    // roll window, so an unbounded value renders millions of notes in one go on
+    // the thread the host draws its window from. The dataset's longest riser is
+    // 8 bars; the cap matches `bridge::MAX_BARS`, past which a riser is longer
+    // than any pattern it could sit in.
+    let bars = number(block, "riserBars", 8.0, rng)
+        .round()
+        .clamp(1.0, MAX_RISER_BARS) as u32;
     let subdivision = block
         .and_then(|b| b.get("snareStreamSubdivision"))
         .and_then(Value::as_str)
@@ -1105,6 +1157,7 @@ mod tests {
         for name in [
             "phrase_end",
             "pre_snare",
+            "bar_2",
             "bar_4",
             "two_beat_phrase_end",
             "pre_downbeat",

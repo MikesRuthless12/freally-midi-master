@@ -94,44 +94,12 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        59,
-        105
+        49,
+        111
       ],
-      "rampJitter": 22,
+      "rampJitter": 25,
       "descendProb": 0.35,
-      "gapProb": 0.14,
-      "pitchWalk": 4
-    },
-    "kick": {
-      "densityPerBar": [
-        3,
-        6
-      ],
-      "anchors": [
-        "1"
-      ],
-      "secondaryAnchor": "3&",
-      "syncopation": 0.47,
-      "tresilloBias": 0.28,
-      "offbeat8thShare": 0.35,
-      "lockTo808": 0
-    },
-    "snare": {
-      "placement": "backbeat_24",
-      "rimshotLayer": true,
-      "ghost": {
-        "prob": 0.29,
-        "pos": [
-          "2e",
-          "3a",
-          "4e"
-        ],
-        "vel": [
-          0.25,
-          0.45
-        ]
-      },
-      "offGridMs": 0
+      "gapProb": 0.16
     }
   },
   "chords": {

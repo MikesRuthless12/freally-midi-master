@@ -100,6 +100,26 @@ export type Variation = {
  */
 export const keptKey = (part: Part, seed: string) => `${part}:${seed}`;
 
+/**
+ * ⚠ **There was a `KeptFile = { path, patterns }` here and the `path` was the
+ * map key.** Nothing ever read the field — `keptFiles` is keyed by path, so the
+ * value carried it a second time and the only reader was the line that chose the
+ * key. The map is `Record<path, Pattern[]>` now.
+ */
+
+/**
+ * Every pattern in a kept-files map, in the order the files were kept.
+ *
+ * ⛔ **One definition, because the readout and the training set must agree.**
+ * `keptFilePatterns()` below reads it off the store; `StyleEditor` needs the
+ * same answer from a map it is already subscribed to, for the `18 / 30 kept`
+ * count. Written twice, a future change here — deduping identical patterns
+ * across files, say — would make the number in front of the producer disagree
+ * with what `user_model_train` is actually sent.
+ */
+export const patternsIn = (keptFiles: Record<string, Pattern[]>): Pattern[] =>
+  Object.values(keptFiles).flat();
+
 type VariationsState = {
   /** Every generation, per part, oldest first. */
   entries: Record<string, Variation[]>;
@@ -144,6 +164,40 @@ type VariationsState = {
   keep: (part: Part, seed: string, kept: boolean) => void;
   /** Every kept take, oldest first, across every part. */
   keptEntries: () => Variation[];
+  /**
+   * Files the producer has marked to train on (TASK-040T), by path.
+   *
+   * ⛔⛔ **These carry their NOTES, and everything else in this store carries a
+   * seed.** The file's own header says the notes are never stored because the
+   * engine is deterministic and an entry regenerates them exactly — that
+   * argument holds for a generation and is simply false for somebody else's
+   * `.mid`. Nothing can rebuild a file from a number, so a kept file is the one
+   * thing here that has to be the material itself.
+   *
+   * ⚠ **Keyed by path, so keeping the same file twice keeps it once.** A fit is
+   * a measurement of a distribution: the same eight bars counted three times is
+   * a producer's taste reported as three times more certain than it is.
+   *
+   * ⚠ **Not persisted, and that is the same trade `entries` takes.** This is the
+   * session's own working set; the paths are on disk and the gesture is one
+   * press to redo.
+   */
+  keptFiles: Record<string, Pattern[]>;
+  /**
+   * Mark a file to train on, or unmark it.
+   *
+   * ⚠ **The patterns are the file's own split**, one per part, exactly as
+   * `explorer_midi_split` answered — the same `Pattern` shape a kept generation
+   * is regenerated into, so `engine::fit` measures a file and a take through one
+   * path rather than two.
+   *
+   * ⚠ **Read only when `kept` is true.** Unkeeping needs the path and nothing
+   * else, and the caller was building the whole split on every press including
+   * the one that only deletes a key.
+   */
+  keepFile: (path: string, kept: boolean, patterns?: Pattern[]) => void;
+  /** Every pattern kept from a file, in the order the files were kept. */
+  keptFilePatterns: () => Pattern[];
   /**
    * Every generation of every previous session, by style id (TASK-045B).
    *
@@ -197,6 +251,7 @@ export const useVariations = create<VariationsState>((set, get) => ({
   entries: {},
   position: {},
   kept: {},
+  keptFiles: {},
   history: {},
 
   record(entry) {
@@ -288,6 +343,24 @@ export const useVariations = create<VariationsState>((set, get) => ({
       .filter((entry) => kept[keptKey(entry.part, entry.seed)]);
   },
 
+  keepFile(path, kept, patterns) {
+    // Removed rather than set to a falsy value, for the reason `keep` above
+    // gives at length.
+    set((state) => {
+      const next = { ...state.keptFiles };
+      if (kept) {
+        next[path] = patterns ?? [];
+      } else {
+        delete next[path];
+      }
+      return { keptFiles: next };
+    });
+  },
+
+  keptFilePatterns() {
+    return patternsIn(get().keptFiles);
+  },
+
   async loadHistory() {
     try {
       set({ history: await invoke<Record<string, Variation[]>>('takes_list') });
@@ -308,7 +381,7 @@ export const useVariations = create<VariationsState>((set, get) => ({
   },
 
   reset() {
-    set({ entries: {}, position: {}, kept: {}, history: {} });
+    set({ entries: {}, position: {}, kept: {}, keptFiles: {}, history: {} });
   },
 }));
 

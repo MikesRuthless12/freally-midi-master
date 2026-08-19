@@ -38,7 +38,7 @@
     "style-research ch.3 PinkPantheress (Mura Masa 2-step style)",
     "Wikipedia — UK garage and 2-step garage (genre reference: 130–140 BPM, shuffled 4/4, syncopated non-four-to-the-floor kick, chopped soul/R&B harmony, organ and sub bass stabs)"
   ],
-  "notes": "The shuffle is the genre and it is on the 16ths — swing at 0.64 means every hat, every stab and every skip lands late, and nothing else in the roster leans this far. The kick skips rather than pounds: the 1, the and-of-3, then whichever offbeat the bar wants, never four to the floor. A second snare voice fills the holes between the 2 and the 4, shakers answer offbeat, and the bass is an organ stab on every offbeat 8th sitting an octave above where an 808 would — mid-low, plucked, not a drone. Harmony is the soul record underneath: sevenths and ninths, four-chord loops, a ii-v-i turning them over. Confidence is medium because the compendium reaches UKG through its PinkPantheress 2-step entry and the §10 aside rather than a section of its own, so the tempo band, the organ-bass register and the speed-garage mood come from the public genre reference instead.",
+  "notes": "The shuffle is the genre and it is on the 16ths — swing at 0.64 means every hat, every stab and every skip lands late, and nothing else in the roster leans this far. The kick skips rather than pounds: the 1, the and-of-3, then whichever offbeat the bar wants, never four to the floor. A second snare voice fills the holes between the 2 and the 4, shakers answer offbeat, and the bass is an organ stab on every offbeat 8th sitting an octave above where an 808 would — mid-low, plucked, not a drone. Harmony is the soul record underneath: sevenths and ninths, four-chord loops, a ii-v-i turning them over. Confidence is medium because the compendium reaches UKG through its PinkPantheress 2-step entry and the §10 aside rather than a section of its own, so the tempo band, the organ-bass register and the speed-garage mood come from the public genre reference instead. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit has no 808 — `bass808` is `null` here or in the parent it inherits — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so in this file it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead here. Where it was NOT dead was in the artists and producers who extend this kit and author an 808 of their own: they inherited the zero, `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, and their sub lane was silent at every seed — `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\" for 35 of them. Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: this kit's own statement about the 808 is the `bass808: null` beside it, and that is untouched.",
   "session": {
     "bpm": {
       "min": 130,
@@ -111,8 +111,7 @@
       "secondaryAnchor": "3&",
       "syncopation": 0.8,
       "offbeat8thShare": 0.62,
-      "tresilloBias": 0.3,
-      "lockTo808": 0
+      "tresilloBias": 0.3
     },
     "snare": {
       "placement": "backbeat_24",

@@ -1,0 +1,247 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tatu",
+  "type": "artist",
+  "name": "t.A.T.u.",
+  "aliases": [
+    "tatu",
+    "t a t u"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2002-2005",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "eurodance"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "techno"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — t.A.T.u.",
+    "Wikipedia — \"All the Things She Said\" (https://en.wikipedia.org/wiki/All_the_Things_She_Said)"
+  ],
+  "notes": "A Russian teen duo rebuilt for the West as industrial-tinged Eurodance-rock: about 90 straight with a 16th-note industrial pulse and the backbeat on 2&4. Three drum facts are quoted and all three are authored — \"hard gated kick on 1 and 3&\" (anchor 1 with the second anchor on \"3&\"), \"distorted snare/clap on 2&4\" (the highest accent tier here with the clap offset tightened to zero), and \"16th noise-hat, plus a reversed-cymbal riser\", which is the pinned 16th base at a high fill density and the reverse/riser perc block. The harmony is F minor running i–VI–III–VII \"with a static tonic pedal\", which is why the harmonic rhythm leans to two bars a chord. The vocal fact is the one that shapes the melody most: both voices are \"confined to F4–D♭5, a deliberately narrow fifth-wide band, which is why the harmony is mostly parallel\" — the register is exactly that band and the counter runs octave-echo. The two live instruments are piano and electric guitar, so the bass is \"distorted saw bass in 8ths doubling the piano's left hand; heavily compressed, no slides\": `independent_riff` at 0.9 with `glideProb` 0. ⚠ `confidence` is medium because the research rates it high-medium. ⚠ The **INFERRED** parameters are all drum probabilities and the melody density.",
+  "session": {
+    "bpm": {
+      "min": 86,
+      "max": 94,
+      "mode": 90
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        118,
+        127
+      ],
+      "main": [
+        86,
+        102
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.2
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.26,
+          0.42
+        ]
+      },
+      "layerClapOffsetMs": [
+        0,
+        1
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.74,
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.26
+      }
+    },
+    "percs": {
+      "lanes": [
+        "reverse",
+        "riser",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.72,
+      "seventh": 0.2,
+      "ninth": 0.08
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      65,
+      73
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "intervals": {
+      "step": 0.84,
+      "third": 0.12,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.52,
+      "descend": 0.28,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.66,
+    "octaveJumpProb": 0.03,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.16
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    }
+  }
+}

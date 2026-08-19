@@ -1,0 +1,327 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "cody-jinks",
+  "type": "artist",
+  "name": "Cody Jinks",
+  "aliases": [
+    "cody jinks",
+    "jinks",
+    "tone deaf hippies"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-shuffle"
+  ],
+  "era": "2015-2025",
+  "genres": [
+    "country",
+    "country-shuffle",
+    "outlaw country"
+  ],
+  "relatedGenres": [
+    "country-shuffle",
+    "country-pop",
+    "country-train"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-shuffle — Cody Jinks",
+    "Wikipedia — Cody Jinks (https://en.wikipedia.org/wiki/Cody_Jinks)",
+    "bpmdatabase — Cody Jinks (https://www.bpmdatabase.com/music/search/?artist=Cody+Jinks)"
+  ],
+  "notes": "Outlaw country by a former thrash-metal frontman — the archetype's heaviest and darkest reading, and the one place the research says a *big* kick is in grammar: \"the mid cuts run a shuffled two-beat with the lope on a hat and a heavy, long-decay kick — the one place in this section where a big kick is in-grammar, because the arrangement is rock-scaled\". That is authored as the batch's highest velocity tiers (112–127 accent over 82–100) on an otherwise plain two-beat kick, plus an open hat at 0.20 with one or two per bar for the rock-scaled cymbal work. The catalogue is stated as slow-to-mid with no dancehall band at all (BPM 60–130, mode 125 from \"Must Be the Whiskey\"), so the swing is set wide at 0.68 per the section's tempo/ratio relationship. Harmony is the entry's own: his documented Metallica/Pantera background shows up as modal minor writing — i–♭VII–♭VI–V, i–iv–v, and the minor twelve-bar i / iv / ♭VI–V frame — and the V7 of that frame is authored as `borrowed.V` rather than as a second family, because borrowing is exactly what a major-quality V in a minor key is. The vocal is the documented \"deep bass-baritone, very narrow range, near-spoken verse phrasing, long held notes at phrase ends\", and the entry states the consequence — \"the register forces the band out of the low mids\" — which is why the melody sits at 45–67 and the chord voicing floor is lifted to 52 while the bass ceiling stays at 45. Production is stated to be \"unpolished by Music Row standards: less compression, more room, no vocal tuning\", read as humanize 0.68/0.26. ⚠ INFERRED: swing.amount, all velocity tiers, ghost probability and vel, hat and percs densities, and the chord-voicing floor. ⚠ The entry also documents a 39-BPM \"genuine 12/8 crawl\" that sits below the stated 60–130 band; the band is what is encoded, because the Lane line is the entry's own range statement. All BPM readings are bpmdatabase values and [LOW-CONF] as a class; the harmonic reading is marked [LOW-CONF] in the research as inferred from the documented metal background.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 130,
+      "mode": 125
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "mixolydian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.68
+    },
+    "humanize": {
+      "quantizeStrength": 0.68,
+      "velocityVar": 0.26
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        82,
+        100
+      ],
+      "ghost": [
+        30,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.1,
+      "offbeat8thShare": 0.06
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "vel": [
+          0.18,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.36,
+      "velocities": {
+        "main": [
+          0.56,
+          0.78
+        ],
+        "ghost": [
+          0.22,
+          0.4
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -7
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "bVII",
+          "bVI",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "v"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "i",
+          "bVI",
+          "V",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "bVII",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 6,
+    "extensions": {
+      "triad": 0.56,
+      "seventh": 0.4,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        79
+      ]
+    },
+    "borrowed": {
+      "V": 0.35
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      45,
+      67
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.24,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.45,
+      "arch": 0.25
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.02,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.3,
+      0.55
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "register": [
+      26,
+      45
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.06
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": {
+        "values": [
+          8,
+          16
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "outro": 2
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.16
+    }
+  }
+}

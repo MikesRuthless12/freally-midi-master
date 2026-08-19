@@ -40,7 +40,7 @@
     "style-research ch.1 Cross-genre engine constants (MPC swing scale)",
     "Documented amapiano production practice — South African scene production guides and press coverage for the 110–118 BPM range, the log-drum bass figure and the shaker-led swung 16ths"
   ],
-  "notes": "The log drum is the genre. It is a tuned percussive bass that plays its own syncopated figure in the sub range instead of doubling the kick, so the low end argues with the four-on-the-floor rather than reinforcing it — that friction is the groove, and it is why the kick can afford to be soft and to skip a beat. Around it: shakers and hats running swung 16ths, a light clap on 2 and 4, a deep bench of hand percussion, and jazzy piano — sevenths and ninths over a slow four-chord loop in Dorian or natural minor, left spacious because the log drum and the percussion are already saying most of it. ⚠ Confidence is medium on purpose: the in-repo compendium covers amapiano only in one line of ch.2 §10, so the tempo range, the swing figure and the log-drum description here come from documented production practice rather than from the research this repo carries.",
+  "notes": "The log drum is the genre. It is a tuned percussive bass that plays its own syncopated figure in the sub range instead of doubling the kick, so the low end argues with the four-on-the-floor rather than reinforcing it — that friction is the groove, and it is why the kick can afford to be soft and to skip a beat. Around it: shakers and hats running swung 16ths, a light clap on 2 and 4, a deep bench of hand percussion, and jazzy piano — sevenths and ninths over a slow four-chord loop in Dorian or natural minor, left spacious because the log drum and the percussion are already saying most of it. ⚠ Confidence is medium on purpose: the in-repo compendium covers amapiano only in one line of ch.2 §10, so the tempo range, the swing figure and the log-drum description here come from documented production practice rather than from the research this repo carries. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit has no 808 — `bass808` is `null` here or in the parent it inherits — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so in this file it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead here. Where it was NOT dead was in the artists and producers who extend this kit and author an 808 of their own: they inherited the zero, `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, and their sub lane was silent at every seed — `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\" for 35 of them. Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: this kit's own statement about the 808 is the `bass808: null` beside it, and that is untouched.",
   "session": {
     "bpm": {
       "min": 110,
@@ -125,8 +125,7 @@
       ],
       "syncopation": 0.26,
       "tresilloBias": 0.2,
-      "offbeat8thShare": 0.16,
-      "lockTo808": 0
+      "offbeat8thShare": 0.16
     },
     "snare": {
       "placement": "backbeat_24",

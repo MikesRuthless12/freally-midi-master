@@ -38,7 +38,7 @@
     "style-research ch.2 §6 R&B / neo-soul harmony",
     "style-research ch.1 §8 Boom bap → 2000s hybrid (swing range 54–62)"
   ],
-  "notes": "A replayed kit at 95 with the backbeat hard on 2 and 4, the kick answering itself on the and-of-2, and the hats shuffled just under the MPC setting — tambourine, shaker and conga carry the colour, and there is no 808 anywhere, because this is a sampled and live-replayed record. What makes it itself is the pair of portamento parts: a whiny high synth lead sitting up at C5–C7, and a Moog-style bass walking its own figure instead of mirroring the kick, both sliding between notes rather than stepping. Under them a two-to-four chord minor vamp with pentatonic and blues colour, sevenths and ninths present but never the point.",
+  "notes": "A replayed kit at 95 with the backbeat hard on 2 and 4, the kick answering itself on the and-of-2, and the hats shuffled just under the MPC setting — tambourine, shaker and conga carry the colour, and there is no 808 anywhere, because this is a sampled and live-replayed record. What makes it itself is the pair of portamento parts: a whiny high synth lead sitting up at C5–C7, and a Moog-style bass walking its own figure instead of mirroring the kick, both sliding between notes rather than stepping. Under them a two-to-four chord minor vamp with pentatonic and blues colour, sevenths and ninths present but never the point. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit has no 808 — `bass808` is `null` here or in the parent it inherits — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so in this file it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead here. Where it was NOT dead was in the artists and producers who extend this kit and author an 808 of their own: they inherited the zero, `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, and their sub lane was silent at every seed — `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\" for 35 of them. Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: this kit's own statement about the 808 is the `bass808: null` beside it, and that is untouched.",
   "session": {
     "bpm": {
       "min": 90,
@@ -108,8 +108,7 @@
       "secondaryAnchor": "2&",
       "syncopation": 0.5,
       "tresilloBias": 0.3,
-      "offbeat8thShare": 0.35,
-      "lockTo808": 0
+      "offbeat8thShare": 0.35
     },
     "snare": {
       "placement": "backbeat_24",

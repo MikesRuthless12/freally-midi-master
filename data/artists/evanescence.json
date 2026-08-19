@@ -1,0 +1,259 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "evanescence",
+  "type": "artist",
+  "name": "Evanescence",
+  "aliases": [
+    "evanescence",
+    "evanesence"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2003-2007",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "symphonic rock"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "pop-2020s",
+    "dance-pop"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Evanescence",
+    "Wikipedia — \"Bring Me to Life\" (https://en.wikipedia.org/wiki/Bring_Me_to_Life)",
+    "bpmdatabase — Evanescence (https://www.bpmdatabase.com/music/search/?artist=Evanescence&title=)"
+  ],
+  "notes": "Symphonic-goth pop-rock with a classically-trained lead: the singles sit 88–97 straight with the backbeat on 2&4 and the ballads at 57–74, both straight, so a single window carries 57–97. Harmony is E minor and other natural minors running i–VI–III–VII and i–iv–VI \"with a piano-voiced minor-add9; **no modulation, no dominant**\", so no authored family contains a V and the ninth share is the highest in this batch. Three drum deltas are quoted: \"kick 1 and the '&' of 2 with double-kick 16ths under the riff\" — a 3–7 density, the busiest kick in the section — \"snare 2&4 with a huge room\" (a loud accent tier), and \"china-crash accents\" with \"timpani and orchestral bass drum used for the fills\", which is the crash/tom/tomLow perc block and an 8-bar big-fill schedule. The bass is \"drop-tuned distorted electric bass locked to the kick; the piano's left hand doubles it an octave up\", which is `mirror_kick` at 0.96 with the register floor at MIDI 26 and the chord voicing lifted to 45 so the bass stays under it. The lead is documented as A3–D5 and \"operatic-legato in the verse and belted in the chorus\", and the piano is \"the primary melodic instrument, answered by a wall of down-tuned guitars\" — which is why the countermelody sits an octave *below* the lead as an answer lick. ⚠ The **INFERRED** parameters are every drum probability; the entry names placements, rooms and instruments, not values.",
+  "session": {
+    "bpm": {
+      "min": 57,
+      "max": 97,
+      "mode": 92
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "aeolian"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.92,
+      "velocityVar": 0.14
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        114,
+        127
+      ],
+      "main": [
+        84,
+        100
+      ],
+      "ghost": [
+        28,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        7
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.26
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.4,
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.12
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "tom",
+        "tomLow"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VI"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.42,
+      "seventh": 0.36,
+      "ninth": 0.22
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        80
+      ],
+      "topVoiceStepwise": true
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      74
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.76,
+      "third": 0.18,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.3,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.14,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "articulation": "legato",
+    "timbreHint": "piano"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.14
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "justin-niebank",
+  "type": "producer",
+  "name": "Justin Niebank",
+  "aliases": [
+    "justin niebank",
+    "justinniebank",
+    "justin neibank"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1990-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Justin Niebank",
+    "Mix — Justin Niebank (https://www.mixonline.com/news/justin-niebank-425184)",
+    "Mix — ACM Awards studio and industry winners (https://www.mixonline.com/news/acm-awards-studio-and-industry-winners-announced-2)",
+    "Mix — Taylor Swift \"Love Story\" (https://www.mixonline.com/recording/taylor-swift-love-story)"
+  ],
+  "notes": "The most-awarded mix engineer in country music. ⛔ **This file exists because the research says outright that it should**: \"**Chuck Ainlay and Justin Niebank are placed in PRODUCERS** although they are primarily engineers/mixers, because their documented method (mic sets, chains, rough-mix-as-master, per-channel discipline) is exactly the kind of parameter set the app needs and **neither has an entry elsewhere**\" (Assignment notes). The entry names the load-bearing parameter itself: \"his philosophy is the load-bearing style parameter for the whole genre: **'I like to record performances; I don't like to record microphones.'** Model minimal corrective processing and maximum reliance on the take\" — which is the loose quantize, the wide velocity spread and the real jitter here, and it is why nothing in this model is pushed toward a grid. The two moods are the entry's own per-song decision, quoted: \"he documents two deliberately different kit setups. **Minimal (three mics): a Russian Oktava ribbon on kick, a Neumann U47 overhead, a Coles ribbon in the room.** **Full booth setup: AKG D112 kick, SM57 + AKG 451 snare top, SM81 snare bottom, Audio-Technica ATM-25s on toms, RØDE NT4 stereo overhead, Coles ribbon and RCA 44 room mics.** … So: choose between an intimate three-mic ribbon kit and a full close-miked kit as a per-song decision.\" ⚠ The translation from mic list to note content is INFERRED and it is one step: a kit with no tom mics does not play tom fills, so `three-mic ribbon kit` carries a cymbal-only perc set on a long fill grid with the wider dynamic range a room ribbon captures, and `full booth kit` — the only setup whose mic list names toms — carries the tom lanes on a short fill grid with the tighter, closer velocity band. The mic lists are researched; the numbers are not. The two weights are equal because the entry calls it a per-song decision and states no preference between them. ⚠ Authoring `modes` **replaces** the genre's radio/porch/riff-cut moods rather than adding to them, which is correct here: the documented choice on his sessions is which kit is up, not which radio format is being cut. The arrangement encodes the two working-method facts: \"**'I like to have all of my options up on the board'** so the mix never stalls\" and, most importantly, \"**his rough mix of a No. 1 country single became the basis for the final master** — model the rough balance as the intended balance,\" so `switchUpProb` and the drop-out probability sit near the floor — the first balance is the intended one and the back half does not reinvent itself. ⚠ **No `session.bpm`, no `session.keys`, no `chords`, `melody` or `bassline` block.** The entry states \"Keys: n/a,\" names no tempo and no numeral, and its Melody/chords line is a signal chain (\"Waves amp modelling rather than re-amped; **TC Electronic M3000** for reverb\") with no note content — so every one of those is inherited rather than invented. ⚠ Confidence is medium where the research says high: the mic lists, format chain and philosophy are all documented first-person, but almost none of it is note-level, so what a generator can act on here is thin.",
+  "session": {
+    "humanize": {
+      "quantizeStrength": 0.73,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 6,
+        "closedHat": 6,
+        "tom": 7
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        106,
+        126
+      ],
+      "main": [
+        70,
+        98
+      ],
+      "ghost": [
+        26,
+        46
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.08,
+        "beats": 2
+      },
+      "switchUpProb": 0.06
+    }
+  },
+  "modes": [
+    {
+      "name": "three-mic ribbon kit",
+      "weight": 3,
+      "session": {
+        "humanize": {
+          "quantizeStrength": 0.7,
+          "velocityVar": 0.26
+        }
+      },
+      "drums": {
+        "velocityTiers": {
+          "accent": [
+            104,
+            127
+          ],
+          "main": [
+            64,
+            96
+          ],
+          "ghost": [
+            24,
+            44
+          ]
+        },
+        "percs": {
+          "lanes": [
+            "ride",
+            "shaker"
+          ],
+          "densityPerBar": [
+            1,
+            2
+          ],
+          "gainOffsetDb": -6,
+          "tambourine": false
+        },
+        "fills": {
+          "smallEveryBars": 16,
+          "bigEveryBars": 8,
+          "fillBeforeSection": true
+        }
+      }
+    },
+    {
+      "name": "full booth kit",
+      "weight": 3,
+      "drums": {
+        "velocityTiers": {
+          "accent": [
+            110,
+            127
+          ],
+          "main": [
+            80,
+            100
+          ],
+          "ghost": [
+            30,
+            46
+          ]
+        },
+        "percs": {
+          "lanes": [
+            "tomHigh",
+            "tomLow",
+            "ride",
+            "crash",
+            "shaker"
+          ],
+          "densityPerBar": [
+            2,
+            5
+          ],
+          "gainOffsetDb": -3,
+          "tambourine": true
+        },
+        "fills": {
+          "smallEveryBars": 4,
+          "bigEveryBars": 8,
+          "fillBeforeSection": true
+        }
+      }
+    }
+  ]
+}

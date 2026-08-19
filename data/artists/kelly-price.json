@@ -1,0 +1,356 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kelly-price",
+  "type": "artist",
+  "name": "Kelly Price",
+  "aliases": [
+    "kelly price",
+    "friend of mine",
+    "def soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1998-2003",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "gospel soul"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "neo-soul",
+    "boom-bap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Kelly Price",
+    "bpmdatabase — Kelly Price (https://www.bpmdatabase.com/music/search/?artist=Kelly+Price)",
+    "Wikipedia — Anthony Dent (https://en.wikipedia.org/wiki/Anthony_Dent)"
+  ],
+  "notes": "Gospel-belt hip-hop soul out of the Bad Boy / Def Soul orbit, 1998–2003. The research calls the ballad spine \"**48–66 half-time** — the slowest documented band here alongside H-Town\", with seven sourced tempos inside it, so 48–66 felt is the base with `halfTime` true; the single 98 uptempo is a boom-bap 2&4 and is a different backbeat class. Three drum deltas: \"at 48–62 the kit is a single kick per bar\" (one hit, syncopation 0.03), \"plus a snare on 3\", and \"a live-feel tambourine\" — a downbeat tambourine and snap bed at two to four hits a bar with `quantizeStrength` dropped to 0.6, which is what \"live-feel\" means on this schema; the hat lane falls to an 8th base at 0.04. The identifying parameter is harmonic: \"full gospel harmonic vocabulary — passing diminished chords, ii–V–I… choir-stack backgrounds\". `ii–v–i` takes top weight, a `vii°` passing family is authored (the numeral parser reads the degree and the dim marker; the quality lives in `extensions`), and `susOrDimProb` is raised. \"Very high note-density in the ad-lib runs\" is the 4–12 density, the widest in this section, with the highest arch weight and a real octave-jump rate. The low end is \"organ pedal and sustained bass on the root; the low end is church-organ-derived rather than 808\" — so no `bass808` block. ⚠ The research marks the tritone-substitution claim and the key claim `[LOW-CONF]`; the tritone substitution has no schema field and is recorded here rather than encoded. ⚠ Every velocity and density number is INFERRED. ⚠ `session.keys` is INFERRED: the entry's Keys line gives \"minor-mode with gospel modulations [LOW-CONF]\" and enumerates no tonic, so the values here and their weights are this author's reading of that line.",
+  "session": {
+    "bpm": {
+      "min": 48,
+      "max": 66,
+      "mode": 60
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Fm",
+        "Cm",
+        "Bbm",
+        "Ebm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "blues",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        2,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.6,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 9,
+        "snare": 11,
+        "tambourine": 12,
+        "snap": 10
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        1
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.03,
+      "tresilloBias": 0,
+      "andOf4EveryOtherBar": 0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.05,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.1,
+          0.2
+        ]
+      },
+      "offGridMs": [
+        3,
+        9
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.04,
+      "velocities": {
+        "main": [
+          0.14,
+          0.24
+        ],
+        "ghost": [
+          0.06,
+          0.12
+        ]
+      },
+      "openHat": {
+        "prob": 0.01,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.01
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "snap"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -7
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "vii°",
+          "i"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.18,
+      "seventh": 0.5,
+      "ninth": 0.32
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ],
+    "susOrDimProb": 0.24
+  },
+  "melody": {
+    "register": [
+      58,
+      90
+    ],
+    "densityPerBar": [
+      4,
+      12
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.26,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.08,
+      "descend": 0.34,
+      "arch": 0.58
+    },
+    "chordToneBias": 0.7,
+    "halfStepDissonance": 0.2,
+    "octaveJumpProb": 0.14,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "independent_riff",
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.06,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 16,
+      "outro": [
+        16,
+        32
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 4
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

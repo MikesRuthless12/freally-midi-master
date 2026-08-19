@@ -120,10 +120,10 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        51,
-        99
+        56,
+        104
       ],
-      "rampJitter": 15
+      "rampJitter": 18
     },
     "bass808": {
       "role": "bassline",
@@ -144,7 +144,7 @@
     ],
     "densityPerBar": [
       3,
-      8
+      7
     ],
     "phraseBars": {
       "values": [
@@ -158,27 +158,11 @@
     },
     "timbreHint": "supersaw_guitar_hybrid",
     "intervals": {
-      "step": 0.42,
-      "third": 0.23,
-      "leap": 0.36
+      "step": 0.4,
+      "third": 0.2,
+      "leap": 0.4
     },
-    "halfStepDissonance": 0.25,
-    "structure": "riff_loop",
-    "twoBarCellRepeat": true,
-    "contour": {
-      "riff": 0.47,
-      "descend": 0.43,
-      "arch": 0.11
-    },
-    "chordToneBias": 0.47,
-    "monophonicBias": 0.85,
-    "endVariation": true,
-    "octaveJumpProb": 0.07,
-    "colorTones": [
-      2,
-      4,
-      6
-    ]
+    "halfStepDissonance": 0.25
   },
   "countermelody": {
     "registerOffset": 12,

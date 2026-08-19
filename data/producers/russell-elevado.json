@@ -1,0 +1,226 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "russell-elevado",
+  "type": "producer",
+  "name": "Russell Elevado",
+  "aliases": [
+    "russell elevado",
+    "russ elevado",
+    "dragon elevado",
+    "analog mix soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1995-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "funk",
+    "boom-bap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Russell Elevado",
+    "Wikipedia — Russell Elevado (https://en.wikipedia.org/wiki/Russell_Elevado)",
+    "Grammy.com — Russell \"Dragon\" Elevado (https://www.grammy.com/artists/russell-dragon-elevado/1803)",
+    "Wikipedia — Voodoo (https://en.wikipedia.org/wiki/Voodoo_(D%27Angelo_album))"
+  ],
+  "notes": "The lane's engineer-mixer, and the entry is explicit that he is a timbral rather than a harmonic contributor: \"encode as a **mix preset**, not as a note generator\". So this model stays standard rather than flagship despite its high confidence — there is no documented melodic behaviour to author, and padding one out of genre defaults would be worse than leaving it inherited. What the entry does document is the drum timbre and its cause: \"recorded to **analog tape** with vintage mics and the board Jimi Hendrix originally used, minimal overdubs, and the whole rhythm section captured live in one room — so drum bleed, room tone and tape compression are part of the drum timbre rather than effects added afterwards. **No gating, no samples layered on the snare.**\" That last clause is authored literally as `snare.layered` false, which is the only place in this section that field is set to false; no gating is the highest `velocityVar` in the producer batch, because gating is what removes dynamic range; live-in-one-room with minimal overdubs is `quantizeStrength` 0.4 and fills at 8 and 16 bars. \"Bass and drums cut in the same pass, so the low end is acoustically coupled to the kit; no sub-synth reinforcement\" is why the bassline mirrors the kick and no `bass808` block exists. His arrangement doctrine is stated as a consequence of the method — \"no editing-later, so the take's length and structure is the final structure. Model as: fewer, longer sections and no copy-paste\" — which is the long section lengths, the two-structure list and the lowest `switchUpProb` of the producer models here. ⚠ The INFERRED parameters are every drum probability, the chord and bass values, and the specific section lengths; the research documents the analog-only doctrine and the credit list, not numbers.",
+  "session": {
+    "bpm": {
+      "min": 64,
+      "max": 113,
+      "mode": 86
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major",
+        "blues"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.4,
+      "velocityVar": 0.34,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 15,
+        "closedHat": 10,
+        "conga": 12,
+        "tambourine": 11
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.42,
+      "tresilloBias": 0.08
+    },
+    "snare": {
+      "layered": false,
+      "offGridMs": [
+        6,
+        16
+      ],
+      "ghost": {
+        "prob": 0.44,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.38,
+      "velocities": {
+        "main": [
+          0.36,
+          0.62
+        ],
+        "ghost": [
+          0.12,
+          0.3
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "conga",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.1,
+      "seventh": 0.5,
+      "ninth": 0.4
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "bassline": {
+    "followRootsProb": 0.6,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.35
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": [
+        16,
+        24
+      ],
+      "chorus": [
+        8,
+        16
+      ],
+      "outro": [
+        8,
+        32
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.08
+    }
+  }
+}

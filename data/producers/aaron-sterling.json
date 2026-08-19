@@ -1,0 +1,235 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "aaron-sterling",
+  "type": "producer",
+  "name": "Aaron Sterling",
+  "aliases": [
+    "aaron sterling",
+    "aaronsterling",
+    "aron sterling"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2015-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2020s",
+    "country-train"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Aaron Sterling",
+    "Sound on Sound — Inside Track: Morgan Wallen & Post Malone (https://www.soundonsound.com/techniques/inside-track-morgan-wallen-post-malone)"
+  ],
+  "notes": "The modern crossover session drummer, placed in PRODUCERS by the research as an instrumental-grammar entry. The entry calls one practice \"the most engine-relevant fact in this file about loops versus players\": \"a co-producer built groove libraries derived from classic country records at various tempos, and the drummer then played fresh live performances, using the library only as a compositional reference. Model: reference groove informs the *pattern*, a human performance supplies the *timing and velocity*.\" That is exactly how this model is authored — a canonical, low-variance pattern (long fill grid, near-zero pattern switching, a single hat subdivision) carried by a played humanize with real jitter and a wide velocity spread. The grammar on that record is stated: \"small dry kit, cross-stick verses, low fill density, 2&4 throughout, **no programmed layers**\" — hence no clap layer, no snap lane and no `bass808` block, the last of which the entry states outright: \"the album deliberately has no 808 sub, a reversal of the artist's pop practice.\" The band is documented too: \"~74–100 straight on 2&4 on that record.\" ⚠ The entry states \"Melody/chords: n/a\"; what it does give is the room's personnel — \"pedal steel (Paul Franklin), fiddle (Larry Franklin), acoustic and electric (Bryan Sutton, Derek Wells) and keys (Dave Cohen) — i.e. the classic live board.\" So **the melody, countermelody, chords and bassline numbers here are INFERRED** from that ensemble (steel and fiddle answering in the gaps, a warm open voicing, a plain root-motion bass) and none of them is a researched fact. ⚠ Confidence is medium (research: high-medium) — the loop-as-reference practice is directly documented, the rest is not.",
+  "session": {
+    "bpm": {
+      "min": 74,
+      "max": 100,
+      "mode": 84
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "mixolydian"
+      ],
+      "weights": [
+        7,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.72,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 8,
+        "closedHat": 7,
+        "rim": 8,
+        "ride": 7
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        102,
+        122
+      ],
+      "main": [
+        64,
+        86
+      ],
+      "ghost": [
+        20,
+        36
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.1,
+      "offbeat8thShare": 0.1
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.22,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.12,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.09,
+      "openHat": {
+        "prob": 0.17,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "ride",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -8,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.26,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        75
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      53,
+      76
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "contour": {
+      "riff": 0.16,
+      "descend": 0.36,
+      "arch": 0.48
+    },
+    "chordToneBias": 0.85,
+    "octaveJumpProb": 0.03,
+    "articulation": "legato",
+    "timbreHint": "pedal_steel_and_fiddle"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.7,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "register": [
+      28,
+      42
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5",
+      "M3"
+    ],
+    "anticipationProb": 0.08
+  }
+}

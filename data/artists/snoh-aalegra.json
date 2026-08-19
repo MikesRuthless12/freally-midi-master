@@ -1,0 +1,284 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "snoh-aalegra",
+  "type": "artist",
+  "name": "Snoh Aalegra",
+  "aliases": [
+    "snoh aalegra",
+    "cinematic sample soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2017-present",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "trap-soul",
+    "rnb-2000s",
+    "boom-bap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Snoh Aalegra",
+    "Wikipedia — Snoh Aalegra (https://en.wikipedia.org/wiki/Snoh_Aalegra)",
+    "Wikipedia — No I.D. (https://en.wikipedia.org/wiki/No_I.D.)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "The lane's cinematic-sample wing, No I.D.-mentored. The harmonic parameter is inherited rather than written: \"the chord bed is a looped 2-to-4-bar fragment of a 60s/70s soul or film-score record, so expect 7ths, 9ths and unresolved changes she did not write, plus a live string overdub tracking it\" — which is why no progression families are authored at all, `maxChords` drops to 3 and the harmonic rhythm vamps: the loop does not cadence. Drums are \"sampled-loop grammar over a live-feel top — a filtered break or a soft programmed kick on 1 and the 16th before 3, a low clap/snare on 2&4, sparse hats, and hand percussion. Reverb is long and the drums sit behind the strings\", so the snare is layered and quiet, the hat is non-continuous at a fill density of 0.22, and the percussion gain is cut. This is one of the seven models in this section that carries an 808: the entry says \"sub-808 or filtered sample bass with a long decay under the loop; occasional played bass. Slides are rare, so the low end reads as sustained rather than gliding\" — so `drums.bass808` is authored with role **counter_riff**, a slide probability of 0.03 and `lowPassed`, which keeps the sub while leaving the played-bass generator alive; role `bassline` would have silenced it. The bassline itself is `mirror_kick` for the same reason. ⛔ **Two parts is only true if they are two lines, and until `kick.lockTo808` was authored they were one.** The value arrives as 1 from `_defaults`, so the sub took every kick tick and `mirror_kick` took the same ticks off the same lane — `coherence::the_low_end_is_played_by_one_part_or_the_other` measured a share of 1.00 at seed 6. 0.5 is the entry's own description of the sub rather than a number chosen to clear a gate: *\"a long decay under the loop\"* and *\"the low end reads as sustained rather than gliding\"* is a sub that does NOT re-articulate on each of a 3-to-5-per-bar kick, and because the lane is `legato` every note it does play rings to the next one — half the onsets is twice the decay. ⚠ **INFERRED:** 0.5 exactly, like every other 808 number here. Melody is \"smooth mid-alto, low-to-moderate note-density, long legato phrases, breathy at the top, with wide airy stacks on the hook and a spoken/whispered ad-lib layer\". ⚠ The INFERRED parameters are all drum and 808 numbers and every melody figure; the research marks tempo and drum values as inference and [LOW-CONF]. ⚠ The half-time subset is not encoded. ⚠ **The bass is `mirror_kick` rather than the held `reese_sustain` the research describes** — *“sub-808 or filtered sample bass with a long decay under the loop; occasional played bass. Slides are rare, so the low end reads as sustained rather than gliding.”* — and that is a limit of the engine rather than a reading of the record. `generators::phrase_spans` re-articulates a held span only when it runs longer than two bars, so over the four-bar clip `reese_sustain` writes at most four notes and cannot reach the 500-bassline floor `engine/tests/bass.rs` holds every model to. `mobb-deep`, `dmx` and `capone-n-noreaga` carry the same substitution for the same reason; `followRootsProb` stays where it was so the line still reads as roots under the chord. ⚠ **The countermelody reached 978/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.18 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. ⚠ The value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"strings, horns and Rhodes inherited from the sample plus live overdubs; the palette is deliberately widescreen. Melody is smooth mid-alto, low-to-moderate note-density, long legato phrases, breathy at the top, with wide airy stacks on the hook and a spoken/whispered ad-lib layer.\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 98,
+      "mode": 82
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "aeolian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.74,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 6,
+        "clap": 6,
+        "shaker": 9,
+        "bass808": 5
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.44,
+      "tresilloBias": 0.14,
+      "lockTo808": 0.5
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        2,
+        8
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.1,
+          0.26
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.22,
+      "velocities": {
+        "main": [
+          0.24,
+          0.44
+        ],
+        "ghost": [
+          0.08,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "conga",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -6
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "slideProb": 0.03,
+      "register": [
+        24,
+        40
+      ],
+      "distortion": "none",
+      "monoCutSelf": true,
+      "portamentoMs": 80,
+      "lowPassed": true
+    }
+  },
+  "chords": {
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.06,
+      "seventh": 0.48,
+      "ninth": 0.46
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        82
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      80
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "long_arc",
+    "articulation": "legato",
+    "intervals": {
+      "step": 0.84,
+      "third": 0.14,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.18,
+      "descend": 0.44,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.62,
+    "emptyBarBias": 0.1,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "cinematic_strings"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "bell_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      42
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.15
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.65,
+        "beats": 4
+      },
+      "switchUpProb": 0.18
+    }
+  }
+}

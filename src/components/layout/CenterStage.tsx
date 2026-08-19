@@ -330,6 +330,7 @@ export function CenterStage() {
   const pins = useSession((s) => s.pins);
   const mood = useSession((s) => s.mood);
   const base = useSession((s) => s.base);
+  const complexity = useSession((s) => s.complexity);
 
   // Song Mode reads the same seed, pins, mood and base the chips already hold,
   // so the arrangement is placed in the session the producer set up rather than
@@ -342,7 +343,7 @@ export function CenterStage() {
   // record, reproducibly, so it reads as deliberate.
   const generateSong = () => {
     if (!selectedId) return;
-    return buildSong({ styleId: selectedId, seed, pins, mood, base });
+    return buildSong({ styleId: selectedId, seed, pins, mood, base, complexity });
   };
 
   const selected = roster.find((entry) => entry.id === selectedId) ?? null;

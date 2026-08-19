@@ -41,7 +41,7 @@
     "style-research ch.1 Cross-genre engine constants (MPC swing scale)",
     "style-research app.B Swing / microtiming quantitative sources (Dilla quintuplet swing; snare late = laid back)"
   ],
-  "notes": "The drunk pocket and the extended chord, and it is not this genre without both. The snare sits LATE — a real displacement of a few milliseconds rather than humanizer noise — the hats swing at 63%, somewhere between straight and triplet, and ghost snares crowd almost every e and a, so the bar leans instead of marching. Only jerk is authored looser. The harmony is where the leaning goes: m7/m9/maj9 stacks with triads down at 6%, open voicings, a real ii–v–i and the 3-6-2-5 chain, and a Dorian i–IV vamp. The topline is a Rhodes-and-voice long arc with a low chord-tone bias, free to land on the 9th, 11th and 13th. No 808 — a fingered electric bass plays its own figure.",
+  "notes": "The drunk pocket and the extended chord, and it is not this genre without both. The snare sits LATE — a real displacement of a few milliseconds rather than humanizer noise — the hats swing at 63%, somewhere between straight and triplet, and ghost snares crowd almost every e and a, so the bar leans instead of marching. Only jerk is authored looser. The harmony is where the leaning goes: m7/m9/maj9 stacks with triads down at 6%, open voicings, a real ii–v–i and the 3-6-2-5 chain, and a Dorian i–IV vamp. The topline is a Rhodes-and-voice long arc with a low chord-tone bias, free to land on the 9th, 11th and 13th. No 808 — a fingered electric bass plays its own figure. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit authors `bass808: null` — it has no 808 — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so here it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead in this file. Where it was not dead was in the artists and producers who extend this kit and author an 808 of their OWN: they inherited the zero and `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, so their sub lane was silent at every seed and `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\". Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: the entry's own statement about this kit is the `bass808: null` beside it, and that is untouched.",
   "session": {
     "bpm": {
       "min": 70,
@@ -114,8 +114,7 @@
       ],
       "secondaryAnchor": "2a",
       "syncopation": 0.55,
-      "tresilloBias": 0.12,
-      "lockTo808": 0
+      "tresilloBias": 0.12
     },
     "snare": {
       "placement": "backbeat_24",

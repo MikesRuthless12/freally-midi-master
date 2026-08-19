@@ -1,0 +1,262 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jason-mraz",
+  "type": "artist",
+  "name": "Jason Mraz",
+  "aliases": [
+    "jason mraz",
+    "jasonmraz"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2002-2009",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "acoustic soul"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "neo-soul",
+    "dancehall"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Jason Mraz",
+    "bpmdatabase — Jason Mraz (https://www.bpmdatabase.com/music/search/?artist=Jason+Mraz&title=)"
+  ],
+  "notes": "Acoustic-soul pop with rhythmic scat-phrasing: 65–100 straight with the backbeat on 2&4, and the ubiquitous 2008 single is \"a reggae-inflected 76 with the accent on the off-beat\" — which is why `bpm.mode` sits at 76 and why the percussion `placement` is \"offbeat\". The drum block is the entry's most unusual in this batch because the hat is replaced: \"off-beat guitar skank taking the place of a hat, shaker in 8ths\", so `hihat.continuous` is false at a 0.2 fill density while the perc block runs shaker, rim and conga at 3–6. The other two deltas are \"kick 1 and 3, snare/rim on 2&4\" and \"brush fills only\", i.e. a soft velocity tier and a fill schedule pushed out to 16 bars. Harmony is major with jazz-pop extensions — I–V–vi–IV with maj7/6 voicings and a ii–V turnaround — so the sevenths and ninths carry 0.62 between them. The bass is \"roots with a walking passing note into each change; upright-bass feel\", which is `independent_riff` at 0.7 with the widest passing-tone set here. The vocal is described as \"the rhythm instrument — syllable-dense, syncopated, scatted between phrases, with a wide-interval hook\", which is the 6–12 density and the raised leap share. ⚠ `confidence` is medium because the research says so and marks the key/voicing claims **[LOW-CONF]** as convention-based. ⚠ The **INFERRED** parameters are all drum probabilities.",
+  "session": {
+    "bpm": {
+      "min": 65,
+      "max": 100,
+      "mode": 76
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "dorian"
+      ],
+      "weights": [
+        6,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.19,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 7,
+        "shaker": 8,
+        "conga": 8
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        88,
+        104
+      ],
+      "main": [
+        60,
+        76
+      ],
+      "ghost": [
+        24,
+        36
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.22
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.16,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.2,
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.03
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim",
+        "conga"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "offbeat"
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.32,
+      "seventh": 0.44,
+      "ninth": 0.24
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        80
+      ],
+      "topVoiceStepwise": true
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      82
+    ],
+    "densityPerBar": [
+      6,
+      12
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.22,
+      "leap": 0.16
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.3,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.62,
+    "octaveJumpProb": 0.16,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "timbreHint": "acoustic_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.7,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "M2",
+      "P5",
+      "M6",
+      "M7"
+    ],
+    "anticipationProb": 0.34
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    }
+  }
+}

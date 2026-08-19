@@ -1,0 +1,244 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ricky-martin",
+  "type": "artist",
+  "name": "Ricky Martin",
+  "aliases": [
+    "ricky martin",
+    "rickymartin"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1998-2001",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "latin pop"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "funk"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Ricky Martin",
+    "Wikipedia — \"Livin' la Vida Loca\" (https://en.wikipedia.org/wiki/Livin%27_la_Vida_Loca)"
+  ],
+  "notes": "Latin-pop crossover with a rock-and-brass engine, and the one entry in this section whose kick placement is described by a clave: 96–140 straight, backbeat on 2&4, with \"a clave-derived kick pattern\" and \"kick on 1 and the '&' of 2 in a tumbao-ish placement\", which is why `tresilloBias` sits at 0.34 — far above anything else here — with the second anchor on \"2&\". The other two drum deltas are quoted: \"snare 2&4 plus a timbale rim pattern on 16ths\" and the full Latin stack (timbales, congas, cowbell), which is the four-lane perc block at a density of 3–6, and \"percussion break as the transition device\", which is why the fills are pushed out while the perc density stays high. The bass rule is the entry's sharpest: \"played bass locked to the kick with an anticipated bass note on the '&' of 4 (Latin anticipated-bass habit); octave leaps under the brass hits\" — `mirror_kick` with `anticipationProb` at 0.6 and the octave as a passing tone. Harmony is the stated i–VII–VI–VII and i–iv–V vamps with the brass \"harmonised in 4ths/5ths above the tonic triad\". ⚠ The **INFERRED** parameters are the drum probabilities and densities; the entry names instruments and placements, not values, and `bpm.mode` 118 is this author's centre of the stated band.",
+  "session": {
+    "bpm": {
+      "min": 96,
+      "max": 140,
+      "mode": 118
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "conga": 6,
+        "perc": 6,
+        "snare": 4
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.4,
+      "tresilloBias": 0.34
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "3e",
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.48,
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.1
+      }
+    },
+    "percs": {
+      "lanes": [
+        "timbale",
+        "conga",
+        "cowbell",
+        "perc"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.68,
+      "seventh": 0.24,
+      "ninth": 0.08
+    }
+  },
+  "melody": {
+    "register": [
+      61,
+      80
+    ],
+    "densityPerBar": [
+      5,
+      10
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.62,
+      "third": 0.28,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.26,
+      "arch": 0.24
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.1,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.7,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P8",
+      "P5"
+    ],
+    "anticipationProb": 0.6
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.16
+    }
+  }
+}

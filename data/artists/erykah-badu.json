@@ -1,0 +1,338 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "erykah-badu",
+  "type": "artist",
+  "name": "Erykah Badu",
+  "aliases": [
+    "erykah badu",
+    "erykahbadu",
+    "badu",
+    "baduizm"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1997-present",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "boom-bap",
+    "funk"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Erykah Badu",
+    "Wikipedia — Erykah Badu (https://en.wikipedia.org/wiki/Erykah_Badu)",
+    "songdata.io — Erykah Badu (https://songdata.io/search?query=Erykah+Badu)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "The lane's defining voice, and the entry gives the spine directly: 63–100 straight with the backbeat on 2&4 and \"a heavy behind-the-beat drag\", so the tempo band is the catalogue's own (63 through 100) and the drag is spent on `humanize` and `snare.offGridMs` rather than on swing. The keys are the ones the research names — F minor, B minor, D♭ minor, B♭ minor, with G and D♭ for the major-key material — and Dorian leads the scales because the entry says \"Dorian and natural-minor colour with jazz extensions (m9/m11) rather than triads\". The drum block is the \"human timing, complete with imperfections\" doctrine: snare pushed late, kick early and sparse, hats \"in swung 16ths, closed and quiet\" (which is why the hat velocities sit under the parent's), ghost snares between the backbeats, and the named hand percussion — shaker, congas, tambourine — as a continuous layer at a small gain cut. The low end is Pino Palladino's live electric bass at the stated E1–C3, walking and melodic with \"no glides\", so `glideProb` is near zero and the chord voicing was lifted to 50 to stay clear of a bass that plays up to C3. Harmony is the two families the entry writes out plus the single-chord vamp it names. ⚠ The INFERRED parameters are every drum probability and velocity band, the melody numbers, and `chordToneBias` 0.42 — the research gives \"low-density, conversational, sits in a narrow fifth\" and a phrasing comparison that \"lags the beat and lands off the chord root\", and these numbers are this author's reading of those words. ⚠ The research carries a [LOW-CONF] mark on the 130–172 readings folded back to 65–86; the folded spine is what is encoded. ⚠ The *New Amerykah* laptop-programmed variant is documented but is not encoded as a mode — this model authors one kit, the played one.",
+  "session": {
+    "bpm": {
+      "min": 63,
+      "max": 100,
+      "mode": 82
+    },
+    "keys": {
+      "values": [
+        "Fm",
+        "Bm",
+        "Dbm",
+        "Bbm",
+        "G",
+        "Db"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.46,
+      "velocityVar": 0.3,
+      "timingJitterMs": {
+        "kick": 7,
+        "snare": 16,
+        "closedHat": 9,
+        "perc": 13,
+        "shaker": 11
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.44,
+      "tresilloBias": 0.07
+    },
+    "snare": {
+      "offGridMs": [
+        8,
+        18
+      ],
+      "ghost": {
+        "prob": 0.62,
+        "pos": [
+          "1e",
+          "1a",
+          "2e",
+          "2a",
+          "3e",
+          "3a",
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.42,
+          0.7
+        ],
+        "ghost": [
+          0.14,
+          0.36
+        ]
+      },
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "conga",
+        "tambourine",
+        "rim"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "any",
+      "gainOffsetDb": -5
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.1,
+      "seventh": 0.46,
+      "ninth": 0.44
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      74
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.82,
+      "third": 0.15,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.18,
+      "descend": 0.5,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.42,
+    "octaveJumpProb": 0.05,
+    "emptyBarBias": 0.2,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "wurlitzer"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.42,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M6",
+      "M3"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "b7"
+      ],
+      [
+        "1",
+        "b3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "2",
+        "b3",
+        "5"
+      ]
+    ],
+    "anticipationProb": 0.5
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        16
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "outro": [
+        8,
+        24
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.35
+    }
+  }
+}

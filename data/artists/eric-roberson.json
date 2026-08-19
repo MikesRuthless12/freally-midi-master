@@ -1,0 +1,283 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "eric-roberson",
+  "type": "artist",
+  "name": "Eric Roberson",
+  "aliases": [
+    "eric roberson",
+    "erro",
+    "songwriter soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2001-present",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "boom-bap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Eric Roberson",
+    "Wikipedia — Eric Roberson (https://en.wikipedia.org/wiki/Eric_Roberson)",
+    "Wikipedia — Chris Dave (https://en.wikipedia.org/wiki/Chris_Dave)"
+  ],
+  "notes": "The lane's songwriter-artist, carried with the entry's explicit **Gate 1 caveat** — independent-label rather than platinum, \"included because the lane cannot be modelled without his songwriting grammar\". The drums take the first of the two options the entry gives: \"live kit (Chris Dave appears on his records) with displaced snares and ghost 16ths\", so the snare carries a 7–17 ms displacement and a ghost probability of 0.6 across six positions, with the percussion layer \"continuous\" at 3–6 hits a bar. The band is the stated 72–102. Harmony is the two families the entry writes out — IMaj7–vi7–ii7–V7 and IMaj7–IVMaj7, reduced to degrees with the sevenths moved into `extensions` — over \"8-bar sections with genuine harmonic motion\" and \"harmony written on keys, not looped\", which is why the harmonic rhythm keeps real movement rather than vamping. The load-bearing melodic claim is \"conversational songwriting — verses with long, prose-like lines at high syllabic density resolving to a short, simple, repeated hook\", which is density 5–10, a question-answer structure, `endVariation` and 4-or-8-bar phrases; the \"audience-participation vamp out\" is the long outro in the arrangement. Bass is \"walking with chromatic approach notes and real countermelody\". ⚠ The INFERRED parameters are every drum probability and velocity and all melody/countermelody numbers; the research marks its tempo and harmonic detail as inference and [LOW-CONF].",
+  "session": {
+    "bpm": {
+      "min": 72,
+      "max": 102,
+      "mode": 86
+    },
+    "scales": {
+      "values": [
+        "major",
+        "dorian",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.52,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 14,
+        "closedHat": 8,
+        "conga": 11
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "syncopation": 0.46,
+      "tresilloBias": 0.09
+    },
+    "snare": {
+      "offGridMs": [
+        7,
+        17
+      ],
+      "ghost": {
+        "prob": 0.6,
+        "pos": [
+          "1e",
+          "1a",
+          "2e",
+          "3e",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.52,
+      "velocities": {
+        "main": [
+          0.44,
+          0.72
+        ],
+        "ghost": [
+          0.14,
+          0.34
+        ]
+      },
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "conga",
+        "rim",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -6
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.12,
+      "seventh": 0.54,
+      "ninth": 0.34
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "densityPerBar": [
+      5,
+      10
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.4,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.6,
+    "endVariation": true,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.34,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3",
+      "M3"
+    ],
+    "anticipationProb": 0.5
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        8
+      ],
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "outro": [
+        8,
+        24
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.22
+    }
+  }
+}

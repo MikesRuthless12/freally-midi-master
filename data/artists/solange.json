@@ -1,0 +1,296 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "solange",
+  "type": "artist",
+  "name": "Solange",
+  "aliases": [
+    "solange",
+    "solange knowles",
+    "a seat at the table"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2008-2019",
+  "genres": [
+    "soul",
+    "neo-soul",
+    "art pop"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "funk",
+    "pop-2020s",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Solange",
+    "Wikipedia — Solange Knowles (https://en.wikipedia.org/wiki/Solange_Knowles)",
+    "songdata.io — Solange (https://songdata.io/search?query=Solange)",
+    "Wikipedia — Raphael Saadiq (https://en.wikipedia.org/wiki/Raphael_Saadiq)"
+  ],
+  "notes": "Houston-to-New-Orleans art-soul, Saadiq-executive-produced, and the entry describes a record whose drums are the quietest thing in it: \"minimal and dry — a small kit or drum machine placed low in the mix, kick on 1 with a single extra hit, snare or rim on 3 as often as on 2&4, no hat carpet, and long passages with no drums at all. Percussion is hand-played (congas, shaker, claps) and mixed forward.\" So the kick density is 1–3, the hat is non-continuous at a fill density of 0.1, the snare carries a cross-stick option, and the percussion gain sits at −1 dB — the only model in this batch whose percussion is louder than its kit. The band is the catalogue's own 73–125. Harmony is the stated parameter: \"static modal beds with one moving inner voice, unresolved maj7/m9 sonorities held for 8+ bars, and horn voicings that supply the chord rather than a keyboard\" — hence the long chord durations, the vamp-weighted harmonic rhythm, `maxChords` 3 and a horn timbre hint. Melody is \"soft, breathy, mid-register, extremely low note-density — often 3–5 pitches per phrase\", which is `motifPitchCount` 3–5 and density 2–4, and the counter is horn or synth, \"never guitar\". Bass \"frequently enters late and functions as a hook\", so it is an independent riff with plenty of rest rather than a kick mirror. ⚠ The INFERRED parameters are all drum values (the research marks its drum placement as inferred), the melody numbers and the countermelody density. ⚠ The half-time option the entry calls for is not encoded as a separate placement; the Lane line's straight 2&4 spine is what this model states. ⚠ **The countermelody reached 960/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.24 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. ⚠ The value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"Rhodes/synth pads, a brass section as the primary harmonic instrument, and Saadiq-lineage bass. Melody is soft, breathy, mid-register, extremely low note-density — often 3–5 pitches per phrase — with block-harmony stacks (4–8 identical layers) as the chorus device. Countermelody is horn or synth, never guitar.\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 73,
+      "max": 125,
+      "mode": 95
+    },
+    "keys": {
+      "values": [
+        "C",
+        "Ab",
+        "Dbm",
+        "Bbm",
+        "F#m"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "dorian",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.62,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 8,
+        "conga": 12,
+        "shaker": 11,
+        "snap": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.24,
+      "tresilloBias": 0.04
+    },
+    "snare": {
+      "offGridMs": [
+        2,
+        8
+      ],
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.1,
+          0.26
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.1,
+      "velocities": {
+        "main": [
+          0.26,
+          0.46
+        ],
+        "ghost": [
+          0.08,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.04,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "shaker",
+        "snap",
+        "rim"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "any",
+      "gainOffsetDb": -1
+    }
+  },
+  "chords": {
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.06,
+      "seventh": 0.46,
+      "ninth": 0.48
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        47,
+        84
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      76
+    ],
+    "densityPerBar": [
+      2,
+      4
+    ],
+    "structure": "long_arc",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.84,
+      "third": 0.14,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.42,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.66,
+    "emptyBarBias": 0.1,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "horn_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.3,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.5,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "M2",
+      "m7"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        8
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "outro": [
+        4,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 4
+      },
+      "switchUpProb": 0.45
+    }
+  }
+}

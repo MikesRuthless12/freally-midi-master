@@ -87,3 +87,15 @@ plugin-install.json
 # Mike's local audio/MIDI fixtures for extraction work (TASK-058D).
 # Real stems and reference MIDI, tens of megabytes — kept out of the repo.
 audioTest/
+
+# Agent skills installed by `npx skills add`, and its lockfile.
+#
+# Machine-local tooling rather than project source: the CLI writes `.agents/`,
+# symlinks `.claude/skills/` at it for Claude Code, and records what it fetched
+# in `skills-lock.json`. Nothing in the build, the tests or the plugin reads
+# any of it, and a skill is third-party code that runs with full agent
+# permissions — which is a decision for whoever is at the keyboard, not
+# something a checkout should make for them.
+.agents/
+.claude/skills/
+skills-lock.json

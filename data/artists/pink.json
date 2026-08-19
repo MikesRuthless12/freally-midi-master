@@ -1,0 +1,259 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "pink",
+  "type": "artist",
+  "name": "Pink",
+  "aliases": [
+    "pink",
+    "pnk",
+    "p nk",
+    "alecia moore"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2000-2009",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "pop-rock"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "rnb-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Pink",
+    "songdata.io — P!nk catalogue (https://songdata.io/search?query=P!nk)",
+    "Wikipedia — \"Get the Party Started\" (https://en.wikipedia.org/wiki/Get_the_Party_Started)"
+  ],
+  "notes": "The era's most reliable attitude-anthem template: 92–140 straight with the backbeat on 2&4 and the dance-facing singles clustering tightly at 122–129, which is where `bpm.mode` sits. Three named tonics (B minor, A and G major) put `keys` in the model. The drum block reads the entry's own explanation of why the kit sounds wrong on purpose — the 2001 single's producer \"programmed the drums, played the bass and added horn samples, deliberately choosing 'every wrong instrument'\" — so the deltas are \"kick 1 and 3 plus an 8th pickup\" (second anchor \"4&\"), \"big snare on 2&4\" (a high accent tier), and \"16th hat\", with the horn samples living in the perc block as a `perc` lane and the rock-era \"marching 8th-snare pre-chorus\" as a snare-roll ladder. Harmony is i–VI–III–VII for the minor anthems and I–V–vi–IV for the major ones, with \"a suspended pre-chorus that hangs on IV before dropping to the tonic\" — hence the sus substitution and the IV–i family. The bass is \"played bass or a fat mono synth bass on roots in 8ths\", and on the new-wave-styled singles \"a synth-bass riff as the hook itself\", which is why `followRootsProb` sits at 0.72 rather than up with the root-lockers. The melody \"sits low and raspy in the verse then jumps an octave for a shouted chorus\" — a 0.26 `octaveJumpProb`, the highest in this batch. ⚠ `confidence` is medium because the research rates it high-medium. ⚠ The **INFERRED** parameters are all drum probabilities.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 140,
+      "mode": 126
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Bm",
+        "A",
+        "G",
+        "Em"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        4,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        127
+      ],
+      "main": [
+        80,
+        96
+      ],
+      "ghost": [
+        30,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.26
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.54,
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.16
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "snap",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "IV",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.26,
+      "ninth": 0.08
+    },
+    "susSubstitutionProb": 0.3
+  },
+  "melody": {
+    "register": [
+      55,
+      81
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.24,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.28,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.7,
+    "octaveJumpProb": 0.26,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.58,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.72,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    }
+  }
+}

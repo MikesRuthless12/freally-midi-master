@@ -1,0 +1,298 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "bob-power",
+  "type": "producer",
+  "name": "Bob Power",
+  "aliases": [
+    "bob power",
+    "robert power",
+    "low end theory engineer",
+    "sample collage mix"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1990-2005",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul",
+    "rap"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "boom-bap",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Bob Power",
+    "Wikipedia — Bob Power (https://en.wikipedia.org/wiki/Bob_Power)",
+    "Wikipedia — Erykah Badu (https://en.wikipedia.org/wiki/Erykah_Badu)",
+    "Wikipedia — D'Angelo (https://en.wikipedia.org/wiki/D%27Angelo)"
+  ],
+  "notes": "The lane's other foundational engineer-producer, and the entry names an innovation that is structural rather than rhythmic: \"before his work producers used one loop that played throughout, whereas the records he engineered built elaborate musical constructions out of samples from different places. Model **multi-source drum construction** — kick from one record, snare from another, hats from a third — plus live overdubs on top of the loop.\" A multi-source kit is authored as a layered snare, the widest velocity-tier spread in the producer batch (the sources do not match in level), five percussion lanes, and a hat base that is itself a weighted choice between 16ths and 8ths — the three drum voices genuinely disagree. \"Sampled bass reinforced or replaced by a played bass overdub; sub-808 is absent from the era\" gives an independent bass and no `bass808` block. He is \"jazz-trained (master's in jazz, plus classical composition and conducting) and a multi-instrumentalist on guitar, keys, bass and drums — so his contribution includes re-voicing and re-arranging what the artist brought\", which is the seventh-weighted extension spread and a harmonic rhythm that moves rather than vamps. The arrangement is the other half of the same claim: \"sample-collage sections that change instrumentation every 8–16 bars, and layered constructions rather than single loops\", which is the 8-to-16-bar section lengths and the high `switchUpProb`. ⚠ The INFERRED parameters are every drum probability and velocity tier and all melody/chord numbers; the research sources his philosophy and credit list and marks the specific technique description as inference from the records.",
+  "session": {
+    "bpm": {
+      "min": 64,
+      "max": 100,
+      "mode": 84
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "minor_pentatonic",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.66,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 8,
+        "closedHat": 9,
+        "perc": 11,
+        "shaker": 10
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        96,
+        116
+      ],
+      "main": [
+        66,
+        86
+      ],
+      "ghost": [
+        28,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.5,
+      "tresilloBias": 0.14
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        3,
+        10
+      ],
+      "ghost": {
+        "prob": 0.44,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.42,
+          0.72
+        ],
+        "ghost": [
+          0.14,
+          0.34
+        ]
+      },
+      "openHat": {
+        "prob": 0.16,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker",
+        "perc",
+        "conga",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -6
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.1,
+      "seventh": 0.52,
+      "ninth": 0.38
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        47,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      80
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.22,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.32,
+      "descend": 0.36,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.56,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "sampled_horn"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "bell_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.56,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.4
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": [
+        8,
+        16
+      ],
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.44
+    }
+  }
+}

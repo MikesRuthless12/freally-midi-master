@@ -1,0 +1,425 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "frank-ocean",
+  "type": "artist",
+  "name": "Frank Ocean",
+  "aliases": [
+    "frank ocean",
+    "christopher breaux",
+    "channel orange",
+    "blonde",
+    "nostalgia ultra"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "trap-soul"
+  ],
+  "era": "2011-present",
+  "genres": [
+    "trap-soul",
+    "rnb",
+    "alt rnb"
+  ],
+  "relatedGenres": [
+    "trap-soul",
+    "neo-soul",
+    "lofi-hiphop",
+    "pop-2020s",
+    "funk"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 trap-soul — Frank Ocean",
+    "Wikipedia — Channel Orange (https://en.wikipedia.org/wiki/Channel_Orange)",
+    "Wikipedia — Blonde (Frank Ocean album) (https://en.wikipedia.org/wiki/Blonde_(Frank_Ocean_album))",
+    "songdata.io — Frank Ocean (https://songdata.io/search?query=Frank+Ocean)"
+  ],
+  "notes": "The section's only `high`-confidence entry and its only flagship: the volume says its production doctrine \"is the documented source that Sonder, Sampha, 070 Shake and the Malay/Vegyn/Buddy Ross/Uzowuru bench all descend from\", and the entry documents personnel, studios, instrumentation, vocal-processing method, harmonic reference points and arrangement philosophy as well as a large tempo/key spine. ⛔ **The drum block is authored around an absence, because the research says the absence is the parameter**: the 2016 album \"lack[s] not just hefty beats but any kind of percussion at all\", the 2012 one uses \"mid-tempo drum beats\" with live drums overdubbed and \"muted percussion\" elsewhere, and \"there are no triplet hat rolls\". So `rolls.freqPerBar` is 0, the hat carpet is near the floor, the kick is one or two per bar and the backbeat is a soft 2&4 — the three states the entry names (no percussion / soft programmed kick-and-clap / live kit in a room) collapse to the middle one plus a loose, low-velocity kit. ⛔ **`bass808` is null**: \"a soft sustained sub or a played bass on the chord root, warm and short, with no slides… Bass frequently enters a full section late or is absent.\" The harmony is quoted in the research from a review — \"chord changes straight out of Stevie Wonder's *Innervisions*, airy vamps that nod to Marvin Gaye's *Here, My Dear*\" — read as maj7/m9 with real functional motion over eight-plus bars, chromatic passing chords and sections that modulate, so `maxChords` is 6, the ninth and seventh dominate, and `susOrDimProb` carries the passing chords. Delivery \"alternat[es] falsetto and tenor registers\" in \"free-form flow\" with low note-density and prose-like phrasing: a very wide melody register, a low density, long `phraseBars` and `structure` `long_arc`. The varispeed/Auto-Tune \"two distinct voices, like characters in a play\" is why the counter is weighted onto `octave_echo` at a high ratio — a second persona rather than an answer lick. Arrangement: \"tracks of disparate lengths\", interludes, \"songs with no repeated chorus\", so one structure carries no hook at all. ⚠ The **INFERRED** parameters are the swing amount, every drum probability and density, the bassline's motion figures, and `bpm.mode` — the entry lists six tempo clusters between 60 and 140 and names no centre, and 100 is this author's reading of where they mass. ⚠ No `modes` are authored: the entry's three drum states differ in feel rather than in harmony, and a mood that changes only feel fails this project's mood gate. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit has no 808 — `bass808` is `null` here or in the parent it inherits — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so in this file it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead here. Where it was NOT dead was in the artists and producers who extend this kit and author an 808 of their own: they inherited the zero, `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, and their sub lane was silent at every seed — `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\" for 35 of them. Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: this kit's own statement about the 808 is the `bass808: null` beside it, and that is untouched.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 140,
+      "mode": 100
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Ab",
+        "Am",
+        "C",
+        "D",
+        "Em"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "dorian",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
+    "humanize": {
+      "quantizeStrength": 0.6,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 10,
+        "clap": 9,
+        "closedHat": 8,
+        "perc": 12,
+        "ride": 11
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        88,
+        102
+      ],
+      "main": [
+        58,
+        72
+      ],
+      "ghost": [
+        22,
+        32
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.22,
+      "tresilloBias": 0.04
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.12,
+          0.26
+        ]
+      },
+      "offGridMs": [
+        5,
+        12
+      ],
+      "lowPassedClap": true
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.08,
+      "velocities": {
+        "main": [
+          0.24,
+          0.42
+        ],
+        "ghost": [
+          0.1,
+          0.2
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0,
+        "positions": [
+          "bar_4"
+        ],
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "openHat": {
+        "prob": 0.07,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "shaker",
+        "perc",
+        "reverse"
+      ],
+      "densityPerBar": [
+        0,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -9
+    },
+    "bass808": null,
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 32
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "vi",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I",
+          "vi"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 6,
+    "extensions": {
+      "triad": 0.14,
+      "seventh": 0.46,
+      "ninth": 0.4
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        88
+      ],
+      "topVoiceStepwise": true,
+      "adjacentSecondProb": 0.48
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      16
+    ],
+    "susSubstitutionProb": 0.24,
+    "susOrDimProb": 0.3
+  },
+  "melody": {
+    "register": [
+      52,
+      90
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        4
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "long_arc",
+    "motifPitchCount": [
+      5,
+      9
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.19,
+      "leap": 0.07
+    },
+    "contour": {
+      "riff": 0.12,
+      "descend": 0.38,
+      "arch": 0.5
+    },
+    "chordToneBias": 0.7,
+    "colorTones": [
+      2,
+      6
+    ],
+    "halfStepDissonance": 0.09,
+    "emptyBarBias": 0.22,
+    "endVariation": true,
+    "octaveJumpProb": 0.18,
+    "articulation": "legato",
+    "timbreHint": "mellotron"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.62,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.86,
+    "register": [
+      26,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2",
+      "m7"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        16
+      ],
+      "verse": [
+        8,
+        24
+      ],
+      "prechorus": 8,
+      "hook": [
+        8,
+        16
+      ],
+      "bridge": [
+        4,
+        16
+      ],
+      "outro": [
+        4,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "bridge",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 4
+      },
+      "switchUpProb": 0.5
+    }
+  }
+}

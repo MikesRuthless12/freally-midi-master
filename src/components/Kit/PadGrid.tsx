@@ -55,6 +55,10 @@ export function PadGrid() {
   // to exactly how they were when you left them."* Which lanes are on the pads
   // belongs to the thing being made, not to the window it is made in.
   const selectedId = useSession((s) => s.selectedId);
+  // ⛔ The action owns which clip it edits — the *drums* one by name, never the
+  // active tab's. The pads sit above every generator, so a producer can repoint
+  // one while the Melody tab is open, and `editPattern` routes on `pattern.part`.
+  const reassignLaneEverywhere = useSession((s) => s.reassignLaneEverywhere);
   // ⛔⛔ **The selector returns the stored map, and the pick happens outside it.**
   // It used to be `s.pads[selectedId] ?? []`, and the `[]` was a **new array on
   // every call** — so zustand's equality check never held, the component
@@ -64,7 +68,6 @@ export function PadGrid() {
   // rather than a fresh copy — which is what let this file and two others stop
   // each keeping a `FALLBACK_PADS` of their own.
   const padsByStyle = useUi((s) => s.pads);
-  const setPad = useUi((s) => s.setPad);
   // ⛔ Always a valid slot — `state/ui.ts::selectedPad` says why it is never null.
   const selectedPad = useUi((s) => s.selectedPad);
   const selectPad = useUi((s) => s.selectPad);
@@ -243,7 +246,22 @@ export function PadGrid() {
                 label={t('kit.padLane', { at: at + 1 })}
                 options={PAD_LANES.map((id) => ({ id, name: t(`lanes.${id}`) }))}
                 value={lane}
-                onChange={(id) => setPad(selectedId, at, id)}
+                // ⛔⛔ **The beat's row follows the pad** — Mike, 2026-08-16:
+                // *"ensure that these in the drum lanes in the pattern generator
+                // are the same as the one's in the drum pad's"*, reporting that
+                // pointing a pad at Mid tom *"didn't change any to mid tom"*.
+                // The two controls named the same lanes from the same `lanes.*`
+                // keys and wrote to different places: this one moved the pad,
+                // the grid's own picker renamed the lane in the clip, and
+                // neither told the other.
+                //
+                // ⚠ **One action rather than two writes from here.** The first
+                // cut called `setPad` and then renamed the clip unconditionally,
+                // so a `setPad` the store *refused* — past `PAD_LIMIT` — still
+                // renamed the beat, and a sibling pad on the same lane was left
+                // pointing at a lane that no longer existed.
+                // `reassignLaneEverywhere` decides before it writes.
+                onChange={(id) => reassignLaneEverywhere(lane, id as Lane)}
               />
             </div>
 

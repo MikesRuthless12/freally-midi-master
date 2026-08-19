@@ -1,0 +1,248 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jorgen-elofsson",
+  "type": "producer",
+  "name": "Jörgen Elofsson",
+  "aliases": [
+    "jorgen elofsson",
+    "jurgen elofsson",
+    "elofsson"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1997-2009",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Jörgen Elofsson",
+    "Wikipedia — Jörgen Elofsson (https://en.wikipedia.org/wiki/J%C3%B6rgen_Elofsson)",
+    "Wikipedia — \"Since U Been Gone\" (https://en.wikipedia.org/wiki/Since_U_Been_Gone)"
+  ],
+  "notes": "The Cheiron-school topline writer for diva and talent-show pop — the \"moment\" ballad specialist. 66–96 for the ballads and 118–132 for the uptempos he writes into, both straight, so a single window carries 66–132. Like the other writers on this board the research is explicit that drums are \"not his department — he writes to a piano/guitar demo, and the melodic rhythm assumes a 2&4 backbeat with **the hook landing on beat 1 of the chorus**\". That last clause is what the drum block reads: the kit is a demo bed, so the kick is sparse on 1 and 3, the hat is 8th-weighted at a low fill density, and the accent tier is lifted on the downbeat-heavy side while the fills stay out of the way. His melodic signature is the model's reason to exist: \"the **stepwise climb with a delayed apex** — the chorus rises scale-wise and holds the highest note on the title's stressed syllable; verses are conversational and low\", which is a step share of 0.86, an arch-dominant contour and a low note density. Harmony is a I–V–vi–IV backbone for the ballads and \"non-functional indie-derived cycles (e.g. I–ii–vi–IV)\" on the pop-rock material — both authored. \"His ballads always leave a 2-bar instrumental gap after the title for the string answer\", which is the sustain-pad counter and the high `dropOutBeats`. ⚠ `confidence` is medium because the research rates it medium-high and says the harmonic specifics are partly inferred. ⚠ The whole drums block is **INFERRED** from the stated demo bed, as is `bpm.mode` 92. ⚠ **The bass is `mirror_kick` rather than the held `reese_sustain` the research describes** — *“n/a — toplines stay above the bass register; the melody's lowest note is usually the tonic in the singer's middle register so the belt has headroom.”* — and that is a limit of the engine rather than a reading of the record. `generators::phrase_spans` re-articulates a held span only when it runs longer than two bars, so over the four-bar clip `reese_sustain` writes at most four notes and cannot reach the 500-bassline floor `engine/tests/bass.rs` holds every model to. `mobb-deep`, `dmx` and `capone-n-noreaga` carry the same substitution for the same reason; `followRootsProb` stays where it was so the line still reads as roots under the chord.",
+  "session": {
+    "bpm": {
+      "min": 66,
+      "max": 132,
+      "mode": 92
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        7,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        102,
+        118
+      ],
+      "main": [
+        72,
+        88
+      ],
+      "ghost": [
+        26,
+        38
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.16
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.07,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.28,
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.04
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "triangle"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "ii",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.54,
+      "seventh": 0.34,
+      "ninth": 0.12
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      84
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.86,
+      "third": 0.1,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.14,
+      "descend": 0.24,
+      "arch": 0.62
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.34,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "mirror_kick",
+    "register": [
+      30,
+      47
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.14
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 8
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

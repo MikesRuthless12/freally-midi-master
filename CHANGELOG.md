@@ -12,6 +12,367 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — sixteen parameters the dataset authored and no code read, 2026-08-18
+
+`engine/tests/authored_keys.rs` keeps a debt register of keys real models carry
+that nothing consumes, and its own doc says entries come off it "by being
+implemented, never by being deleted because the test was noisy". Sixteen came
+off.
+
+- **A cluster note is now its own `Articulation`.** Three separate gates needed
+  to tell an ornament apart from the beat it surrounds and none could: marked
+  `Roll` it counted as a *fill* and reported `chamillionaire` filling four times
+  on a bar its own cycle says is plain; marked `Ghost` it counted as the snare
+  *answering* the backbeat and turned up at tick 1813 instead of the and-of-4;
+  left unmarked it was the backbeat, and
+  `uk_underground_keeps_jerks_displaced_backbeat_but_nudges_where_jerk_staggers`
+  quietly began measuring a 32nd-wide ornament as a nudge — it would have gone
+  on passing, for the wrong reason.
+- **Snare clusters** (`clusterProb`, `clusterHits` — 19 models). Jerk's headline
+  marker, described in the research as "2–4 hits bunched around the expected
+  backbeat". ⛔ **The cluster is centred on the beat, not started on it**: one
+  note lands exactly where the un-clustered snare would have, so the backbeat is
+  surrounded rather than dragged late.
+- **A lane's own velocity band** (`velocityRange`). `rnb-2000s` states
+  `kick.velocityRange: [0.7, 0.85]` and the kick fell back to the cross-genre
+  76–89 tier instead.
+- **The kick's sub layer** (`subLayerVelocity`, `separateLayerProb` — 10 boom-bap
+  models). `Lane::SubKick` has had a GM voice and a slot in `LANE_ORDER` the
+  whole time with nothing writing to it.
+- **A skipped beat and a walking run** (`beatSkipProb` — 43 models,
+  `walkingRunProb`). ⚠ A skip can never take an anchor: those are the positions
+  the genre "always plays", and a bar that can lose beat 1 is a different genre.
+- **The west-coast drag** (`sloppyOffsetMs`). Not `offGridMs` under another
+  name — that is one displacement the whole lane shares; this is a range drawn
+  per hit.
+- **A full-time snare at high tempo** (`fullTimeAtHighTempoProb`), the sibling of
+  `fullTimeVariantProb` two lines away.
+- **Hats that mirror the kick, gate, chain their open hats and alternate into
+  triplet bars** (`mirrorsKick`, `gatingProb`, `openHatChains`,
+  `tripletBarAlternationProb`).
+- **An 808 that ignores the kick** (`melodicallyIndependent` — 15 models). ⛔ The
+  808 filters the kick's own onsets, so `lockTo808` could only ever make the sub
+  *sparser* — it could never move it. Independence changes where the notes are
+  and not how many there are: the lock still decides the density.
+- **The rising whoop and the chromatic approach** (`upwardWhoopProb`,
+  `chromaticApproachProb`). ⛔ The whoop turns a slide the model already placed
+  and never adds one, because both models that author it also author
+  `slidesPer4Bars` and a fourth slide in a four-bar phrase is a different genre.
+
+⛔ **Every one of these draws from its own seeded stream**, so a model that does
+not author a key generates exactly what it generated before — and a model that
+does gets the feature and nothing else. That rule is this module's own ("each
+draws from its own seeded stream, so rerolling the snare cannot move the kick")
+and breaking it was caught two lanes away: the sub layer's velocity advanced the
+kick's stream, the kick moved, `bass.rs`'s `mirror_kick` follows the kick, and
+`jeru-the-damaja` fell to 946/1000 distinct basslines against a floor of 950 —
+a bassline gate failing because of a drum velocity.
+
+▶ **Two golden snapshots moved, and only where the features are**: `uk-drill`'s
+hats alternate into triplets on the odd bars and its 808 plays its own five
+notes, and one `rage` 808 note drops a semitone and glides into the next.
+
+### Fixed — two panics reachable from a hand-edited model, 2026-08-18
+
+- **A non-ASCII key in a user model aborted the host DAW.** `validate::lint`
+  walks every key of every model, including one a producer imported or edited by
+  hand, and the allocation-free `is_probability_key` sliced `&key[len - 3..]` —
+  which panics when that byte index lands inside a multi-byte character.
+  `"naïve"` against the `var` suffix splits mid-`ï`. Release is built
+  `panic = "abort"`, so that is the DAW gone, on **every launch**, until the file
+  is found and deleted. Compared as bytes now. ⚠ No shipped model has a
+  non-ASCII key, so CI would never have seen it.
+- **A displacement wider than `f64` can subtract panicked inside `rand`.**
+  `read::pair` validates nothing and `sloppyOffsetMs` matches no probability
+  suffix, so `[-1e308, 1e308]` reached `random_range`, whose `UniformFloat`
+  computes `high - low`, gets `inf`, and unwraps a `NonFinite` error. `[0, 1e30]`
+  instead saturated the tick cast and overflowed `displace`. One
+  `MAX_OFFSET_MS` bound, applied to `offGridMs` and `layerClapOffsetMs` too —
+  the same shape, the same latent abort.
+
+### Fixed — a style with nothing in it no longer saves, 2026-08-18
+
+- **Mike, 2026-08-16:** *"if you tick just a scale without generating anything,
+  then it shouldn't save anything"*. A draft that says nothing its base does not
+  already say, opened with no beat on screen, is refused with a reason rather
+  than written. ⛔ **Ticking a scale is deliberately not content**: the scale list
+  the editor offers is narrowed to the base's own, so every scale a producer can
+  tick is one their base already uses.
+  ⚠ Refused with a message rather than by greying the button out — an unedited
+  song is not saved either, and a control that quietly greys out is a rule the
+  producer has to guess.
+  ⛔ **Measured against the draft the dialog opened with, not against the blank
+  form**, and the first cut got that wrong in a way that made the rule almost
+  never fire: the draft seeds its swing and BPM range from the selected model's
+  defaults, which are populated on *artist selection* rather than on Generate,
+  and `trap` — the default base — authors `swing.amount: 0.50` against the
+  form's 0.54. Six models out of 1303 happened to match. The rule fired for
+  those and for nothing else.
+
+### Changed — two dataset-load costs measured and removed, 2026-08-18
+
+- **`validate::walk` no longer allocates a JSON pointer per key per model.** It
+  built a full pointer whether or not a finding fired — findings fire on almost
+  nothing — plus a lowercased copy of every key. One reusable buffer and
+  `eq_ignore_ascii_case` instead.
+- **`resolve_all` merges each ancestor chain once.** 534 of the 590 models are
+  artists and producers over a few dozen genre archetypes, and every one of them
+  redid the same merge. The cache is keyed on the ordered ancestor list, lives
+  for one call, and never outlives the registry it read.
+
+### Fixed — a sustained countermelody stopped entering in the same place every time, 2026-08-17
+
+- **A `sustain_pad` countermelody now chooses where in the phrase it comes in.**
+  `phrase_spans` already gave a held part somewhere to re-articulate, but the
+  entry *inside* a span was still the first tick the lead left free — the same
+  answer for every seed that drew the same phrase length. Over a vamp, where the
+  whole four bars are one chord, a third of seeds drew a four-bar phrase and got
+  one held note in one place. Twenty-seven models sat between 0.910 and 0.979
+  against the 0.98 counter-variety floor on that alone; twenty-three of them
+  clear it now with no change to their data.
+  ⚠ **The entry is chosen out of the phrase's *first half*** — a pad that comes in
+  during the last bar of its phrase is not a pad, and length is the whole claim
+  `sustain_pad` makes. The old first-free-tick answer stays as the fallback for a
+  lead so legato that the first half offers nothing, so no model's pad goes
+  silent.
+- **Four models whose answering layer was authored thinner than their research
+  describes.** `roy-woods` plays the pluck riff its entry names alongside the
+  bell, and answers with enough notes to be the "wide double/ad-lib layer" the
+  same sentence calls louder than the lead; `flo-rida` leads with the
+  arpeggiator its entry documents in so many words rather than treating it as
+  the minority answer; `pitbull` answers with the producer's saw-lead restating
+  the guest's hook, because "he is the rhythmic element, not the melodic one";
+  and `scatman-john` drops the phrase-answer lick — the one shape its entry never
+  names, and one that wrote *nothing at all* on 137 of 1,000 seeds because a
+  10-to-16-note-a-bar scat leaves no free tick in the bar's last beat — for the
+  piano stab it does name.
+
+### Added — the parts a generator answers, and four archetypes the research was owed, 2026-08-15
+
+- **Generating a countermelody fills the melody it answers, and the harmony both
+  are written against** (TASK-129). The engine has always rendered those parts —
+  `engine/src/parts.rs` writes a counter against a melody and every melodic part
+  against the harmony, whether or not the producer has pressed Generate on
+  either — so a counter on a fresh session was a line answering something
+  nobody could hear, and the next press on the Melody tab wrote a *different*
+  melody and left the counter answering one that no longer existed.
+  ⛔ **The fills are generated at the RECORD, not at a fresh take**, which is the
+  whole correctness of it: the counter is written against the record's own lead,
+  so filling the tab with a new take would put a different melody on screen from
+  the one it answers — the same defect wearing the fix's clothes. Both seed
+  fields carry the record, and the tests assert what was *sent*.
+  ⛔ **The drums are deliberately not filled.** A melody is phrased around a
+  reference kit at the song seed, not around the drum take on screen; filling
+  that tab would put a kit there that neither the melody was written against nor
+  Generate would produce.
+  ⚠ A part the producer already has is never replaced, a generator that has been
+  switched off is not filled, and one press is still one undo step.
+- **A `.mid` from the browser can be trained on** (TASK-040T, the last piece).
+  The fit, its anti-collapse rules, the SMF reader and the keep/train loop have
+  shipped since 2026-08-09 — with the reader reachable *only over the bridge*, so
+  a producer could train a style on their own generations and not on their own
+  files. The MIDI panel now carries **Train on this**, and the style editor counts
+  the file's parts toward the thirty a fit needs.
+  ⚠ **It keeps the file's own split**, which is what makes a file and a
+  generation one measurement rather than two — both arrive at `engine::fit` as
+  `Pattern`s. Kept files are the one thing in the variation store that carries
+  notes rather than a seed, because nothing rebuilds somebody else's `.mid` from
+  a number.
+- **Eleven genre archetypes the research had to work around** (TASK-158F) —
+  every one the compendium names as missing — taking the dataset to **61 genres
+  and 602 models**. Each carries an invariant test stating the thing that makes
+  it that genre:
+  - **Chicago Bounce** — mid-90s West Side "ride music". The same numeric band as
+    `chicago-drill` with the **opposite backbeat**: full-time on 2 and 4, and a
+    carrier that gallops in triplet eighths rather than running straight.
+  - **Bop** — Chicago's fast, bright counter-scene, which `chicago-drill`
+    explicitly declined. The straightest and fastest of the three Chicago lanes.
+  - **Afro House** — house's four-on-the-floor under an African percussion
+    ensemble, centred at 118 between `amapiano`'s 113 and `house`'s 124. Authored
+    because volume 4 refused to fake it: Black Coffee **stays** in `house`, and
+    the cohort *"is owed a future `afro-house` model rather than this one"*.
+  - **Techno** — ⚠ the most consequential omission: volume 4 dropped **Jeff
+    Mills, Robert Hood, Underground Resistance, Carl Craig, Derrick May, Juan
+    Atkins and Kevin Saunderson** because *"this app has no `techno` archetype,
+    so there is nowhere legitimate to put them"*. Ships at `confidence: low`
+    saying so — what is sourced is a boundary (four-on-the-floor without house's
+    jazz harmony) and its gate asserts that and nothing else.
+  - **Bassline** — the northern 4x4 wing, whose whole identity is *where the
+    syncopation lives*: a straight four-on-the-floor with the movement in the
+    bass.
+  - **Lowend** (Milwaukee) — snares on 1 and 3 under an eighth-note clap stream.
+    ⛔ **The engine could not spell this genre**: `SnarePlacement` read two names
+    and a snare on 1 and 3 is neither, so a third placement was added for it.
+    `jerk` has carried Certified Trapper and J.P. as a *declared exception*
+    precisely because no model could hold them.
+  - **Michigan Off-Grid** — the parent volume 5 wrote for `detroit-bounce`, with
+    its four rules (the 808 does not slide, the hats are sparse, the figure is
+    off the grid, nothing is quantised tight). ⚠ It ships **both** disputed tempo
+    bands as named modes rather than reconciling them, which is what the research
+    asks for in as many words.
+  - **Baltimore Club** and **Philly Club** — the two cousins modelled inside
+    `jersey-club` with their divergences given. Both sit under Jersey's five-kick
+    bar, which is the sourced difference in the one direction it runs.
+  - **EDM Trap** — the drop-first, harmonically static side of the 140 half-time
+    family, told from future bass by exactly that: *"he is the harmonic minimum of
+    this section, which is precisely how you tell an EDM-trap record from a
+    future-bass one."*
+  - **Dominican Dembow** — El Alfa, Tokischa, Chimbala, Rochy RD, at 115–130.
+    ⚠ **Ships at `confidence: low` and says why**: the research gives a boundary
+    and no interior — *"faster, a different snare cell, a different roster"* — so
+    the cell is inference from a sourced difference, and its gate asserts only
+    the two sourced claims and labels which is which.
+  - ⚠ `kawaii-future-bass` was **already built** — as a `kawaii` mode on
+    `future-bass`, which is exactly the "palette swap over an unchanged rhythm
+    grammar" the research recommends. Recorded rather than duplicated.
+
+- **A Simple / Complex switch over all four melodic generators** (TASK-125). One
+  control moves the chords, the melody, the countermelody and the bassline
+  together between a plain reading of the style and a busy one, saved with the
+  project like the mood.
+  ⛔ **It scales within what each model authored and never overrides it.** The
+  rule, from the roadmap: *"a rage vamp made busy is no longer rage."* So it only
+  leans a choice the model already offered — a draw inside an authored range, a
+  pick from an authored weighted list — and a model that authors one value is
+  unmoved at every setting. A lane whose only harmonic rhythm is a vamp holds one
+  chord at Complex, and a rhythm the model never listed stays unreachable.
+  ⛔ **Three states, and the middle one is the model as written.** `Authored` is
+  the default and generates byte-for-byte what the app did before the switch
+  existed, so every saved seed still rebuilds its own beat — the same
+  compatibility rule auto-sync follows. Two states with no neutral would have made
+  opening the app enough to change what an artist sounds like.
+  ⚠ It reaches Generate-all and Song Mode, including a re-rolled section — the
+  rule-at-one-door failure this project has recorded four times.
+- **The style editor reaches the four blocks it could not** (TASK-040U, closed).
+  Its entry stayed ◐ for a stated reason: *"they cannot yet reach roll
+  vocabulary, snare placement, 808 behaviour or progression families"* — which is
+  most of what separates one authored style from another.
+  ⚠ **Every group starts on "From the base" and means it.** An authored value
+  *replaces* the parent's, so a control with no unset state would make opening the
+  dialog enough to overwrite what the style is based on. The 808's slide is dead
+  until a role is chosen, because a slide probability with no role is half an 808.
+  ⚠ The placements are labelled `2 & 4` and `1 & 3`, the rolls `16T`, and the
+  progressions `i–VI–VII` — numbers and roman numerals, which is how a producer
+  reads them and why this needed nine new strings across eighteen catalogs rather
+  than twenty-two.
+
+### Changed — the roster sounds like its research again, 2026-08-15
+
+- **396 artist and producer models restored to the values their research entries
+  state**, on the owner's instruction: *"revert them to their actual research's
+  dataset that I got to ensure that they do sound like the other artists more,
+  and i don't care that they overlap, just ensure that it doesn't use copyrighted
+  material when it does generate them."* Two batch passes had moved them, both to
+  beat pairwise distinctness gates — one nudging the separation levers by model
+  id and pasting an identical `ladder`/`pitchWalk` block into hundreds of files,
+  the other changing `densityPerBar` and `secondaryAnchor` across 232 models.
+  ⚠ Six models keep their later state because that change fixed something
+  musical and said what: `rapsody`, `krs-one`, `wu-tang-clan`, `bnyx`,
+  `clams-casino` and `mobb-deep`.
+- **The two pairwise distinctness gates no longer fail on overlap.** Two artists
+  in one lane, on one kit, at one tempo *should* land on the same bar sometimes —
+  that is what makes each sound like themselves rather than like a
+  deliberately-detuned neighbour. Both still compute and print their ceilings, so
+  a pair drifting together stays visible, and both still fail on a pair that is
+  identical at **every** seed: two models may sound alike, they may not *be* the
+  same model.
+- **The novelty guard now screens the bassline**, which is what makes the
+  sentence above safe. ⛔ It had excluded every bassline on an argument true of
+  one rhythm in five — *"a bassline is locked to the kick"* — while **194 shipped
+  models author `independent_riff`** and 207 place their own onsets. A bass figure
+  is what a great many records are known by. It follows the rhythm now, not the
+  part, and it runs in Song Mode as well as on the pattern path.
+  ⚠ The table still ships **hashes only**: a fingerprint is a contour, there is
+  no way back from one to a note, and nothing in it names a pitch, a key or a
+  title.
+
+### Fixed — what the review pass found in the four days above, 2026-08-16
+
+Six reviewers over the same branch — reuse, simplification, efficiency, altitude,
+correctness, security. Three of them found the same defect independently, which
+is the one worth reading first.
+
+- **The Simple / Complex switch was carried by exactly one of the four doors that
+  read it** (TASK-125). `plugin/src/bridge.rs` reads `complexity` on
+  `generate_pattern`, on `generate_song` and on `reroll_section`, and all three
+  reads were written correctly. The page sent it on one.
+  ⛔ **Song Mode arranged at the model's authored reading** while every four-bar
+  loop on the part tabs beside it answered Busy, and **re-rolling one section
+  brought it back plainer than its neighbours** — reproducibly, so it reads as
+  deliberate. That is the `base` failure of TASK-158C, one field over, and the
+  entry above this one claimed the door problem had been avoided.
+  ⛔ **The upstream fill sent it either** — so at Busy, a counter generated at
+  `complex` had its melody filled in behind it at `authored`: a different note
+  count, off a different draw, because `Complexity::draw` takes two numbers from
+  the stream where the authored path takes one. The producer got a counter
+  answering a melody that was not the melody beside it — the
+  readout-that-lies failure TASK-129 exists to close, wearing the fix's clothes.
+  ⚠ **A door nobody knocks on is the same defect as a door that was never
+  built.** `reroll_section` read the value from a second place (`session`) that no
+  caller populates; there is one spelling now, and both payloads are asserted on
+  in tests rather than the store.
+- **Ticking a scale in the style editor made the style unsavable, and had since
+  the control shipped.** ⛔ **Not a regression on this branch** — found by the
+  test written for the roll defect below, on its first run, because the Rolls
+  block had been written by copying the Scales block and inherited its bug.
+  `session.scales` was written as `{ values }` with no `weights`, and **599 of
+  the 620 model files author that pair**: unless the number of scales ticked
+  happened to equal the base's weight count, the save was refused with
+  `3 weights for 1 values`. Neither of the six reviewers found this one.
+- **Ticking any roll subdivision in the style editor made the style unsavable**
+  (TASK-040U). The editor wrote `rolls.vocab = { values }` and nothing else;
+  `inherit::deep_merge` replaces the `values` array whole but merges `vocab` key
+  by key, so the producer's list arrived against the **base's** `weights` — and
+  566 of the 600 shipped models author that pair. Every save was refused with
+  `5 weights for 1 values`, a JSON pointer to a field they never touched. Had it
+  got past the lint the style would have written **no hat rolls at all**.
+  ⚠ **The e2e passed throughout and would still pass**: `ipc-mock.ts` has no
+  linter. `engine/tests/user_partials.rs` now merges every control the editor
+  writes over every shipped base and runs the real lint — 4,200 merges.
+- **The novelty guard and the bass generator had stopped reading the same
+  field.** `follows_the_kick` read `bassline.rhythm` with `text` (bare strings
+  only) while `generate` was changed to read it with `string_spec_leaning`, which
+  also takes the weighted form — so a model authoring the weighted form answered
+  "locked to the kick", went unscreened, and could ship an `independent_riff`
+  straight past the guard. No model in `data/` authors that form, so nothing
+  shipped wrong; a style saved through the editor can reach it. The guard now
+  asks whether **every** rhythm the model could draw follows the kick, which is
+  answerable without a seed and errs toward screening.
+- **An imported style could hang the DAW.** `freqPerBar` and `riserBars` drive
+  loops and were read unclamped; neither key is probability-suffixed, so the
+  runtime lint skips it, and the JSON Schema that does carry maxima never runs on
+  `models::save`. A model saved over the bridge with `freqPerBar: 1e9` wrote
+  clean and froze the host on the next Generate — generation is synchronous on
+  the thread the host draws its window from. Both are bounded at read.
+- `Complexity::draw` returns rather than panics on a NaN bound, and is one
+  generic function instead of two byte-identical copies. `parts::render` asks
+  `follows_the_kick` only for the bass — four presses in five were paying for an
+  answer that was discarded — and neither it nor `eight_o_eight_is_the_bass`
+  clones the model's whole block map to read one string any more. That clone was
+  ~1,000 heap allocations, and `arrange.rs` was paying it twice per section.
+
+### Fixed — 2026-08-15
+
+- **"Generate all" rendered as a second full-weight primary next to Generate**
+  (TASK-139's last quarter). `btn-generate--secondary` had been applied to the
+  button since TASK-120 and **defined nowhere in `src/`**. It is styled with
+  colour and an inset outline only: that row sits under the editor, so anything
+  that makes it taller takes the height out of the velocity lane — a previous
+  attempt cost enough of it that a drag to 96 landed on 85.
+- **A failed upstream fill discarded the generation that succeeded.** The fills
+  sit between the generation and the write that lands it, so one refusal threw
+  away a countermelody that had already come back correctly: the producer pressed
+  Generate, the part generated, and they got an error and nothing else.
+- **Salaam Remi's `live band` and `one drop` moods generated the same melody**
+  for every seed, so that pair of moods was decoration. Both changed only drums,
+  feel and tempo. The difference authored is the one a one drop actually makes:
+  the weight moves to beat 3, the line sits back, fewer notes and more empty bars.
+- **Typing "uk" found Bassline instead of UK Drill.** A bare `"uk"` tag in the new
+  model's `genres` scores an *exact* hit (10,000 + 50 + 38) against UK Drill's
+  name *prefix* (8,000 + 300 + 32), so a two-letter tag outranks a name. Three
+  more were removed before they could do the same: `detroit` on techno, `bass` on
+  edm-trap and `chicago` on the two Chicago lanes.
+
 ### Added — browse by era, and a switch-off that survives the project, 2026-08-15
 
 - **Four era pills over the roster: 90s · 2000s · 2010s · 2020s** (TASK-158G).

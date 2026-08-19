@@ -1,0 +1,294 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "peter-collins",
+  "type": "producer",
+  "name": "Peter Collins",
+  "aliases": [
+    "peter collins",
+    "petercollins",
+    "pete collins"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1990-2010",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Peter Collins",
+    "Wikipedia — Peter Collins (https://en.wikipedia.org/wiki/Peter_Collins_(record_producer))"
+  ],
+  "notes": "The English rock producer who brought \"a British pop sensibility\" into Nashville-adjacent Americana — the outsider entry on this board, and included because \"the 'rehearsed, organic, pop-tidied' method is a distinct point on this board.\" His stated contribution is bringing \"some pop elements to the music,\" which the entry translates as \"pop turnarounds (ii–V–I, IV–I/3–V) and chromatic pre-chorus motion inside otherwise-roots material,\" so ii–V–I is a family and a small chromatic weight sits in the scales. Drums are \"explicitly 'organic,' preferring live studio recording over layered track assembly — bands cut together, 2&4, with real room. Model low overdub count and pattern consistency,\" which is a played humanize with an unusually low fill count and a narrow density range: consistency is the parameter. The most transferable fact is his process discipline and it lands squarely on the arrangement block: \"artists must arrive fully rehearsed and ready, and he worked structured nine-hour days ending by 8pm rather than late-night sessions. That produces tight, pre-arranged records — **model fixed section lengths and no in-studio restructuring**,\" so every `sectionBars` value here is a scalar rather than a range and `switchUpProb` sits at the floor — the only model in this section authored that way. He also worked as an arranger, \"so string and harmony-vocal arrangements are written rather than improvised,\" which is the counter's sustained-pad weighting. `relatedGenres` is held to the two lanes the entry states — the country-pop board he is placed on and the \"British pop sensibility\" he is here for; the entry documents a straight 2&4 and never a shuffle, and this name is not on the section's own `country-shuffle` flag list, so that id is not claimed. ⚠ Confidence is medium and the research says why: \"philosophy and process documented; country-specific technique not [LOW-CONF].\" ⚠ The INFERRED parameters are the velocity tiers, the perc set and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 140,
+      "mode": 100
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "chromatic",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2,
+        1,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.84,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 5,
+        "closedHat": 4,
+        "ride": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        102,
+        118
+      ],
+      "main": [
+        72,
+        88
+      ],
+      "ghost": [
+        26,
+        38
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.12,
+      "offbeat8thShare": 0.16
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.13,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.16,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.14,
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -6,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.62,
+      "seventh": 0.31,
+      "ninth": 0.07
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      56,
+      80
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.14,
+      "descend": 0.3,
+      "arch": 0.56
+    },
+    "chordToneBias": 0.83,
+    "halfStepDissonance": 0.06,
+    "octaveJumpProb": 0.04,
+    "endVariation": true
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.8,
+    "register": [
+      28,
+      45
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 6
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.1,
+        "beats": 2
+      },
+      "switchUpProb": 0.02
+    }
+  }
+}

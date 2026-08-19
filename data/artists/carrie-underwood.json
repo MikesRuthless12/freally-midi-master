@@ -1,0 +1,332 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "carrie-underwood",
+  "type": "artist",
+  "name": "Carrie Underwood",
+  "aliases": [
+    "carrie underwood",
+    "carrieunderwood",
+    "carry underwood"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2005-2018",
+  "genres": [
+    "country-pop",
+    "country",
+    "arena country"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s",
+    "country-shuffle",
+    "pop-2020s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Carrie Underwood",
+    "Wikipedia — Some Hearts (https://en.wikipedia.org/wiki/Some_Hearts)",
+    "Wikipedia — Before He Cheats (https://en.wikipedia.org/wiki/Before_He_Cheats)",
+    "Mix — The Complete Carrie Underwood (https://www.mixonline.com/recording/the-complete-carrie-underwood)",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Carrie+Underwood)"
+  ],
+  "notes": "The biggest post-Idol country voice — arena country-pop with rock guitars and \"drivetime drums.\" Three facts here are documented outright and none of them is inferred: the catalogue is \"unusually minor-heavy for radio country — F♯ minor, A minor, C minor, F minor and E♭ minor all appear on singles alongside the major-key ballads,\" which is the minor-weighted key set; the signature single is \"in F♯ minor … progression F♯m–E–Dsus2–C♯ = i–VII–VI–V (a major-quality V from harmonic minor),\" which is the top family and the harmonic_minor scale weight; and the vocal range is \"F♯3–C♯5,\" MIDI 54–73, which is the melody register floor and the anchor for the belt above it. The drum grammar is quoted — \"hats/cross-stick verse, big backbeat from the chorus, half-time bridge, final chorus with tom doubling\" — and the 2018 record's \"innovative overhead mic techniques\" is authored as an overhead-forward, roomy kit rather than as a mic. The widest dynamic range in the section is a documented engineering problem (\"she can literally go from singing very softly to blowing the microphone out\"), so `velocityVar` is the highest in this batch and the accent tier runs to the ceiling. ⚠ Boundary flag: \"Before He Cheats\" is documented as a shuffle in cut time and that groove belongs to `country-shuffle`; the artist stays here. ⚠ The catalogue tempo readings fold songdata's 137–160 figures and carry the section's [LOW-CONF] class mark. ⚠ The INFERRED parameters are the perc lane set and density, the counter ratio and the arrangement section lengths.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 130,
+      "mode": 100
+    },
+    "keys": {
+      "values": [
+        "F#m",
+        "Am",
+        "Cm",
+        "Fm",
+        "Ebm",
+        "G"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2,
+        2,
+        3
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "harmonic_minor",
+        "major_pentatonic"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.84,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "closedHat": 4,
+        "tom": 6,
+        "crash": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        118,
+        127
+      ],
+      "main": [
+        76,
+        100
+      ],
+      "ghost": [
+        22,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.26,
+      "offbeat8thShare": 0.4
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.28,
+      "openHat": {
+        "prob": 0.34,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tomHigh",
+        "tomLow",
+        "crash",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -2,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.74,
+      "seventh": 0.22,
+      "ninth": 0.04
+    },
+    "susSubstitutionProb": 0.4,
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      54,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.64,
+      "third": 0.24,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.16,
+      "descend": 0.28,
+      "arch": 0.56
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": [
+      0.1,
+      0.22
+    ],
+    "timbreHint": "surging_guitars"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.87,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      45
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "m3"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.3,
+        "beats": 4
+      },
+      "switchUpProb": 0.22
+    }
+  }
+}

@@ -1,0 +1,297 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "cody-chesnutt",
+  "type": "artist",
+  "name": "Cody ChesnuTT",
+  "aliases": [
+    "cody chesnutt",
+    "lo fi soul",
+    "four track soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2002-2017",
+  "genres": [
+    "soul",
+    "neo-soul",
+    "lo-fi"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "funk",
+    "lofi-hiphop"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Cody ChesnuTT",
+    "Wikipedia — Cody ChesnuTT (https://en.wikipedia.org/wiki/Cody_ChesnuTT)",
+    "Wikipedia — The Roots (https://en.wikipedia.org/wiki/The_Roots)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "The lane's lo-fi auteur. `confidence` is **low** because the research rates the entry medium-low — the method and the collaborators are sourced, but \"tempo/harmonic values are inference and marked\". The entry's own headline claim is unusual and is what this model encodes: \"the defining parameter is fidelity, not pattern — a distorted, clipped, room-mic'd or drum-machine kit recorded to a home 4-track, snare on 2&4 but saturated to the point of losing transient, hats crushed or absent\". Fidelity is not a drum field, so it is expressed as its consequences: the narrowest, loudest velocity tiers in the section (a clipped kit has almost no dynamic range), the lowest `velocityVar` here, a hat that is neither continuous nor busy at a fill density of 0.08, and a near-empty percussion layer. Harmony is the two garage-soul families the entry writes out — I–IV and I–♭III–IV — with the highest triad weight in the section, because the research says \"two- and three-chord garage-soul progressions… with no modulation\". Melody is \"mid-tenor into falsetto, short-phrase, hooky, with hummed and wordless passages\", so it is a riff loop over two-and-four-bar phrases. Bass is \"overdriven, mixed hot and slightly out of tune with itself, root-and-fifth\". The arrangement encodes \"very short tracks (many under two minutes), abrupt starts and stops, no bridges\" — no bridge section exists in either structure. ⚠ Every drum, melody and bass number here is INFERRED. ⚠ The Roots' clean band re-recording of the same material is documented but not encoded; this model states the 4-track version.",
+  "session": {
+    "bpm": {
+      "min": 78,
+      "max": 112,
+      "mode": 94
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "blues",
+        "major_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.55,
+      "velocityVar": 0.08,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 9,
+        "tambourine": 10
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        120
+      ],
+      "main": [
+        96,
+        108
+      ],
+      "ghost": [
+        56,
+        66
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.36,
+      "tresilloBias": 0.05
+    },
+    "snare": {
+      "offGridMs": [
+        2,
+        9
+      ],
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.08,
+      "velocities": {
+        "main": [
+          0.7,
+          0.85
+        ],
+        "ghost": [
+          0.3,
+          0.4
+        ]
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "rim"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "gainOffsetDb": -6
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "bIII",
+          "IV"
+        ],
+        "weight": 4
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.56,
+      "seventh": 0.38,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        76
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      81
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.46,
+      "descend": 0.32,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.64,
+    "halfStepDissonance": 0.1,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "lofi_guitar"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "1"
+      ]
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": [
+        4,
+        8
+      ],
+      "chorus": [
+        4,
+        8
+      ],
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.34
+    }
+  }
+}

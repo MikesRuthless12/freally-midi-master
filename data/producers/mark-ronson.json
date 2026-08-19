@@ -1,0 +1,376 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mark-ronson",
+  "type": "producer",
+  "name": "Mark Ronson",
+  "aliases": [
+    "mark ronson",
+    "markronson",
+    "ronson",
+    "mark daniel ronson"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2006-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "retro-soul"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "funk",
+    "house",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Mark Ronson",
+    "Wikipedia — Mark Ronson (https://en.wikipedia.org/wiki/Mark_Ronson)",
+    "Wikipedia — Diplo (https://en.wikipedia.org/wiki/Diplo)",
+    "Wikipedia — Jeff Bhasker (https://en.wikipedia.org/wiki/Jeff_Bhasker)"
+  ],
+  "notes": "Live-band retro-soul/funk producer who also runs a four-on-the-floor side project. The documented core of his method is a tracking decision: \"live rhythm section tracked as an ensemble with period-appropriate technique — dry, tight, hard-hitting backbeat, hi-hat 16ths with accented offbeats, tambourine and handclaps doubling the snare.\" So the snare is `hard` transient under a `short` tail, `hihat.base` is 16th at a high fill density with the widest velocity spread in this batch (accented offbeats are a velocity, not a placement), the perc lanes are `tambourine`, `clave` and `conga` at `downbeat`, and the humanize block is an ensemble one at `quantizeStrength` 0.68. He overlaps his best-known artist by design and the difference authored is what his own entry adds rather than a manufactured one: the Silk City house side, which is why `fourOnFloorInChorus` is true and the kick reaches a density of 5, and the covers-album reinterpretation habit, which is the higher `switchUpProb`. The bass is a co-lead and not an 808: \"no 808 in the soul mode — fingered or slapped electric bass playing a complete syncopated line as a co-lead. The dance project instead uses a filtered pumping house sub\", which is `independent_riff` at `followRootsProb` 0.28 with a full passing-tone set. Harmony is the entry's: \"major-mode funk keys with dominant-7th/9th vamps and blues-scale melodic borrowing … one- or two-chord vamps with extended dominants rather than progressions\", so `maxChords` is 2, `harmonicRhythm` is vamp-dominant and `seventh` plus `ninth` carry three-quarters of the weight. \"Live horn sections as the primary countermelody\" is `answer_lick` at the top weight, and the arrangement is vamp form with stop-time breaks instead of bridges. ⚠ `confidence` is medium against a high-medium rating because every drum probability, the humanize numbers, the melody register and `bpm.mode` 98 (the midpoint of the first-named 70—125 soul/funk band) are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 126,
+      "mode": 98
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_blues",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        4,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.68,
+      "velocityVar": 0.25,
+      "timingJitterMs": {
+        "kick": 10,
+        "snare": 9,
+        "closedHat": 12,
+        "openHat": 12,
+        "tambourine": 13,
+        "conga": 13
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.3,
+      "tresilloBias": 0.06,
+      "offbeat8thShare": 0.28,
+      "fourOnFloorInChorus": true
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "transient": "hard",
+      "reverb": "short",
+      "stack": [
+        "snare",
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        4,
+        10
+      ],
+      "ghost": {
+        "prob": 0.4,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.12,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.4,
+          0.96
+        ],
+        "ghost": [
+          0.14,
+          0.42
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.38,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "clave",
+        "conga",
+        "cowbell"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.24,
+      "seventh": 0.5,
+      "ninth": 0.26
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        81
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      32
+    ]
+  },
+  "melody": {
+    "register": [
+      58,
+      82
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "structure": "call_response",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.32,
+      "arch": 0.18
+    },
+    "chordToneBias": 0.7,
+    "colorTones": [
+      3,
+      5,
+      7
+    ],
+    "octaveJumpProb": [
+      0.06,
+      0.16
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4,
+        2
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "horn_section"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.6,
+      0.85
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.28,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "M2",
+      "m3",
+      "M3",
+      "P4",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.56,
+    "cellShapes": [
+      [
+        "1",
+        "b3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "b7",
+        "1"
+      ],
+      [
+        "1",
+        "4",
+        "5",
+        "b7"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 4,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.55,
+        "beats": 2
+      },
+      "switchUpProb": 0.18
+    }
+  }
+}

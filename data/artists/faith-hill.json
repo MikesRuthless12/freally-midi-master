@@ -1,0 +1,241 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "faith-hill",
+  "type": "artist",
+  "name": "Faith Hill",
+  "aliases": [
+    "faith hill",
+    "faithhill",
+    "faith perry hill"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1993-2005",
+  "genres": [
+    "country-pop",
+    "country",
+    "adult contemporary"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Faith Hill",
+    "songdata.io (https://songdata.io/search?query=Faith+Hill)",
+    "Wikipedia — Byron Gallimore (https://en.wikipedia.org/wiki/Byron_Gallimore)",
+    "Mix — Dann Huff profile (https://www.mixonline.com/recording/dann-huff-372993)"
+  ],
+  "notes": "The crossover pole of 90s country-pop — an adult-contemporary vocal record with a country band underneath, moving toward outright pop. Keys are the entry's most distinctive claim and are authored as stated: \"noticeably more flat and sharp keys than her male peers because the keys follow her vocal range rather than guitar shapes,\" so F♯/G/D/A♭/B carry the weight instead of the genre's open-guitar set. Drums encode the stated hybrid — \"loop-plus-live hybrid earlier than most of the genre — programmed shaker/tambourine 16ths over a live kit, kick on 1 and 'and-of-3,' chorus adds claps or a second snare layer\" — so the perc lanes run dense 16ths, the snare is layered, and the kick takes a 3& secondary anchor. Harmony adds the pop turnaround the entry names: ii–V–I plus a modal-borrowed ♭VI on bridges. The melody is described as \"the widest-range in this section — verses in a low, breathy register, choruses a full octave up with sustained belted notes,\" which is the two-octave register span and the raised octave-jump probability. ⚠ Confidence is medium (research: high-medium); the per-track tempo readings are [LOW-CONF] and the entry itself notes the uptempo 147–187 figures are doubled readings of a ~74–94 spine. ⚠ The INFERRED parameters are the perc density, the clap offset and the countermelody ratio — the entry gives \"programmed 16ths\" and \"claps or a second snare layer\" without numbers.",
+  "session": {
+    "bpm": {
+      "min": 77,
+      "max": 137,
+      "mode": 102
+    },
+    "keys": {
+      "values": [
+        "F#",
+        "G",
+        "D",
+        "Ab",
+        "B"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "mixolydian"
+      ],
+      "weights": [
+        7,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.92,
+      "velocityVar": 0.11
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3,
+      "offbeat8thShare": 0.48
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        3
+      ],
+      "ghost": {
+        "prob": 0.13,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.3,
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine",
+        "snap"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -4,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V",
+          "vi"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "bVI",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.68,
+      "seventh": 0.26,
+      "ninth": 0.06
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      86
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "contour": {
+      "riff": 0.12,
+      "descend": 0.28,
+      "arch": 0.6
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": [
+      0.1,
+      0.2
+    ],
+    "timbreHint": "piano_and_string_pad"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.74,
+    "register": [
+      28,
+      46
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.26
+  }
+}

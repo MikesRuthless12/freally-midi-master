@@ -1,0 +1,366 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "walter-afanasieff",
+  "type": "producer",
+  "name": "Walter Afanasieff",
+  "aliases": [
+    "walter afanasieff",
+    "baby love afanasieff",
+    "power ballad producer"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1990-2001",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "producer",
+    "adult contemporary"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "pop-2000s",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Walter Afanasieff",
+    "Wikipedia — Walter Afanasieff (https://en.wikipedia.org/wiki/Walter_Afanasieff)",
+    "songdata — Boyz II Men (https://songdata.io/search?query=Boyz+II+Men)",
+    "Songwriter Universe — Walter Afanasieff (https://www.songwriteruniverse.com/hero.htm)"
+  ],
+  "notes": "The lane's power-ballad architect — a keyboard and synth-programming producer for the diva end of 90s R&B-pop, 1990–2001. The band is \"**55–75 half-time** (backbeat on 3) with occasional 95–110 mid-tempos\", so the felt band is the base with the mode at 64, the sourced tempo of the D♭-major record. Three drum deltas from a claim that is unusual for a producer entry — he does his own programming and it is deliberately inaudible: \"soft-attack kick on 1, gated or brushed snare on beat 3 of the doubled grid, **no hat lane**, long reverb decay; drums are a support layer beneath keys and strings\". So the kick is one or two hits at 0.04 syncopation, the hat lane is an 8th base at 0.01 fill density with the open hat off, and the percussion is a triangle/shaker pair at −13 dB — the quietest bed in this whole section. The reverb decay has no schema field and is recorded here rather than encoded. The identifying parameter is that \"**keyboards and synthesizers are the whole arrangement** — sweeping orchestral pads, piano as the lead instrument, diatonic major harmony with ii–V–I motion and a semitone or whole-tone key lift into the final chorus\": so the families are functional major turnarounds, `maxChords` is 6, and the counter is `sustain_pad` at weight 5 — the pads *are* the arrangement. \"Melodies written wide for belted delivery, with the climax an octave-plus above the verse floor\" is a thirty-five-semitone melody register with a 0.62 arch weight and a 0.12 octave-jump probability, the widest melodic writing among the producers here. The modulation itself is unencodable and is recorded rather than authored. ⚠ Confidence is medium: the research rates the method medium-high (self-performed keys, synths and drum programming are sourced) but the tempo band only medium. ⚠ Every velocity and density number is INFERRED. ⚠ `session.keys` is part-sourced: the entry names `Db`, and the remaining values `Bb`, `C`, `F`, `Ab`, together with all 5 weights, are INFERRED rather than read from the entry.",
+  "session": {
+    "bpm": {
+      "min": 55,
+      "max": 75,
+      "mode": 64
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Db",
+        "Bb",
+        "C",
+        "F",
+        "Ab"
+      ],
+      "weights": [
+        4,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.62,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 11,
+        "triangle": 11,
+        "shaker": 11
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.04,
+      "tresilloBias": 0,
+      "andOf4EveryOtherBar": 0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.02,
+        "pos": [
+          "3e"
+        ],
+        "vel": [
+          0.08,
+          0.14
+        ]
+      },
+      "offGridMs": [
+        3,
+        9
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.01,
+      "velocities": {
+        "main": [
+          0.1,
+          0.18
+        ],
+        "ghost": [
+          0.04,
+          0.1
+        ]
+      },
+      "openHat": {
+        "prob": 0,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0
+      }
+    },
+    "percs": {
+      "lanes": [
+        "triangle",
+        "shaker"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "any",
+      "gainOffsetDb": -13
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "iii",
+          "vi",
+          "ii"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 6,
+    "extensions": {
+      "triad": 0.28,
+      "seventh": 0.5,
+      "ninth": 0.22
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        44,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      90
+    ],
+    "densityPerBar": [
+      2,
+      8
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.06,
+      "descend": 0.32,
+      "arch": 0.62
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": 0.12,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "independent_riff",
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.06,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 6
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.75,
+        "beats": 4
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

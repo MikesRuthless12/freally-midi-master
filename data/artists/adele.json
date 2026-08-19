@@ -1,0 +1,374 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "adele",
+  "type": "artist",
+  "name": "Adele",
+  "aliases": [
+    "adele",
+    "adele laurie blue adkins",
+    "adele adkins",
+    "adelle"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2010-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "soul",
+    "torch pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "rnb-2000s",
+    "neo-soul",
+    "pop-2000s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Adele",
+    "Wikipedia — Adele (https://en.wikipedia.org/wiki/Adele)",
+    "Wikipedia — Rolling in the Deep (https://en.wikipedia.org/wiki/Rolling_in_the_Deep)",
+    "Wikipedia — Paul Epworth (https://en.wikipedia.org/wiki/Paul_Epworth)",
+    "Wikipedia — Greg Kurstin (https://en.wikipedia.org/wiki/Greg_Kurstin)"
+  ],
+  "notes": "Soul-rooted torch pop with live-room drums, and one of the fully documented entries in this section — key, tempo, range, voicing family, chord progressions and production method are all sourced. The backbeat is straight but the *instrument* is not a kit: \"martial beats — a four-square kick with hand-claps and foot-stomps on the backbeat, played rather than programmed, in a live room; the kit is often absent from verse one entirely and enters as the structural event.\" So the kick anchors all four beats, the snare stack is `clap` alone with a wide human offset and a large room tail, `hihat.continuous` is false at `fillDensity` 0.05 with the roll vocabulary off, and the perc lanes are `tom` and `tambourine` at `downbeat`. The humanize block is a played one. Harmony is transcribed as degrees from the entry's own roman numerals — \"VI—VII—v … V\" and \"i—VII—VImaj7—VII\" — with the maj7 in `extensions` and a `borrowed` V because the source names both v and V. The documented open-fifth bottom (\"the harmonic bottom is frequently open fifths rather than full chords: C5—G5—B♭5—G5—B♭5, i.e. i5—v5—VII5\") is why `triad` sits at 0.84 and the voicing is open and wide: a fifth is what is left when the third is gone. Melody register is the documented B♭3—D5 contralto span, \"a compact 10th and pushed at the top\"; \"wide-interval, chest-driven and rhythmically front-loaded\" is the leap share and the arch contour. The counter is the \"massed backing-vocal chant\". ⚠ The INFERRED parameters are every drum probability, the humanize numbers and the perc gain. `bpm.mode` 105 is the entry's own stated flagship tempo, not an inference.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 110,
+      "mode": 105
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        6,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.74,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 8,
+        "clap": 12,
+        "snare": 10,
+        "tom": 10,
+        "tambourine": 11
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        127
+      ],
+      "main": [
+        76,
+        96
+      ],
+      "ghost": [
+        34,
+        48
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.1,
+      "tresilloBias": 0.02,
+      "offbeat8thShare": 0.06
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "reverb": "large",
+      "transient": "hard",
+      "layerClapOffsetMs": [
+        6,
+        16
+      ],
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.05,
+      "velocities": {
+        "main": [
+          0.4,
+          0.66
+        ],
+        "ghost": [
+          0.14,
+          0.3
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tom",
+        "tambourine",
+        "tomLow"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -2
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "VI",
+          "VII",
+          "v"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.84,
+      "seventh": 0.13,
+      "ninth": 0.03
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        80
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ],
+    "borrowed": {
+      "V": 0.35
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      74
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.56,
+      "third": 0.3,
+      "leap": 0.14
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.3,
+      "arch": 0.5
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": [
+      0.12,
+      0.24
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        4,
+        3
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": [
+      0.45,
+      0.7
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.93,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M2",
+      "P4"
+    ],
+    "anticipationProb": 0.2,
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5",
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.07
+    }
+  }
+}

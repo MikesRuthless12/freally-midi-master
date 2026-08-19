@@ -1,0 +1,256 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kara-dioguardi",
+  "type": "producer",
+  "name": "Kara DioGuardi",
+  "aliases": [
+    "kara dioguardi",
+    "karadioguardi",
+    "kara diguardi"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2003-2009",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "pop-2020s",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Kara DioGuardi",
+    "Wikipedia — \"Come Clean\" (https://en.wikipedia.org/wiki/Come_Clean_(Hilary_Duff_song))",
+    "Wikipedia — \"Pieces of Me\" (https://en.wikipedia.org/wiki/Pieces_of_Me_(Ashlee_Simpson_song))"
+  ],
+  "notes": "An American topline writer-producer of the teen/young-adult pop era: 96–130 straight, backbeat on 2&4. Like the other writers on this bench she does not program, and the research says what she writes *to* and *against*: \"a guitar-and-programming bed… the hook is placed so **the title lands on beat 1 with the snare**, and verse phrases start on the '&' of 4 (anticipatory entry)\". Both halves are authored — the downbeat carries a loud accent tier and the kick anchors 1 so the title has a landing, and the \"&\"-of-4 entry is a kick secondary anchor on \"4&\" with a high bassline `anticipationProb`, which is the only way a note generator can say \"phrases start early\". The third delta is the bed itself: an 8th-weighted guitar hat with a tambourine, and a wide fill schedule because a writer's demo does not roll. Harmony is \"two-chord vamps or I–V–vi–IV; her toplines resolve to the tonic on the title word, and the pre-chorus typically sits on IV with an added 2nd to delay it\" — hence the IV family and a high sus substitution. Her signature is the **conversational verse → repeated-cell chorus**: \"4–6 note cells restated with one note changed\", which is `motifPitchCount` 4–6 with `endVariation` on, and \"the title as the highest and longest note\" is the arch contour. Her toplines \"sit above E3 with the chorus apex around B4–D5\", so the register is 52–74 exactly. ⚠ `confidence` is medium because the research says so and marks the method claims **[LOW-CONF]** — the melodic-habit description is inferred from the records. ⚠ Every drum probability here is **INFERRED**.",
+  "session": {
+    "bpm": {
+      "min": 96,
+      "max": 130,
+      "mode": 112
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        114,
+        127
+      ],
+      "main": [
+        78,
+        94
+      ],
+      "ghost": [
+        26,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.2
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.11,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          4,
+          2
+        ]
+      },
+      "fillDensity": 0.36,
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.05
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "snap"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "IV",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.58,
+      "seventh": 0.3,
+      "ninth": 0.12
+    },
+    "susSubstitutionProb": 0.4
+  },
+  "melody": {
+    "register": [
+      52,
+      74
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "motifPitchCount": [
+      4,
+      6
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.24,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "endVariation": true
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.52
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 8
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

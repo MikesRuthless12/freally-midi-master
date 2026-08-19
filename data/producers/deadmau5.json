@@ -1,0 +1,367 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "deadmau5",
+  "type": "producer",
+  "name": "Deadmau5",
+  "aliases": [
+    "deadmau5",
+    "dead mau5",
+    "joel zimmerman",
+    "testpilot"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "2006-present",
+  "genres": [
+    "dance-pop",
+    "progressive-house",
+    "electro-house",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "techno",
+    "house",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Deadmau5",
+    "Wikipedia — Deadmau5 (https://en.wikipedia.org/wiki/Deadmau5)",
+    "Progressive house (https://en.wikipedia.org/wiki/Progressive_house)",
+    "Electro house (https://en.wikipedia.org/wiki/Electro_house)"
+  ],
+  "notes": "Long-form progressive and electro house, deliberately outside the pop-drop economy. His tempo is one of the few in this section documented as a number rather than a band — \"most of his songs are also at a tempo of 128 bpm\" — so the range is narrow and the mode is 128. ⚠ INFERRED: 128 is the only tempo the entry gives, so the ±2 either side of it is playing room the generator needs, not a documented span. The entry then states what he does *not* do, and that is the most useful parameter in it: intensity is \"built purely by adding and subtracting layers across 8-, 16- and 32-bar phrases; almost no snare-roll or riser vocabulary\". So the roll frequency drops to 0.02, the snare-roll ladder is off, there are no riser or impact lanes, and the arrangement runs 32-bar sections with \"very long intros\" and \"a genuine climax rather than a drop\". The melodic identity is \"arpeggiated, slowly-evolving synth sequences — the melody is a process, not a hook\", which is a long arc over 8- and 16-bar phrases with an arpeggiated countermelody at a 0.9 density; the tracker lineage he names (Impulse Tracker before FL Studio) is why the sequencing reads as pattern rather than phrase. Harmony has \"slow harmonic motion; a single progression may run for minutes with the melody evolving over it\", so `maxChords` is 3 and the harmonic rhythm is `vamp`-weighted. The bass is \"a sidechained saw or square, often a rolling 16th arpeggio that doubles as the harmonic content\" — the lowest root probability of the progressive-house block. ⚠ The INFERRED parameters are the velocity tiers, the perc densities, the cell shapes and every register. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry's harmony line is \"minor-mode and modal loops with slow harmonic motion; ... a single progression may run for minutes with the melody evolving over it\", and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\") — so a `vamp`-dominant weighting rendered a **one**-chord bed the research nowhere describes. The progression now moves at `2_bars_per_chord`, with `vamp` as the minority. `1_per_bar` is deliberately **not** authored: \"slow harmonic motion\" is the entry's own phrase, and two bars a chord is the slowest rate that still moves.",
+  "session": {
+    "bpm": {
+      "min": 126,
+      "max": 130,
+      "mode": 128
+    },
+    "keys": {
+      "values": [
+        "Am",
+        "Cm",
+        "Em",
+        "Dm",
+        "Gm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "phrygian"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.99,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 0,
+        "clap": 1,
+        "closedHat": 2,
+        "openHat": 2,
+        "perc": 3
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        104,
+        118
+      ],
+      "main": [
+        80,
+        94
+      ],
+      "ghost": [
+        30,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.02,
+      "offbeat8thShare": 0.04
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": false,
+      "layerClapOffsetMs": [
+        0,
+        2
+      ],
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "2a",
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.5,
+      "openHat": {
+        "prob": 0.9,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          3,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.02
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "snareRollLadder": false,
+      "fillBeforeSection": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "III",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.36,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        86
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      91
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.24,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.03,
+    "phraseBars": {
+      "values": [
+        8,
+        16
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "timbreHint": "arp_sequence"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.9,
+    "styles": {
+      "values": [
+        "arp",
+        "sustain_pad"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.58,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "P8"
+    ],
+    "anticipationProb": 0.26,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "b7",
+        "5"
+      ],
+      [
+        "1",
+        "b3",
+        "5",
+        "b7"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "b3"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 32,
+      "verse": 32,
+      "prechorus": 16,
+      "hook": 32,
+      "bridge": 32,
+      "outro": 32
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "bridge",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.4,
+        "beats": 4
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

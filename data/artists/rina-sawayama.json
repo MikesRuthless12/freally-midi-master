@@ -1,0 +1,375 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rina-sawayama",
+  "type": "artist",
+  "name": "Rina Sawayama",
+  "aliases": [
+    "rina sawayama",
+    "rinasawayama",
+    "sawayama",
+    "rina"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2017-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "nu-metal",
+    "rnb"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "rnb-2000s",
+    "pop-2000s",
+    "emo-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Rina Sawayama",
+    "Wikipedia — Rina Sawayama (https://en.wikipedia.org/wiki/Rina_Sawayama)"
+  ],
+  "notes": "2000s-R&B-and-nu-metal pastiche pop, and the entry says the collision itself is the drum event: \"programmed 2000s R&B kit (tight kick, snappy snare, 16th hats with a swung ghost) colliding with down-tuned guitar-driven double-kick passages; the genre switch is itself the drum event.\" Both halves are authored into one block: the swung ghost is `swing.amount` 0.56 on a 16th grid with a dense four-position ghost map, and the double-kick is the widest `kick.densityPerBar` in this section at 2—8 with a high `offbeat8thShare`. The `crash` and `tomLow` perc lanes are the metal half. The 808 is authored because the entry names it — \"808 sub in the R&B sections; distorted guitar-doubled bass in the metal sections\" — as `counter_riff` so the guitar-doubled bass keeps generating. Harmony is \"4-bar loops alternating maj7/9 R&B voicings with power-chord riffs\" plus \"chromatic and diminished passing harmony borrowed from nu-metal\", so `seventh` and `ninth` together carry more than half the weight and `susOrDimProb` is the highest in this batch. The melody block encodes \"close-stacked in thirds and fifths across whole sections (a wall of Rinas), with a rap-adjacent syllabic verse and a sustained chorus\" as a wide `densityPerBar`, a third-weighted interval spread and a high-density `octave_echo` counter; \"countermelody is a guitar riff\" is the `answer_lick` weight. ⚠ `confidence` is medium and the research says \"tempo/key bands inferred\": every drum probability, `swing.amount`, the humanize numbers and `bpm.mode` 115 (the midpoint of the stated 90—140 band) are INFERRED. ⚠ The entry's [LOW-CONF] mark on the stacked-harmony vocal claim is repeated here.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 140,
+      "mode": 115
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "phrygian",
+        "major"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.91,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "crash": 7
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        8
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.32,
+      "tresilloBias": 0.08,
+      "offbeat8thShare": 0.4
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "transient": "hard",
+      "reverb": "short",
+      "stack": [
+        "snare"
+      ],
+      "ghost": {
+        "prob": 0.46,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.44,
+      "velocities": {
+        "main": [
+          0.56,
+          0.9
+        ],
+        "ghost": [
+          0.2,
+          0.44
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            2,
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.12
+      },
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "tomLow",
+        "ride"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "staccato",
+      "slideProb": 0.1,
+      "register": [
+        24,
+        40
+      ],
+      "distortion": "medium"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "vii",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.36,
+      "seventh": 0.4,
+      "ninth": 0.24
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        79
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ],
+    "susOrDimProb": 0.34
+  },
+  "melody": {
+    "register": [
+      57,
+      83
+    ],
+    "densityPerBar": [
+      4,
+      12
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.62,
+      "third": 0.3,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.3,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.72,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": [
+      0.08,
+      0.18
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4,
+        2
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "distorted_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.6,
+      0.85
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.88,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      47
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "m3",
+      "m7"
+    ],
+    "anticipationProb": 0.3,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "1",
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.26
+    }
+  }
+}

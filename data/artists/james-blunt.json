@@ -1,0 +1,253 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "james-blunt",
+  "type": "artist",
+  "name": "James Blunt",
+  "aliases": [
+    "james blunt",
+    "jamesblunt"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2004-2007",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "acoustic pop"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "country-pop",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — James Blunt",
+    "bpmdatabase — James Blunt (https://www.bpmdatabase.com/music/search/?artist=James+Blunt&title=)"
+  ],
+  "notes": "UK acoustic confessional pop: 78–97 straight with the backbeat on 2&4 and the signature single at 82, which is where `bpm.mode` sits — the one published figure in the entry. The drum block is defined by what is missing: \"minimal live kit with brushes or a soft loop\", \"kick 1 and 3, snare/rim on 2&4, 8th shaker\", \"whole sections with no drums at all\", and \"a single tambourine layer arriving at the final chorus\". Those are the three deltas — the softest velocity tier in this section, an 8th hat at a 0.18 fill density, and a shaker/rim/tambourine perc block — plus a `dropOutBeats` of 0.95 for the sections with no kit. Harmony is I–V–vi–IV with a suspended-IV pre-chorus and the same loop in all sections, so the sus substitution is authored and one family dominates. The melody rule is the entry's most useful: the vocal is \"delivered in a strained high tenor with the apex note in the first bar of the chorus; note density low and the phrasing very even\" — a high register, a 2–5 density and a `straightEighthsProb` of 0.6 for the evenness. ⚠ `confidence` is medium because the research says so, and the entry marks the harmonic claims **[LOW-CONF]**: the key claims are convention-based, not sourced per song, so `keys` is left inherited. ⚠ The **INFERRED** parameters are all drum probabilities and the counter block. ⛔ **The bass is `mirror_kick` rather than `reese_sustain`, and that is an engine limit rather than a reading of the record.** `reese_sustain` is the only rhythm `bass.rs` reads that holds a note, and it emits one note per chord — TASK-162, still open — so this model measured **365 distinct basslines in 1,000 seeds** on it against `bass.rs`'s floor of 500. `mirror_kick` with a high root lock is the roster-wide substitution for a sustained sub (`dmx`, `coolio`, `krs-one`, `mobb-deep` all record the same one), and over a kick that plays 1 and 3 with a `3&` it reads as held at this tempo. The research is *\"played bass on roots, long notes, mixed low; often absent from verse 1\"*, and `M2` joins `P5` on the *\"suspended-IV pre-chorus\"* line. ⚠ **INFERRED:** `followRootsProb` 0.92 and `anticipationProb` 0.16 are lane-conventional for a played ballad bass; the entry marks its harmony and drum detail convention-derived already.",
+  "session": {
+    "bpm": {
+      "min": 78,
+      "max": 97,
+      "mode": 82
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        7,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.18
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        80,
+        96
+      ],
+      "main": [
+        54,
+        70
+      ],
+      "ghost": [
+        20,
+        32
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.1
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.12,
+          0.24
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.18,
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.02
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.54,
+      "seventh": 0.34,
+      "ninth": 0.12
+    },
+    "susSubstitutionProb": 0.34
+  },
+  "melody": {
+    "register": [
+      64,
+      86
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.82,
+      "third": 0.14,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.42,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "straightEighthsProb": 0.6,
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.34,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.16
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.95,
+        "beats": 8
+      },
+      "switchUpProb": 0.04
+    }
+  }
+}

@@ -1,0 +1,395 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "camila-cabello",
+  "type": "artist",
+  "name": "Camila Cabello",
+  "aliases": [
+    "camila cabello",
+    "karla camila cabello estrabao",
+    "camilacabello",
+    "camila"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2016-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "latin pop",
+    "trap pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "reggaeton",
+    "rnb-2000s",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Camila Cabello",
+    "Wikipedia — Camila Cabello (https://en.wikipedia.org/wiki/Camila_Cabello)",
+    "Wikipedia — Havana (https://en.wikipedia.org/wiki/Havana_(Camila_Cabello_song))"
+  ],
+  "notes": "Latin-inflected pop with trap-lite low end. The backbeat class is straight, but the entry is explicit that the accent grammar is not: \"backbeat on 2&4 straight but the accent grammar is a habanera/tresillo (3+3+2) rather than a plain backbeat\", so `kick.tresilloBias` is 0.66 — the highest in this section — with `secondaryAnchor` on 2a, and `hihat.base` carries the literal `tresillo` value alongside 16ths. \"The pattern deliberately omits beat 1 of some bars\" is `kick.beatSkipProb` 0.34, and \"congas/timbales colour rather than drive\" is a conga/timbale/snap perc list at a low gain. \"Trap-derived hat rolls\" keeps the roll vocabulary alive at a moderate frequency. The harmony is fully documented and is transcribed as degrees: the flagship \"is G minor alternating i—VI—V7 (Gm—E♭—D7) with i—VI(maj7)—V7\", so the families are [\"i\",\"VI\",\"V\"] with the sevenths in `extensions` and a raised `borrowed` V because a major V in a minor key is exactly what the source names. The 808 is authored because the entry names it — \"808 sub plus programmed piano-bass doubling; the bass plays the tresillo rather than the kick\" — as `counter_riff`, with `lockTo808` left low precisely because the bass does *not* follow the kick, and the bassline runs `independent_riff` on tresillo-shaped cells. Melody register is the documented G3—D5, \"a 12th written low with a nasal, forward placement\", and \"short syncopated cells in a narrow range, back-phrased against the tresillo\" is the small `motifPitchCount` and the `riff_loop`. The counter is the 2-bar montuno piano riff the entry names as the hook instrument. ⚠ `confidence` is medium against a high-medium rating because the research says \"BPM is lane-derived\"; every drum probability, the humanize numbers, the perc gain and `session.keys` beyond its first value are INFERRED — the entry names only \"the flagship is G minor\", so A minor, C minor and D minor are inferred neighbouring minor tonics and appear nowhere in the research. `bpm.mode` 105 is the midpoint of the stated 100—110 flagship band.",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 110,
+      "mode": 105
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Gm",
+        "Am",
+        "Cm",
+        "Dm"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "phrygian"
+      ],
+      "weights": [
+        6,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.15,
+      "timingJitterMs": {
+        "conga": 7,
+        "timbale": 7,
+        "snap": 4,
+        "kick": 3
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.5,
+      "tresilloBias": 0.66,
+      "offbeat8thShare": 0.18,
+      "beatSkipProb": 0.34
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap",
+        "snap"
+      ],
+      "layerClapOffsetMs": [
+        3,
+        8
+      ],
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "tresillo",
+          "16th"
+        ],
+        "weights": [
+          3,
+          3
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.36,
+      "velocities": {
+        "main": [
+          0.56,
+          0.84
+        ],
+        "ghost": [
+          0.24,
+          0.46
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.22
+      },
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "timbale",
+        "snap",
+        "bongo"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -7
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "staccato",
+      "slideProb": 0.1,
+      "register": [
+        26,
+        41
+      ],
+      "distortion": "none"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.42,
+      "seventh": 0.44,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        78
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ],
+    "borrowed": {
+      "V": 0.5
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      74
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      4
+    ],
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.58,
+      "descend": 0.3,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": [
+      0.02,
+      0.08
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "montuno_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.5,
+      0.72
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.5,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "m7",
+      "m3",
+      "P4"
+    ],
+    "anticipationProb": 0.6,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "1"
+      ],
+      [
+        "1",
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "b7",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.4,
+        "beats": 2
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

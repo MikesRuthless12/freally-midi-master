@@ -1,0 +1,293 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "janelle-monae",
+  "type": "artist",
+  "name": "Janelle Monáe",
+  "aliases": [
+    "janelle monae",
+    "wondaland",
+    "concept album funk"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2007-present",
+  "genres": [
+    "soul",
+    "neo-soul",
+    "funk",
+    "pop"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "funk",
+    "pop-2020s",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Janelle Monáe",
+    "Wikipedia — Janelle Monáe (https://en.wikipedia.org/wiki/Janelle_Mon%C3%A1e)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)",
+    "Wikipedia — Raphael Saadiq (https://en.wikipedia.org/wiki/Raphael_Saadiq)"
+  ],
+  "notes": "The lane's concept-album maximalist, and the entry gives it \"the widest band here, because the up-tempo funk material sits genuinely fast, while the ballads drop to 62–78\" — so the tempo runs 62–132 with the mode up at 104. Drums are the stated James-Brown-lineage funk kit: \"live funk kit played tight and fast — kick on 1 and the 'and' of 2, snare hard on 2&4, continuous 16th hats with offbeat pedal opening, handclaps and cowbell; James-Brown-lineage stop-time hits used as section markers\". That is `secondaryAnchor` 2&, a kick density of 3–6, a continuous 16th hat at fill density 0.72, `openHat.prob` 0.48 on all four offbeats, cowbell and snap lanes, and `fillBeforeSection` for the stop-time. Harmony is the entry's two-mode description — \"minor-mode funk vamps (dorian, 2-bar) for the up-tempos against lush major-key writing with maj7/maj9 and real modulation for the ballads\" — held in one spread rather than split into modes, so the triad, seventh and ninth weights are all substantial and the harmonic rhythm ranges from vamp to one-per-bar. Melody is \"wide-range (chest to full soprano), high note-density, with spoken/shouted interjections and choral group-vocal chants as the hook\", hence the three-octave register, density 5–11, and a call-and-response structure. Bass is \"slapped or picked 16ths, syncopated against the kick and mixed forward\". ⚠ The INFERRED parameters are all drum probabilities and velocities, the melody figures, and the harmonic weights; the research marks the tempo bands as inference and [LOW-CONF]. ⚠ The orchestral-overture and suite habits are encoded only as long intros and outros — a single model cannot change key or metre mid-track.",
+  "session": {
+    "bpm": {
+      "min": 62,
+      "max": 132,
+      "mode": 104
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "major",
+        "minor_pentatonic",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 4,
+        "closedHat": 5,
+        "cowbell": 7,
+        "snap": 6
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.54,
+      "tresilloBias": 0.1
+    },
+    "snare": {
+      "offGridMs": [
+        0,
+        3
+      ],
+      "ghost": {
+        "prob": 0.44,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.48
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.72,
+      "velocities": {
+        "main": [
+          0.6,
+          0.94
+        ],
+        "ghost": [
+          0.2,
+          0.46
+        ]
+      },
+      "openHat": {
+        "prob": 0.48,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "cowbell",
+        "snap",
+        "tambourine",
+        "conga"
+      ],
+      "densityPerBar": [
+        2,
+        6
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.22,
+      "seventh": 0.48,
+      "ninth": 0.3
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        82
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        3,
+        4,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      52,
+      88
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.64,
+      "third": 0.24,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.3,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.56,
+    "octaveJumpProb": 0.24,
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3,
+        2
+      ]
+    },
+    "timbreHint": "brass_section"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.36,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      49
+    ],
+    "glideProb": 0.12,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "P4",
+      "P8"
+    ],
+    "anticipationProb": 0.55
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        16
+      ],
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 2
+      },
+      "switchUpProb": 0.4
+    }
+  }
+}

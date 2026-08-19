@@ -1,0 +1,341 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "az-yet",
+  "type": "artist",
+  "name": "Az Yet",
+  "aliases": [
+    "az yet",
+    "azyet",
+    "laface vocal group"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1996-1997",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "adult contemporary"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "pop-2000s",
+    "neo-soul"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Az Yet",
+    "bpmdatabase — Az Yet (https://www.bpmdatabase.com/music/search/?artist=Az+Yet)",
+    "Wikipedia — Babyface (https://en.wikipedia.org/wiki/Babyface_(musician))"
+  ],
+  "notes": "LaFace vocal group in the Babyface ballad school, 1996–1997. The research gives \"64–82 half-time (backbeat on 3)\" and two sourced tempos, so the felt band is the base with `halfTime` true and a `halftime_3` snare. Three drum deltas come from the board description — \"programmed kick on 1, snare/rim on 3, brushed hats, and a fingersnap layer; drums low in the mix behind guitar and keys\": one or two kicks a bar with the genre's syncopation switched almost off, a rimshot layer on the backbeat, an 8th hat lane at 0.06 fill density, and a snap/shaker perc bed at −10 dB. Harmony is the identifying half: \"soft-rock/AC harmony — diatonic major with ii–V–I and secondary dominants\", which is why the families are functional turnarounds, the triad share sits above the parent's and the voicing is open across thirty semitones. \"Acoustic guitar plus electric-piano bed, saxophone or guitar countermelody. Five-part harmony, wide spread\" gives the guitar timbre hint and a counter at +12 with `answer_lick` leading. The bass is \"fretless-style synth or electric bass on roots and passing tones; no sub\", so there is no `bass808` block and the passing-tone set is the widest in this batch's ballad group. ⚠ Confidence is **low**: the research rates the entry medium-low and says \"tempos and board identity sourced; harmony is genre-level\", and it marks the final-chorus key lift `[LOW-CONF]` — a device with no schema field, recorded here rather than encoded. ⚠ Every velocity, density and register number is INFERRED. ⚠ `session.keys` is INFERRED: the entry's Keys line gives \"major-mode adult-contemporary keys\" and enumerates no tonic, so the values here and their weights are this author's reading of that line.",
+  "session": {
+    "bpm": {
+      "min": 64,
+      "max": 82,
+      "mode": 72
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "C",
+        "F",
+        "Bb",
+        "Eb",
+        "Ab"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 7,
+        "snare": 8,
+        "snap": 9,
+        "shaker": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.06,
+      "tresilloBias": 0.01,
+      "andOf4EveryOtherBar": 0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.05,
+        "pos": [
+          "3e"
+        ],
+        "vel": [
+          0.1,
+          0.18
+        ]
+      },
+      "offGridMs": [
+        2,
+        6
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.06,
+      "velocities": {
+        "main": [
+          0.16,
+          0.26
+        ],
+        "ghost": [
+          0.06,
+          0.14
+        ]
+      },
+      "openHat": {
+        "prob": 0.02,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.01
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -10
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "vi",
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.5,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      80
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.82,
+      "third": 0.14,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.1,
+      "descend": 0.42,
+      "arch": 0.48
+    },
+    "chordToneBias": 0.88,
+    "octaveJumpProb": 0.03,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "acoustic_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.12,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2",
+      "P8"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

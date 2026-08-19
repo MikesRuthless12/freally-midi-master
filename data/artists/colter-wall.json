@@ -1,0 +1,326 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "colter-wall",
+  "type": "artist",
+  "name": "Colter Wall",
+  "aliases": [
+    "colter wall",
+    "western swing and waltzes"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-shuffle"
+  ],
+  "era": "2017-2025",
+  "genres": [
+    "country",
+    "country-shuffle",
+    "western",
+    "americana"
+  ],
+  "relatedGenres": [
+    "country-shuffle",
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-shuffle — Colter Wall",
+    "Wikipedia — Colter Wall (https://en.wikipedia.org/wiki/Colter_Wall)",
+    "Wikipedia — Western swing (https://en.wikipedia.org/wiki/Western_swing)"
+  ],
+  "notes": "The western-and-waltz revival: a deep baritone singing cowboy and prairie repertoire over a sparse acoustic band. The documented instrumentation on the debut is \"acoustic guitar, drums, piano, and pedal steel\" — a four-colour band with no electric guitar — and the research asks for \"a sparse kit with brushes, kick on 1 and 3, the triplet lope on a closed hat or on the snare with brushes, and long stretches with no kit at all\". That is the softest drum block in this batch: velocity tiers 88–108 over 62–80 with ghosts at 22–36, a kick pinned to 2 on the two-beat anchors with syncopation at 0.04, hat fill at 0.16, the open hat almost gone at 0.04, the inherited ride lane down to 0–3 hits at −12 dB alongside a rim (brush/cross-stick) lane, and fills at 8/16 bars. The waltz lane the entry calls \"the entry's most useful contribution to the section\" — 3/4 with a bass note on 1, chords on 2 and 3, no backbeat — is NOT authored, because the grid vocabulary this schema parses is a four-beat bar and a fake 3/4 would be an invented parameter rather than a documented one; what the waltz does contribute here is the long note values, low kick density and the I–V–I cycle in the families. Harmony is the entry's list: I–IV–V with V7, modal ♭VII on the cowboy-ballad material, twelve-bar frames on the blues cuts (he describes his own music as \"a blend of blues, folk and Americana\"), and I–V–I waltz cycles. The vocal is \"an exceptionally low baritone with a hard, dry timbre and almost no vibrato — the register is the identity\", so melody sits at 43–64 with a near-stepwise interval spread; narrative long verse forms with \"three or four verses\" and often no chorus at all give the long_arc structure and the verse-only arrangement weighting. ⚠ ALL tempo and harmonic numbers in this model are INFERRED, exactly as the research states: \"no per-track tempo or key readings were reachable; bands inferred from the archetype grammar and the documented repertoire\". bpm.mode 92 is this author's reading of a slow-leaning 55–160 catalogue and is [LOW-CONF]. ⚠ Also INFERRED: swing.amount 0.70 (the section's tempo/ratio relationship says wide at slow tempos, and its percentage conversions are marked [LOW-CONF] by their own author), all velocity tiers, ghost probability and the kit densities.",
+  "session": {
+    "bpm": {
+      "min": 55,
+      "max": 160,
+      "mode": 92
+    },
+    "keys": {
+      "values": [
+        "G",
+        "D",
+        "A",
+        "E"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.7
+    },
+    "humanize": {
+      "quantizeStrength": 0.66,
+      "velocityVar": 0.24
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        88,
+        108
+      ],
+      "main": [
+        62,
+        80
+      ],
+      "ghost": [
+        22,
+        36
+      ]
+    },
+    "kick": {
+      "densityPerBar": 2,
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.04,
+      "offbeat8thShare": 0
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "vel": [
+          0.12,
+          0.26
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.16,
+      "velocities": {
+        "main": [
+          0.36,
+          0.56
+        ],
+        "ghost": [
+          0.14,
+          0.28
+        ]
+      },
+      "openHat": {
+        "prob": 0.04,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "ride"
+      ],
+      "densityPerBar": [
+        0,
+        3
+      ],
+      "gainOffsetDb": -12
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V",
+          "IV",
+          "I"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 6,
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.28,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      43,
+      64
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.22,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.45,
+      "arch": 0.35
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": 0.02,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "structure": "long_arc",
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.25,
+      0.5
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "register": [
+      26,
+      45
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2"
+    ],
+    "anticipationProb": 0.05
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "bridge",
+          "verse",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": 2,
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.06
+    }
+  }
+}

@@ -1,0 +1,349 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "noah-kahan",
+  "type": "artist",
+  "name": "Noah Kahan",
+  "aliases": [
+    "noah kahan",
+    "noahkahan",
+    "kahan",
+    "noah"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2017-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "folk-pop",
+    "americana"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "country-pop",
+    "country-train",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Noah Kahan",
+    "Wikipedia — Noah Kahan (https://en.wikipedia.org/wiki/Noah_Kahan)"
+  ],
+  "notes": "New-England folk-pop with a shouted communal chorus, straight 2&4 with stomp-clap substitution. The drum block is the entry's: \"kick and stomp on the beat, handclaps and tambourine on 2&4, brushed snare; drums enter at the second verse and the last chorus is the only full-kit section.\" So the kick sits on all four beats at near-zero syncopation — the stomp is on the beat, not around it — the snare is a soft brushed transient under a clap layer, the perc lanes are `tambourine` and `stomp`-shaped `tomLow` at `downbeat`, `hihat.continuous` is false at `fillDensity` 0.08 and the roll vocabulary is off. The late entry and single full-kit section are the arrangement's deep `dropOutBeats`. No `bass808` block: \"no 808. Upright or electric bass on roots, entering with the drums\", which is a kick mirror at 0.95 with a low `anticipationProb`. Harmony is \"guitar-friendly majors with heavy suspended and add9 voicings and a borrowed minor iv\", so `susSubstitutionProb` is 0.46, `ninth` is raised and the borrowed iv is the `borrowed` map. The melody block encodes the entry's lyric-first claim — the songs are built around delivery, \"wordy and syllable-dense in verses … and open into a wide-interval gang-sung chorus\" — as a `densityPerBar` running 5—14 with an arch contour and a raised `octaveJumpProb` for the chorus. The counter is the fiddle line the entry names. ⚠ `confidence` is medium and the research says \"instrumentation and tempo bands partially inferred\": every drum probability, the humanize numbers, the harmonic weights, the melody register and `bpm.mode` 120 (the midpoint of the stated 110—130 core) are INFERRED. ⚠ The entry's [LOW-CONF] mark on the banjo/mandolin/fiddle instrumentation claim is repeated here, and it is the reason the counter style is a reading rather than a credit.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 140,
+      "mode": 120
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.76,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 8,
+        "clap": 11,
+        "snare": 9,
+        "tambourine": 11
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.06,
+      "tresilloBias": 0.02,
+      "offbeat8thShare": 0.06
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap",
+        "snare"
+      ],
+      "transient": "soft",
+      "reverb": "large",
+      "layerClapOffsetMs": [
+        6,
+        15
+      ],
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.14,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.08,
+      "velocities": {
+        "main": [
+          0.4,
+          0.7
+        ],
+        "ghost": [
+          0.14,
+          0.32
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "tomLow",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.24,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        53,
+        79
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ],
+    "susSubstitutionProb": 0.46,
+    "borrowed": {
+      "iv": 0.28
+    }
+  },
+  "melody": {
+    "register": [
+      56,
+      81
+    ],
+    "densityPerBar": [
+      5,
+      14
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.2,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.26,
+      "descend": 0.28,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": [
+      0.1,
+      0.22
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "acoustic_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.4,
+      0.65
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.95,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.16,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.95,
+        "beats": 4
+      },
+      "switchUpProb": 0.04
+    }
+  }
+}

@@ -1,0 +1,236 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "natalie-imbruglia",
+  "type": "artist",
+  "name": "Natalie Imbruglia",
+  "aliases": [
+    "natalie imbruglia",
+    "natalieimbruglia"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1997-2002",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "alt pop"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "lofi-hiphop",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Natalie Imbruglia",
+    "Wikipedia — \"Torn\" (https://en.wikipedia.org/wiki/Torn_(Ednaswap_song))"
+  ],
+  "notes": "The 1997 template for female pop-rock radio: about 92–100 straight with the backbeat on 2&4 and — the fact that decides the feel — \"a shuffled 16th strum\", which is the only warrant in this batch for moving `swing` off straight. It sits at 0.56, between the subtle modern setting and the classic MPC one. Drums are a live kit with programmed loop reinforcement, so `humanize` opens up while the grid stays close; three deltas are quoted: \"kick 1 and the '&' of 3\", \"snare 2&4 with a tight room sound\" (a modest ghost with a tight velocity band), and \"tambourine and shaker on 16ths in the chorus\", which is the perc block. Harmony is F major running I–V–vi–IV with a suspended IV on the pre-chorus and no modulation, hence the sus substitution and the flat family list. The melody is \"conversational, syncopated against the strum, chorus a stepwise rise to a held note\", which is a mid register, a moderate density and an arch contour, and the bass \"follows the acoustic guitar's harmonic rhythm\" with \"a single octave-drop before the chorus\" — `independent_riff` with the octave as its passing tone. ⚠ `confidence` is medium because the research says the tempo is inferred and marks it **[LOW-CONF]**: there is no published BPM and the band comes from the \"shuffling acoustic rocker\" description. ⚠ The **INFERRED** parameters are `swing.amount`, all drum probabilities and `bpm.mode` 96.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 100,
+      "mode": 96
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 5,
+        "closedHat": 6,
+        "shaker": 7,
+        "tambourine": 7
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.26
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.34,
+      "openHat": {
+        "prob": 0.16,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.06
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.64,
+      "seventh": 0.28,
+      "ninth": 0.08
+    },
+    "susSubstitutionProb": 0.32
+  },
+  "melody": {
+    "register": [
+      57,
+      79
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.28,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "acoustic_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.88,
+    "rhythm": "independent_riff",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P8",
+      "P5"
+    ],
+    "anticipationProb": 0.24
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    }
+  }
+}

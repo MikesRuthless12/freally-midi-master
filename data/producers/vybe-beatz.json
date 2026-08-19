@@ -122,13 +122,10 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        71,
-        110
+        66,
+        118
       ],
-      "rampJitter": 19,
-      "descendProb": 0.18,
-      "gapProb": 0.26,
-      "pitchWalk": 3
+      "rampJitter": 16
     },
     "bass808": {
       "role": "counter_riff",

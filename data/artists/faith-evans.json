@@ -1,0 +1,371 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "faith-evans",
+  "type": "artist",
+  "name": "Faith Evans",
+  "aliases": [
+    "faith evans",
+    "faith",
+    "first lady of bad boy"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1995-2005",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "hip hop soul"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "funk",
+    "house",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Faith Evans",
+    "bpmdatabase — Faith Evans (https://www.bpmdatabase.com/music/search/?artist=Faith+Evans)",
+    "Wikipedia — Soulshock and Karlin (https://en.wikipedia.org/wiki/Soulshock_and_Karlin)"
+  ],
+  "notes": "Bad Boy's first lady: a gospel-trained topline over Hitmen loops and Soulshock ballads, 1995–2005. The research gives \"60–102 straight; ballads 60–75\" and the entry's own drum line names two modes, \"a four-on-the-floor-adjacent disco-loop uptempo at 100–102 with claps on 2&4 and 16th hats\" against \"a half-time ballad\". The uptempo is the half with the sourced tempo cluster (102, 102, 100) and it is the one encoded, with the stated \"ballads 60–75\" fixing the straight complement at 76–102 exactly: `halfTime` false, backbeat on 2 and 4, `fourOnFloorInChorus` authored because the research says four-on-the-floor-adjacent in as many words, and the hats continuous at 16ths. The ballad half is recorded here rather than blurred into the same grid. Harmony is \"diatonic major I–vi–IV–V on the disco cuts, minor `i–VI–III–VII` families on the ballads\", both encoded, with the major leading because the sourced uptempos are the major-mode disco interpolations. \"Church harmony in the stacks (4–6 voices, added 9ths)\" is the ninth share above the parent's and the high chord-tone bias; \"melisma concentrated in the last chorus\" is the wide melody register and the high density ceiling. ⚠ The research marks the chord families `[LOW-CONF]`, and that mark stands: the family list is the entry's own but the weighting between them is this author's. ⚠ The other INFERRED parameters are `swing.amount` 0.54, all velocity and density numbers and the bass block. ⚠ `session.keys` is INFERRED: the entry's Keys line gives \"major-mode disco interpolations on the uptempos (\"Love Like This\" 102, \"I Love You\" 102, \"All Night Long\" 100)\" and enumerates no tonic, so the values here and their weights are this author's reading of that line.",
+  "session": {
+    "bpm": {
+      "min": 76,
+      "max": 102,
+      "mode": 100
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "C",
+        "F",
+        "Ab",
+        "Gm",
+        "Cm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 5,
+        "clap": 5,
+        "closedHat": 5
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.2,
+      "tresilloBias": 0.04,
+      "fourOnFloorInChorus": true,
+      "andOf4EveryOtherBar": 0.2
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      },
+      "offGridMs": [
+        0,
+        3
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.66,
+          0.86
+        ],
+        "ghost": [
+          0.3,
+          0.48
+        ]
+      },
+      "openHat": {
+        "prob": 0.4,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4",
+          "phrase_end"
+        ],
+        "freqPerBar": 0.18
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "conga"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -7
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.26,
+      "seventh": 0.44,
+      "ninth": 0.3
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        49,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      62,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      10
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.24,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.18,
+      "descend": 0.4,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.8,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": 0.09,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.7,
+    "rhythm": "independent_riff",
+    "register": [
+      31,
+      47
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M6",
+      "M2"
+    ],
+    "anticipationProb": 0.4,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "b7",
+        "1"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "8"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 16,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.55,
+        "beats": 2
+      },
+      "switchUpProb": 0.15
+    }
+  }
+}

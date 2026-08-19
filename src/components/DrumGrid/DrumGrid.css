@@ -21,15 +21,30 @@
   gap: var(--space-2);
 }
 
+/* ⛔⛔ **A column: the controls, then the name under them** — Mike, 2026-08-16.
+   See the header's own note in `DrumGrid.tsx` for why this is the third attempt
+   at fitting 5.5rem. `align-items: stretch` rather than centring, so the name
+   gets the whole column to ellipsise into instead of being centred inside its
+   own text width. */
 .grid__lane {
   display: flex;
-  align-items: center;
-  gap: var(--space-1);
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 1px;
   min-width: 0;
   font-size: var(--text-micro);
   color: var(--color-text-2);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+/* The controls' own line. They keep the row layout they always had. */
+.grid__lanetools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
 }
 
 /* ⛔ The ellipsis lives on the text, not on the row. `text-overflow` has no
@@ -152,8 +167,13 @@
   min-width: 0;
 }
 
+/* ⛔ **18px, not 14** — Mike, 2026-08-16: *"ensure that my Drum Generator has
+   more height"*. The header beside it is two lines now, and a 14px cell against
+   a ~26px label read as a thin ribbon floating in its own row. The grid sits
+   above the velocity lane in a column the stage toolbar starves, so this is a
+   real trade rather than free space — see `.grid__cellwrap`. */
 .grid__cell {
-  height: 14px;
+  height: 18px;
   border-radius: 2px;
   background: var(--color-surface-2);
 }
@@ -367,14 +387,17 @@
   color: var(--color-primary);
 }
 
-/* ⛔⛔ **The lock and the fill collapse until the row is reached for, and that
-   is what gives the lane its NAME back.** `--grid-label` is 5.5rem and was
-   holding a lock, a mute, a solo, the name, the slot picker and (on the hat
-   rows) a fill — 70–82px of fixed controls, leaving roughly 6–18px for the
-   name, so every row read as `S…` or `K…`. The name is also the audition button
-   (TASK-043 — *"clicking a lane's header plays that lane's sound on its own"*),
-   so the largest and most-clicked thing in the header was the one squeezed out.
-   Mike chose this fix over widening the column, 2026-08-11.
+/* ⛔ **The lock and the fill collapse until the row is reached for**, which
+   keeps the icon line inside `--grid-label`'s 5.5rem: a chevron, a lock, a mute,
+   a solo, the slot picker and (on the hat rows) a fill come to roughly the full
+   width with nothing to spare.
+
+   ⚠ **What this originally bought is no longer what it buys.** It was the
+   2026-08-11 answer to the name being squeezed out of that same row — every row
+   read `S…` or `K…`, and Mike chose collapsing the controls over widening the
+   column. The name moved to its own line on 2026-08-16 and now has the whole
+   gutter, so this earns its place on the icons alone. Removing it would put six
+   controls back on one 5.5rem line.
 
    ⚠ **Width, not just opacity.** Fading them would leave the space reserved and
    the name would still have nowhere to go; collapsing the width is the whole
@@ -461,8 +484,14 @@
   height: 0.85rem;
 }
 
+/* ⚠ **`align-items`, not `justify-content`, since the header became a column.**
+   `.grid__lane` was a flex ROW, so `justify-content: flex-end` pushed the pitch
+   name against the right edge of the gutter, next to the track it labels. After
+   the 2026-08-16 re-layout that property acts on the block axis and dropped the
+   name to the bottom of its row, left-aligned and on the far side of the gutter
+   from the cells it names. Caught by review, not by any test. */
 .grid__lane--pitch {
-  justify-content: flex-end;
+  align-items: flex-end;
   padding-inline-end: var(--space-1);
   color: var(--color-text-3);
 }

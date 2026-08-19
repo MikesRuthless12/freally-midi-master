@@ -1,0 +1,226 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tom-elmhirst",
+  "type": "producer",
+  "name": "Tom Elmhirst",
+  "aliases": [
+    "tom elmhirst",
+    "elmhirst",
+    "back to black mix"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2003-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "pop-2000s",
+    "rnb-2000s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Tom Elmhirst",
+    "Wikipedia — Tom Elmhirst (https://en.wikipedia.org/wiki/Tom_Elmhirst)",
+    "Wikipedia — Back to Black (https://en.wikipedia.org/wiki/Back_to_Black)",
+    "Wikipedia — Amy Winehouse (https://en.wikipedia.org/wiki/Amy_Winehouse)"
+  ],
+  "notes": "The mix engineer for the retro-soul crossover era. `confidence` is **low** — his credit on the landmark record is documented, but the research marks the specific mix description as inference from the record. The entry says to \"encode as a **mix preset**\", and like the Russell Elevado model this one deliberately does not author a melody or countermelody it has no evidence for; it stays standard with session, drums, chords and bassline rather than being padded into a flagship. What is documented is a drum balance and it maps to real fields: \"a forward, dry, midrange-heavy drum balance with a **short plate or spring reverb on the snare only**, the kick tight and small rather than sub-extended, and tambourine/handclaps pushed nearly as loud as the snare. **Nothing is sample-replaced.**\" So `snare.reverb` is authored short, `snare.layered` is false (nothing replaced), the velocity tiers are the loud forward balance, the kick density stays low and unsyncopated for a tight small kick, and the percussion sits at −1 dB — nearly level with the snare, which is the entry's actual claim. The other authorable fact is the low end and it is a genuine contrast parameter for this app: \"bass rolled off below roughly 50 Hz so the low end is warm rather than deep — **the opposite of the `trap-soul` mix target**\". 50 Hz is roughly G1, so this is the only bassline in the section whose floor is raised to 31 rather than dropped to 26–28. His arrangement contribution is stated as section dynamics — \"the mix itself opens up at the chorus rather than the arrangement adding parts\" — which is why `switchUpProb` is low and the section lengths are even. ⚠ The INFERRED parameters are every drum probability and velocity band and both chord values; the entry gives a balance, not figures.",
+  "session": {
+    "bpm": {
+      "min": 62,
+      "max": 123,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "blues"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 5,
+        "tambourine": 7,
+        "snap": 7
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        106,
+        122
+      ],
+      "main": [
+        78,
+        98
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.26,
+      "tresilloBias": 0.04
+    },
+    "snare": {
+      "layered": false,
+      "reverb": 0.2,
+      "offGridMs": [
+        0,
+        4
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.12,
+      "velocities": {
+        "main": [
+          0.4,
+          0.64
+        ],
+        "ghost": [
+          0.12,
+          0.28
+        ]
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "snap",
+        "rim"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -1
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.24,
+      "seventh": 0.5,
+      "ninth": 0.26
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "bassline": {
+    "followRootsProb": 0.66,
+    "rhythm": "mirror_kick",
+    "register": [
+      31,
+      46
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M2",
+      "m7"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.12
+    }
+  }
+}

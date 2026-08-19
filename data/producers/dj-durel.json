@@ -162,12 +162,12 @@
         "even"
       ],
       "velocityRampRange": [
-        69,
-        111
+        63,
+        109
       ],
       "gapProb": 0.06,
       "descendProb": 0.22,
-      "rampJitter": 23
+      "rampJitter": 24
     },
     "bass808": {
       "role": "bassline",

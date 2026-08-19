@@ -1,0 +1,257 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "phil-thornalley",
+  "type": "producer",
+  "name": "Phil Thornalley",
+  "aliases": [
+    "phil thornalley",
+    "philthornalley",
+    "phil thornally"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1997-2002",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "country-pop",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Phil Thornalley",
+    "Wikipedia — \"Torn\" (https://en.wikipedia.org/wiki/Torn_(Ednaswap_song))"
+  ],
+  "notes": "The UK producer/writer of acoustic-led female pop-rock: about 92–100 straight with the backbeat on 2&4 and — the fact that sets the feel — \"a shuffled 16th strum\", which is `swing` 0.56 on a 16th grid. Four drum deltas are quoted: \"kick 1 and the '&' of 3\", \"tight-room snare on 2&4\", \"8th hat\", and \"shaker/tambourine on 16ths in the chorus\" — those 16ths are the shaker and tambourine lanes, not the hat, so `hihat.base` is the stated 8th and the 16th layer sits in `percs`. The construction fact that separates this model from the artist entry that shares the flagship record is stated only here: the kit was **played by a session drummer with programmed loop reinforcement contributed by the future Zero 7 pair**, so the humanize keeps a played spread on the kit and the fills stay on a tight schedule. Harmony is F major and other flat/natural majors over I–V–vi–IV \"with a suspended IV in the pre-chorus; no modulation\". The bass is \"played electric bass on roots following the acoustic guitar's harmonic rhythm; a single octave drop before the chorus\" — `independent_riff` with the octave as a passing tone. He recorded in a small Kilburn studio and mixed with an alt-rock engineer, \"which is why the pop record has a band-ish mix\", and that is the loud main tier against a modest accent. ⚠ `confidence` is medium because the research rates it high-medium and marks the tempo **[LOW-CONF]** as inferred; `bpm.mode` 96 is the centre of the stated band. ⚠ The **INFERRED** parameters are `swing.amount` and every drum probability, the hat `fillDensity` included — over an 8th base its gap-fills are ghost-velocity 16ths, which is a reading of the entry's \"shuffled 16th strum\" and not a second claim about the hat's stated subdivision.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 100,
+      "mode": 96
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 7,
+        "closedHat": 5,
+        "shaker": 8,
+        "tambourine": 8
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        100,
+        116
+      ],
+      "main": [
+        82,
+        96
+      ],
+      "ghost": [
+        28,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "2a",
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.48,
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.1
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine",
+        "rim"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.3,
+      "ninth": 0.1
+    },
+    "susSubstitutionProb": 0.36
+  },
+  "melody": {
+    "register": [
+      55,
+      78
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.7,
+      "third": 0.24,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.3,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.07,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "acoustic_guitar"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "independent_riff",
+    "register": [
+      29,
+      46
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P8",
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    }
+  }
+}

@@ -545,9 +545,10 @@
         {
           "startTick": 8419,
           "lenTicks": 3101,
-          "pitch": 24,
+          "pitch": 23,
           "vel": 99,
           "modelVel": 100,
+          "slideToPitch": 24,
           "articulation": "legato"
         },
         {

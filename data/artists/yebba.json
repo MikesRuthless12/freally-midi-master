@@ -1,0 +1,300 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "yebba",
+  "type": "artist",
+  "name": "Yebba",
+  "aliases": [
+    "yebba",
+    "abbey smith",
+    "west memphis soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2017-present",
+  "genres": [
+    "soul",
+    "neo-soul",
+    "gospel",
+    "jazz"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Yebba",
+    "Wikipedia — Yebba (https://en.wikipedia.org/wiki/Yebba)",
+    "Wikipedia — Mark Ronson (https://en.wikipedia.org/wiki/Mark_Ronson)",
+    "Wikipedia — Chris Dave (https://en.wikipedia.org/wiki/Chris_Dave)"
+  ],
+  "notes": "The lane's most virtuosic modern voice, gospel-trained and working with jazz rhythm sections. The kit is the Chris Dave school taken to its limit: \"a displaced, Chris Dave-school live kit — snare placed a 32nd off 2&4, ghost strokes filling the gaps, hats crushed or absent, plus long drumless passages and free-time intros. Programmed drums are rare.\" So this model carries the largest snare displacement in the section (14–28 ms), a 0.72 ghost probability across all eight 16th positions, a non-continuous hat at a fill density of 0.26, and the lowest `quantizeStrength` here at 0.36. Harmony is \"gospel-jazz — dense extensions (m11, maj9#11, altered dominants), reharmonisation on every repeat, chromatic inner-voice motion, and modulation mid-song. Flat keys dominate\", which is why no families are authored (reharmonisation on every repeat is the opposite of a fixed family), the triad weight is 0.02 and `susSubstitutionProb` is the highest in this batch. The melodic claim is the entry's load-bearing one: \"improvisatory melisma — very high note-density, long runs across a two-octave-plus range, riffing over the harmony rather than stating a fixed line, and a whisper-to-full-belt dynamic span within a single phrase. She rarely repeats a melodic figure identically.\" That is density 6–13, a three-octave register, `endVariation`, a high octave-jump probability and the lowest `chordToneBias` in this batch — riffing over the harmony, not landing on it. Bass is \"played electric or upright with a soloistic, chord-tone-heavy role and wide register\". ⚠ The INFERRED parameters are every drum number and all melody figures; the research marks tempo and harmonic detail as inference and [LOW-CONF]. ⚠ `session.keys` is INFERRED too: the entry's Keys line names no key at all and ends only \"Flat keys dominate.\", so the five values are this author's flat-side reading of that single constraint rather than a list the research gives.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 96,
+      "mode": 76
+    },
+    "keys": {
+      "values": [
+        "Ebm",
+        "Bbm",
+        "Ab",
+        "Db",
+        "Fm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        3
+      ]
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.36,
+      "velocityVar": 0.3,
+      "timingJitterMs": {
+        "kick": 9,
+        "snare": 22,
+        "closedHat": 13,
+        "rim": 15
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.56,
+      "tresilloBias": 0.09
+    },
+    "snare": {
+      "offGridMs": [
+        14,
+        28
+      ],
+      "ghost": {
+        "prob": 0.72,
+        "pos": [
+          "1e",
+          "1a",
+          "2e",
+          "2a",
+          "3e",
+          "3a",
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.1,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.26,
+      "velocities": {
+        "main": [
+          0.2,
+          0.44
+        ],
+        "ghost": [
+          0.06,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "3a"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "gainOffsetDb": -8
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.02,
+      "seventh": 0.36,
+      "ninth": 0.62
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        84
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "syncopated_cell",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.38,
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      52,
+      88
+    ],
+    "densityPerBar": [
+      6,
+      13
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.62,
+      "third": 0.26,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.12,
+      "descend": 0.4,
+      "arch": 0.48
+    },
+    "chordToneBias": 0.38,
+    "halfStepDissonance": 0.18,
+    "endVariation": true,
+    "octaveJumpProb": 0.26,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.26,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M3",
+      "M6",
+      "TT"
+    ],
+    "anticipationProb": 0.52
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        12
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        4,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.44
+    }
+  }
+}

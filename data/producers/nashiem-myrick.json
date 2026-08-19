@@ -60,24 +60,22 @@
     "kick": {
       "densityPerBar": [
         2,
-        4
+        3
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "2&",
-      "syncopation": 0.23,
+      "secondaryAnchor": "3&",
+      "syncopation": 0.26,
       "subLayerVelocity": [
         0.8,
         0.95
-      ],
-      "tresilloBias": 0.19,
-      "lockTo808": 0
+      ]
     },
     "snare": {
       "rimshotLayer": false,
       "ghost": {
-        "prob": 0.09,
+        "prob": 0.08,
         "pos": [
           "4e"
         ],
@@ -85,9 +83,7 @@
           0.18,
           0.3
         ]
-      },
-      "placement": "backbeat_24",
-      "offGridMs": 0
+      }
     },
     "hihat": {
       "base": "8th",
@@ -151,18 +147,18 @@
         "even"
       ],
       "velocityRampRange": [
-        52,
-        91
+        46,
+        92
       ],
-      "rampJitter": 4,
+      "rampJitter": 5,
       "gapProb": 0.55,
       "descendProb": 0.24
     }
   },
   "melody": {
     "register": [
-      60,
-      84
+      59,
+      81
     ],
     "densityPerBar": [
       1,
@@ -170,21 +166,21 @@
     ],
     "motifPitchCount": [
       2,
-      6
+      4
     ],
     "intervals": {
-      "step": 0.59,
+      "step": 0.64,
       "third": 0.24,
-      "leap": 0.14
+      "leap": 0.12
     },
     "contour": {
-      "riff": 0.66,
+      "riff": 0.56,
       "descend": 0.34,
-      "arch": 0.12
+      "arch": 0.1
     },
-    "chordToneBias": 0.74,
+    "chordToneBias": 0.66,
     "halfStepDissonance": 0.14,
-    "octaveJumpProb": 0.08,
+    "octaveJumpProb": 0.05,
     "phraseBars": {
       "values": [
         2,
@@ -192,7 +188,7 @@
       ],
       "weights": [
         4,
-        1
+        2
       ]
     },
     "timbreHint": "piano"
@@ -268,14 +264,14 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.61,
+    "followRootsProb": 0.96,
     "register": [
       22,
       40
     ],
-    "glideProb": 0.04,
+    "glideProb": 0.02,
     "passingTones": [],
-    "anticipationProb": 0.3
+    "anticipationProb": 0.08
   },
   "arrangement": {
     "sectionBars": {

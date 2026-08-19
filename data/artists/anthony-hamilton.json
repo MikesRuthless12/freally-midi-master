@@ -1,0 +1,334 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "anthony-hamilton",
+  "type": "artist",
+  "name": "Anthony Hamilton",
+  "aliases": [
+    "anthony hamilton",
+    "charlotte soul",
+    "southern soul rasp"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2003-present",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul",
+    "gospel"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Anthony Hamilton",
+    "Wikipedia — Anthony Hamilton (musician) (https://en.wikipedia.org/wiki/Anthony_Hamilton_(musician))",
+    "songdata.io — Anthony Hamilton (https://songdata.io/search?query=Anthony+Hamilton)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "The Southern-soul, gospel-blues end of the lane. The entry's stated band is \"66–100 straight, backbeat on 2&4\"; the ceiling is carried to 102 because that is the entry's own highest per-track reading, the 102 it lists for \"So In Love\", so the number is in the entry even though the band line stops at 100. The keys are the named split between flat majors (B♭, A♭, F, D♭) and minors (C, D♭, B♭, F♯) — all eight, D♭ minor included. The drum block is the entry's sentence taken literally: \"laid-back live kit, snare noticeably behind the grid, hi-hat sparse (quarters or swung 8ths rather than 16ths), tambourine on the backbeat\" — so the offGrid window is wide, the hat base is weighted heavily to 8ths with a very low fill density, and the tambourine lane mirrors the clap. Harmony is stated as \"church\": I–IV–V with gospel passing chords, secondary dominants and \"diminished-approach chords into the IV\", which is why `susOrDimProb` is raised and the triad weight is far above the lane's. Melody is \"low-tenor, gritty, heavily ornamented with blues thirds and grace notes\", with \"the hook usually a repeated short phrase rather than a long line\" — hence the low register, the riff-loop structure, the two-and-four-bar phrases and a raised half-step dissonance for the blues third. The choir-voiced background stacks are the counter at +12. Bass is \"thick and short, mostly root motion with blues fills into chord changes\", so it mirrors the kick with a small passing-tone set. ⚠ The INFERRED parameters are all drum probabilities and velocities, the melody numbers, and the second progression family — the entry states I–IV–V and a diminished approach *into the IV*, and the plagal IV–I family is this author's reading of \"church\" rather than a numeral the research wrote. ⚠ The half-time option the entry names (snare on beat 3 only) is not encoded; the Lane line's straight 2&4 spine is. ⚠ The research marks its 124–202 readings as doubled [LOW-CONF].",
+  "session": {
+    "bpm": {
+      "min": 66,
+      "max": 102,
+      "mode": 82
+    },
+    "keys": {
+      "values": [
+        "Bb",
+        "Ab",
+        "F",
+        "Db",
+        "Cm",
+        "Dbm",
+        "Bbm",
+        "F#m"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "blues",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.5,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 7,
+        "snare": 15,
+        "tambourine": 10,
+        "closedHat": 8
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.36,
+      "tresilloBias": 0.06
+    },
+    "snare": {
+      "offGridMs": [
+        9,
+        19
+      ],
+      "ghost": {
+        "prob": 0.4,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          4,
+          1
+        ]
+      },
+      "fillDensity": 0.2,
+      "velocities": {
+        "main": [
+          0.4,
+          0.66
+        ],
+        "ghost": [
+          0.12,
+          0.3
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -4,
+      "tambourineMirrorsClap": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "IV",
+          "I"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.46,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.2,
+    "susOrDimProb": 0.22
+  },
+  "melody": {
+    "register": [
+      48,
+      70
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.7,
+      "third": 0.24,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.34,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.54,
+    "halfStepDissonance": 0.16,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "wurlitzer"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "P4"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "b7",
+        "5"
+      ],
+      [
+        "1",
+        "4",
+        "5"
+      ]
+    ],
+    "anticipationProb": 0.24
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 4
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

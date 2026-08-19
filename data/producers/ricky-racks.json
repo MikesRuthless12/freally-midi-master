@@ -52,17 +52,14 @@
     "kick": {
       "densityPerBar": [
         3,
-        6
+        5
       ],
       "anchors": [
         "1"
       ],
       "secondaryAnchor": "3&",
-      "syncopation": 0.44,
-      "lockTo808": 1,
-      "tresilloBias": 0.38,
-      "offbeat8thShare": 0.47,
-      "andOf4EveryOtherBar": 0.35
+      "syncopation": 0.42,
+      "lockTo808": 1
     },
     "snare": {
       "placement": "halftime_3",
@@ -77,15 +74,7 @@
           0.22,
           0.4
         ]
-      },
-      "layerClapOffsetMs": [
-        4,
-        10
-      ],
-      "offGridMs": [
-        3,
-        8
-      ]
+      }
     },
     "hihat": {
       "base": "16th",
@@ -123,21 +112,16 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th",
-        "16t"
+        "8t"
       ],
       "grouping": [
-        "even",
-        "strong_weak_weak_weak"
+        "even"
       ],
       "velocityRampRange": [
-        80,
-        118
+        70,
+        120
       ],
-      "rampJitter": 8,
-      "descendProb": 0.2,
-      "gapProb": 0.25,
-      "pitchWalk": 3
+      "rampJitter": 11
     },
     "bass808": {
       "role": "bassline",
@@ -177,7 +161,7 @@
   },
   "countermelody": {
     "registerOffset": 12,
-    "densityRatio": 0.39,
+    "densityRatio": 0.4,
     "styles": {
       "values": [
         "answer_lick",
@@ -187,8 +171,7 @@
         3,
         2
       ]
-    },
-    "fillGapsOnly": true
+    }
   },
   "chords": {
     "progressionFamilies": [

@@ -1,0 +1,346 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "gracie-abrams",
+  "type": "artist",
+  "name": "Gracie Abrams",
+  "aliases": [
+    "gracie abrams",
+    "gracie madigan abrams",
+    "gracieabrams",
+    "abrams"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2019-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "bedroom pop",
+    "folk-pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "lofi-hiphop",
+    "pop-2000s",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Gracie Abrams",
+    "Wikipedia — Gracie Abrams (https://en.wikipedia.org/wiki/Gracie_Abrams)",
+    "Wikipedia — Aaron Dessner (https://en.wikipedia.org/wiki/Aaron_Dessner)"
+  ],
+  "notes": "Bedroom-pop confessional at whisper dynamics, straight 2&4 against a half-time parent. The drums are authored from a subtraction claim: \"minimal — brushed or padded kick, a soft clap or finger-snap on 2&4, occasional programmed 16th shaker; Dessner-produced tracks use drum-machine and drum-pad textures rather than a kit\", so the kick density falls to 1—2, the snare stack is `snap` alone under a quiet velocity tier table, `hihat.continuous` is false with `fillDensity` 0.08, and the roll vocabulary is switched off entirely. Harmony follows \"heavy use of suspended and add9 voicings\" — `susSubstitutionProb` 0.5 is the highest in this section and `ninth` is raised — with \"minor-key material leans on a modal, unresolved tonic\" as the tonic-pedal family and the `vamp` weighting. The bass is \"low synth pad or fingered electric bass on roots, entering late as the structural lift\", which is a high `followRootsProb` on a near-static line, and no `bass808` block is authored. Melody encodes \"a narrow, speech-rhythm phrase repeated with lyric variation, plus a double-tracked octave for the hook\" as `riff_loop` with a small `motifPitchCount` and an `octave_echo` counter, because \"countermelody is a second breathy vocal line rather than an instrument\". Arrangement drops the bridge from the higher-weighted structure, which the entry states plainly. ⚠ `confidence` is medium and the research says so: \"genre palette, producer roster and vocal character documented; tempo/key/dynamics bands are inferred from the lane\". ⚠ The entry carries [LOW-CONF] marks on both the drumless-until-the-final-section claim and the 9th-of-span vocal claim; both are repeated here, and the melody register and every drum probability are INFERRED for that reason. `bpm.mode` 89 is the midpoint of the stated 78—100 core. ⛔ **The bass was authored `reese_sustain` and the research does not say the bass is held.** It says *\"no 808. Low synth pad or fingered electric bass on roots, entering late as the structural lift\"* — a fingered electric bass follows the kit, which is `mirror_kick`. On `reese_sustain` this model reached **344 distinct basslines in 1,000 seeds** against `bass.rs`'s floor of 500, because that rhythm emits one note per chord (TASK-162). ⚠ **INFERRED:** `followRootsProb` 0.90, `anticipationProb` 0.18 and the register's top moving 46 → 47 are lane-conventional for a fingered bass under *\"suspended and add9 voicings\"*; the research names no rate. The register stays under `chords.voicing.register` [50, 74]. ⛔ **`cellShapes` was authored dead twice over, and it was costing this model the bassline variety floor (2026-08-17).** The list read `[[\"1\"], [\"1\", \"5\"], [\"1\", \"1\"]]`, and two of those three cells are the root and nothing else — a one-degree cell of the root says exactly what `followRootsProb` already says, and `[\"1\", \"1\"]` says it twice. `bass.rs` prefers a cell over `passingTones`, so on two seeds in three every note was the root, `followRootsProb` had nothing to escape to and the authored `P5`/`M2` were never read at all. Measured: **899 distinct basslines in 1,000 seeds**, a 0.899 share against `bass.rs`'s 0.95. ⚠ **The cells came out rather than being repaired, because the research names no bass figure to repair them into** — it says *\"no 808. Low synth pad or fingered electric bass on roots, entering late as the structural lift\"*, which is roots. With no cell the engine reads the `passingTones` this model already authored, so the fifth is still the colour the line reaches for and it now reaches for it on any note that leaves the root rather than on every other one. The rhythm, register, root lock and anticipation are untouched.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 110,
+      "mode": 89
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        4,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 6,
+        "snap": 7,
+        "clap": 7,
+        "shaker": 8
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        66,
+        82
+      ],
+      "main": [
+        48,
+        62
+      ],
+      "ghost": [
+        22,
+        32
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.12,
+      "tresilloBias": 0.04,
+      "offbeat8thShare": 0.06
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "snap"
+      ],
+      "transient": "soft",
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.12,
+          0.24
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.08,
+      "velocities": {
+        "main": [
+          0.36,
+          0.56
+        ],
+        "ghost": [
+          0.12,
+          0.26
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.04,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "snap"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -10
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.3,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        74
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "susSubstitutionProb": 0.5
+  },
+  "melody": {
+    "register": [
+      55,
+      74
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.84,
+      "third": 0.13,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.54,
+      "descend": 0.34,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": [
+      0.02,
+      0.06
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "articulation": "legato",
+    "timbreHint": "close_whisper_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.22,
+      0.4
+    ],
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.18,
+    "cellShapes": null
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        2,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.55,
+        "beats": 4
+      },
+      "switchUpProb": 0.04
+    }
+  }
+}

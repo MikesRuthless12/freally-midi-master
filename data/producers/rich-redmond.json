@@ -1,0 +1,302 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rich-redmond",
+  "type": "producer",
+  "name": "Rich Redmond",
+  "aliases": [
+    "rich redmond",
+    "richredmond",
+    "richard redmond"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2005-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-train",
+    "trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Rich Redmond",
+    "Drumeo — Rich Redmond: Country Drumming / The Money Beats (https://www.drumeo.com/beat/rich-redmond-drum-lessons/)",
+    "Drumeo — A Drummer's Guide To Country (https://www.drumeo.com/beat/a-drummers-guide-to-country/)",
+    "songdata.io — Jason Aldean (https://songdata.io/search?query=Jason+Aldean)"
+  ],
+  "notes": "The drummer behind the bro-country groove and its most public teacher, placed in PRODUCERS by the research as an instrumental-grammar entry. His framing is the parameter: \"a small set of foundational 'money beats' (straight 2&4 radio patterns) that a player must 'solidify … then add colours and character to fit the situation,' alongside the train beat and cross-stick as the other two named country grooves. In engine terms: **one canonical pattern per tempo band, then per-song ornament (ghost notes, open-hat accents, rim clicks) layered on rather than pattern substitution.**\" So this model pairs a fixed, narrow kick pattern with a rich ornament layer — ghost notes, a real open-hat probability and a rim lane — and the lowest `switchUpProb` in this section, because his stated payoff is about consistency: \"model very low pattern variance within a section and change only at section boundaries.\" The bro-country variant he is identified with is quoted: \"kick on 1 and the 'and-of-2,' heavy backbeat, 8ths in verse to 16ths in chorus, half-time chorus lifts, hard full-band drop-outs.\" The band is documented as \"notated 78–95 with the backbeat on 2&4\" — the folded reading, per the section convention. One further fact reaches the grid directly: \"his records place a programmed clap and a sampled sub-kick *under* his acoustic kit, so the live and programmed layers must be written to the same grid,\" which is the clap layer at a very tight offset. ⚠ The entry states \"Melody/chords: n/a,\" so **the melody, countermelody, chords and bassline numbers here are INFERRED** — a reading of the bro-country records he plays on rather than a researched fact. ⚠ Confidence is medium (research: medium-high) — \"the named-groove taxonomy is documented; the notation itself is in images/video rather than text, so the exact placements are read off the records [LOW-CONF].\"",
+  "session": {
+    "bpm": {
+      "min": 78,
+      "max": 95,
+      "mode": 86
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 2,
+        "clap": 1,
+        "closedHat": 3
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        118,
+        127
+      ],
+      "main": [
+        88,
+        104
+      ],
+      "ghost": [
+        30,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.35,
+      "offbeat8thShare": 0.54
+    },
+    "snare": {
+      "layered": true,
+      "layerClapOffsetMs": [
+        0,
+        1
+      ],
+      "ghost": {
+        "prob": 0.29,
+        "pos": [
+          "1a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          4,
+          4
+        ]
+      },
+      "fillDensity": 0.31,
+      "openHat": {
+        "prob": 0.47,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "snap",
+        "crash",
+        "tomLow"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -4,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.8,
+      "seventh": 0.18,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      51,
+      73
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.3,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.77,
+    "octaveJumpProb": 0.03,
+    "twoBarCellRepeat": 0.6
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.38,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      41
+    ],
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.13
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 6
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 4
+      },
+      "switchUpProb": 0.02
+    }
+  }
+}

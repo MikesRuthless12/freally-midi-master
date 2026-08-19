@@ -1,0 +1,637 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "chicago-bounce",
+  "type": "genre",
+  "name": "Chicago Bounce",
+  "aliases": [
+    "ride music",
+    "chicago ride",
+    "west side chicago",
+    "rodeo rap",
+    "crucial conflict type",
+    "chi bounce",
+    "hay type beat"
+  ],
+  "tier": "standard",
+  "extends": [
+    "_defaults"
+  ],
+  "era": "1996–2001",
+  "genres": [
+    "rap",
+    "midwest",
+    "club"
+  ],
+  "relatedGenres": [
+    "chicago-drill",
+    "boom-bap",
+    "g-funk",
+    "funk",
+    "hyphy",
+    "detroit-bounce",
+    "crunk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Crucial Conflict",
+    "style-research-extended vol.1 boom-bap — Assignment notes, gap-fill pass: `chicago-bounce` is a missing archetype and `Crucial Conflict` is parked here pending it",
+    "https://en.wikipedia.org/wiki/Crucial_Conflict",
+    "https://en.wikipedia.org/wiki/The_Final_Tic",
+    "https://en.wikipedia.org/wiki/Hay_(song)",
+    "https://www.discogs.com/release/314333-Crucial-Conflict-The-Final-Tic"
+  ],
+  "notes": "Mid-90s West Side Chicago \"ride music\": a shuffled, triplet-inflected carrier under western and rodeo imagery, written, produced and engineered in-house. ⛔ **The one parameter that separates this from `chicago-drill` is where the backbeat falls, not how fast the record is.** Both sit in the same numeric band — drill 120–145, this 132–146 — and the research is explicit that the difference is the *opposite* backbeat: drill puts the snare on beat 3 with `halfTime: true`, and this is a full-time backbeat on 2 and 4. Everything else follows from that, which is why `halfTime: false` is the first line of the session block and why the invariant test asserts the snare's position rather than the flag. ⛔ **The carrier is the second half of the archetype and it is a *grammar*, not a timbre.** `hihat.base` weights `\"8T\"` over `\"8th\"` so the stream gallops in triplets, and `continuous` is **false** so the triplet grid is never cross-filled with 16ths — a 16th carpet over this would be drill's hat lane wearing a shuffle, which is the exact thing the research says this is not. The *voice* of that carrier is a ride cymbal, and a ride is a kit choice rather than a note choice: `percs.lanes` leads with `ride` so one actually sounds, at a density that reads as a rider rather than a sprinkle. ⚠ **The 808 is deliberately not the bass.** Research: *\"replayed syncopated funk bass with rests, no sustained 808\"*. `bass808.role` is `counter_riff` — not `bassline`, which makes `bass::generate` return an empty lane and would delete the played bass entirely — with `sustain: \"staccato\"`, no distortion and `slideProb` at 0.02, so the 808 is a tuned drum rather than a sub that holds. The played line is `independent_riff` with rests: `mirror_kick` would land it on the kick's own onsets and make one part played twice. ⚠ **Harmony is P-Funk, not soul-jazz**, which is what keeps it out of `boom-bap`'s lane: static `i` or `i–VII` over two bars, dominant sevenths and ninths rather than triads alone, and B-minor and F♯-minor as the poles the research names. `chordDurationBeats` [2, 8] with four `harmonicRhythm` values is what carries chord variety against the distinctness floor — the lane sits on a vamp, so what varies is how long it sits, not what it sits on. ⚠ **INFERRED, and this is why confidence is `medium` rather than `high`.** Sourced: the tempo band and its centre (with the bpmdatabase half-time readings confirming the spine), the 2-and-4 backbeat, the shuffled ride carrier, the funk-guitar harmony source, the replayed bass, the group-chant hook and the in-house production credit. Inferred: every velocity tier, every register, `swing.amount` at 0.62 (the research says shuffled and gives no number — 0.62 is a real gallop short of a full triplet at 0.667), `humanize.quantizeStrength` at 0.82 (played, looser than drill's 0.9 and nowhere near `jerk`), the whole `intervals`/`contour` split, and the mode names. ⚠ **`snare.offGridMs` is 0, and that is a decision rather than a default.** The played feel this lane has is a *human* one and it is carried by `humanize` — `quantizeStrength` 0.82 with real jitter on every lane. `offGridMs` is a **systematic** displacement, the same number on every snare of every bar, and that is `jerk`'s signature rather than this one's; nothing in the research says a Chicago ride record pushes its backbeat late. A 3ms push was authored here on the first pass and the invariant test caught it landing at tick 967 instead of 960. ⚠ **Two things the research asks for that this model cannot say.** (1) The unison group chant of 8 or 16 bars is a *vocal* arrangement and there is no vocal lane; what carries it here is `melody.structure: \"riff_loop\"` with a low `emptyBarBias`, a hook-shaped riff rather than a chant. (2) Double-time syllable density in the verses is likewise vocal, and nothing in the beat should imitate it.",
+  "session": {
+    "bpm": {
+      "min": 132,
+      "max": 146,
+      "mode": 139
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Bm",
+        "F#m",
+        "Em",
+        "Am",
+        "Dm"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        4,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.62
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 3,
+        "clap": 4,
+        "closedHat": 5,
+        "openHat": 5,
+        "ride": 6,
+        "perc": 5,
+        "bass808": 3
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.55,
+      "tresilloBias": 0.22,
+      "offbeat8thShare": 0.38,
+      "lockTo808": 0.2
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "transient": "medium",
+      "layerClapOffsetMs": [
+        4,
+        9
+      ],
+      "ghost": {
+        "prob": 0.35,
+        "pos": [
+          "1&",
+          "2a",
+          "3&",
+          "4a"
+        ],
+        "vel": [
+          0.35,
+          0.58
+        ]
+      },
+      "offSnare": {
+        "prob": 0.22,
+        "pos": [
+          "3&",
+          "4&"
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8T",
+          "8th"
+        ],
+        "weights": [
+          4,
+          2
+        ]
+      },
+      "continuous": false,
+      "fillDensity": 0.72,
+      "velocities": {
+        "main": [
+          0.8,
+          1
+        ],
+        "ghost": [
+          0.35,
+          0.6
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "8t",
+            "16"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.35,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.55,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "pitchBendProb": 0
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "tambourine",
+        "cowbell",
+        "conga",
+        "crash"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false,
+      "lane": "snare"
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "8t",
+        "16th",
+        "16t"
+      ],
+      "velocityRampRange": [
+        58,
+        118
+      ],
+      "grouping": [
+        "strong_weak_weak",
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "buildAndStopProb": 0.3,
+      "rampJitter": 12,
+      "descendProb": 0.24,
+      "gapProb": 0.34,
+      "pitchWalk": 3
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "staccato",
+      "monoCutSelf": true,
+      "slideProb": 0.02,
+      "slideIntervals": {
+        "values": [
+          "P8"
+        ],
+        "weights": [
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        28,
+        40
+      ],
+      "distortion": "none"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "III",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.58,
+      "seventh": 0.34,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        55,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ],
+    "susSubstitutionProb": 0.08
+  },
+  "melody": {
+    "register": [
+      62,
+      86
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.54,
+      "third": 0.3,
+      "leap": 0.16
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.25,
+      "arch": 0.15
+    },
+    "chordToneBias": 0.68,
+    "halfStepDissonance": 0.04,
+    "endVariation": true,
+    "octaveJumpProb": 0.12,
+    "straightEighthsProb": 0.2,
+    "emptyBarBias": 0.08,
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.74,
+    "rhythm": "independent_riff",
+    "register": [
+      31,
+      50
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "M2",
+      "m7"
+    ],
+    "anticipationProb": 0.3
+  },
+  "kit": {
+    "preview": "boom-bap-default"
+  },
+  "modes": [
+    {
+      "name": "ride",
+      "weight": 4,
+      "session": {
+        "swing": {
+          "grid": "8th",
+          "amount": 0.64
+        }
+      },
+      "drums": {
+        "hihat": {
+          "base": "8T",
+          "fillDensity": 0.8,
+          "openHat": {
+            "prob": 0.62,
+            "perBar": [
+              1,
+              2
+            ]
+          }
+        },
+        "percs": {
+          "densityPerBar": [
+            4,
+            7
+          ],
+          "gainOffsetDb": -2
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          3,
+          6
+        ],
+        "contour": {
+          "riff": 0.7,
+          "descend": 0.2,
+          "arch": 0.1
+        }
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "vamp",
+            "2_bars_per_chord"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "name": "hook",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 136,
+          "max": 146,
+          "mode": 141
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            4,
+            6
+          ],
+          "syncopation": 0.62
+        },
+        "snare": {
+          "ghost": {
+            "prob": 0.24
+          },
+          "offSnare": {
+            "prob": 0.3
+          }
+        }
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.44,
+          "seventh": 0.44,
+          "ninth": 0.12
+        },
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar",
+            "syncopated_cell",
+            "2_bars_per_chord"
+          ],
+          "weights": [
+            3,
+            3,
+            2
+          ]
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          5,
+          9
+        ],
+        "octaveJumpProb": 0.2,
+        "emptyBarBias": 0.04
+      },
+      "countermelody": {
+        "densityRatio": 0.62,
+        "styles": {
+          "values": [
+            "answer_lick",
+            "octave_echo"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "name": "westside",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 132,
+          "max": 140,
+          "mode": 135
+        },
+        "scales": {
+          "values": [
+            "natural_minor",
+            "minor_pentatonic"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        },
+        "humanize": {
+          "quantizeStrength": 0.78,
+          "velocityVar": 0.22
+        }
+      },
+      "drums": {
+        "hihat": {
+          "base": {
+            "values": [
+              "8T",
+              "8th"
+            ],
+            "weights": [
+              3,
+              3
+            ]
+          },
+          "fillDensity": 0.6
+        },
+        "percs": {
+          "lanes": [
+            "ride",
+            "conga",
+            "tambourine"
+          ],
+          "densityPerBar": [
+            2,
+            4
+          ]
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "i"
+            ],
+            "weight": 5
+          },
+          {
+            "roman": [
+              "i",
+              "VII"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "i",
+              "VI",
+              "VII"
+            ],
+            "weight": 2
+          }
+        ],
+        "extensions": {
+          "triad": 0.7,
+          "seventh": 0.26,
+          "ninth": 0.04
+        }
+      },
+      "melody": {
+        "register": [
+          60,
+          82
+        ],
+        "densityPerBar": [
+          2,
+          5
+        ],
+        "contour": {
+          "riff": 0.5,
+          "descend": 0.36,
+          "arch": 0.14
+        },
+        "chordToneBias": 0.6
+      },
+      "bassline": {
+        "followRootsProb": 0.8,
+        "anticipationProb": 0.22
+      }
+    }
+  ]
+}

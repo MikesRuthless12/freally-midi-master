@@ -171,28 +171,28 @@
     ],
     "motifPitchCount": [
       2,
-      5
+      4
     ],
     "intervals": {
       "step": 0.62,
-      "third": 0.29,
-      "leap": 0.09
+      "third": 0.24,
+      "leap": 0.14
     },
     "contour": {
       "riff": 0.66,
-      "descend": 0.31,
-      "arch": 0.03
+      "descend": 0.26,
+      "arch": 0.08
     },
-    "chordToneBias": 0.76,
-    "octaveJumpProb": 0.07,
+    "chordToneBias": 0.7,
+    "octaveJumpProb": 0.05,
     "phraseBars": {
       "values": [
         2,
         4
       ],
       "weights": [
-        5,
-        2
+        4,
+        1
       ]
     },
     "timbreHint": "piano_stab"

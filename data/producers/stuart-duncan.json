@@ -1,0 +1,313 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "stuart-duncan",
+  "type": "producer",
+  "name": "Stuart Duncan",
+  "aliases": [
+    "stuart duncan",
+    "duncan"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-train"
+  ],
+  "era": "1990-present",
+  "genres": [
+    "country-train",
+    "bluegrass",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-train — Stuart Duncan",
+    "Wikipedia — Stuart Duncan (https://en.wikipedia.org/wiki/Stuart_Duncan)"
+  ],
+  "notes": "The Nashville session fiddle bench's first call for this archetype. The section's own scope note says why this entry looks the way it does: \"in this archetype the producer role is largely occupied by instrumental specialists — the players whose parts are the train beat when there is no drum kit, and who also produce records. Each entry below is written as a parameter set for the part they contribute, because that is what the engine needs.\" His part is specified as two modes: \"the fiddle's role in the train beat is a continuous sawed 8th- or 16th-note stream on the up-tempo material (this is the old-time function, distinct from the bluegrass fiddle's break-taking function), so model two fiddle modes: rhythm fiddle = unbroken subdivision with drone double-stops; lead fiddle = 8- or 16-bar break with scalar runs and sliding thirds.\" Both are authored inside one model rather than as `modes`, because the parent genre supplies three moods that authoring modes would delete: rhythm fiddle is the continuous 16th hat stream and the 7–13 melody density, lead fiddle is the 8–16 bar bridge and the countermelody's answer_lick share. Keys are the stated fiddle-native A, D, G, E \"and their relative minors, where open-string drones are available\", so B minor and E minor carry a small weight beside them. His documented classical training and jazz-violin work mean \"chromatic and altered vocabulary is in-palette where the arrangement asks for it\", which is `extensions.ninth` 0.06 and a ii–V–I family — modest, because the entry says in-palette rather than characteristic. The \"double-stop pads under vocals as a steel-guitar substitute\" is the sustain_pad share at `densityRatio` 0.6, and the \"answer-phrase fills in 2-bar units\" is `phraseBars` weighted to 2. The drum block is the drummerless wing's: `kick` [1,2] on anchors 1 and 3, brush-range velocities, `snare.offGridMs` −5 for the anticipated placement, `percs` at −10 dB. ⚠ The entry states \"the two-mode parameterisation formalised from convention [LOW-CONF]\", and that flag applies to the hat stream and the melody density above. ⚠ Also INFERRED: the tempo band — the entry says only \"BPM whole archetype range\", so 80–210 with `mode` 150 is this author's reading of the grammar block's own stated bands (80–95 cut time through 180–210 breakdown) rather than a number from his entry. ⚠ Also INFERRED: velocity tiers, `percs` contents and every bassline number.",
+  "session": {
+    "bpm": {
+      "min": 80,
+      "max": 210,
+      "mode": 150
+    },
+    "keys": {
+      "values": [
+        "A",
+        "D",
+        "G",
+        "E",
+        "Bm",
+        "Em"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        1,
+        1
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "dorian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.12,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 3,
+        "closedHat": 3,
+        "perc": 4
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        88,
+        104
+      ],
+      "main": [
+        64,
+        78
+      ],
+      "ghost": [
+        38,
+        54
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ]
+    },
+    "snare": {
+      "offGridMs": -5
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.058,
+      "velocities": {
+        "main": [
+          0.55,
+          0.75
+        ],
+        "ghost": [
+          0.28,
+          0.44
+        ]
+      },
+      "openHat": {
+        "prob": 0.03,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.03
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -10
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.28,
+      "ninth": 0.06
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      88
+    ],
+    "densityPerBar": [
+      7,
+      13
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.17,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.32,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.7,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "rhythm_fiddle"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "register": [
+      28,
+      43
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M6"
+    ],
+    "anticipationProb": 0.24
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "chorus": 8,
+      "bridge": [
+        8,
+        16
+      ],
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.1,
+        "beats": 1
+      },
+      "switchUpProb": 0.04
+    }
+  }
+}

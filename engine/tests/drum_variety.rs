@@ -189,14 +189,45 @@ fn report_how_many_distinct_beats_each_artist_writes() {
     // frequency. ⚠ `percs` is NOT one of them: widening it from [1,2] to [2,5]
     // moved this number by exactly zero, because `shape` drops anything under
     // velocity 50 and the perc lanes generate below it.
+    //
+    // ⛔⛔ **AND THE HAT COLUMN IS PART OF THE VERDICT, NOT JUST THE PRINTOUT.**
+    // That last sentence is the whole reason: `shape` keeps only what is over
+    // velocity 50, so for a kit the research describes as *quiet* it can see
+    // nothing but the kick and the backbeat. Measured on this roster,
+    // 2026-08-17 — the R&B ballad producers whose entries say "drums low in the
+    // mix behind guitar and keys" (`az-yet`), "drums subordinate to the vocal by
+    // design" (`troy-taylor`), "brushed hats" (`joe`) and "hats absent or a
+    // single 16th pair" (`h-town`) author `hihat.velocities.main` between 0.10
+    // and 0.30, which is **13 to 38** after `fractional_velocity` multiplies by
+    // 127. Their whole hat lane is therefore invisible here, and they measured
+    // 15–19 beats while writing **119, 91, 44 and 106** distinct hat parts.
+    //
+    // ▶ [`hat_shape`] exists for exactly this reason and its own doc says so —
+    // "a measure nothing can move is not a measure", written after four models
+    // had their `base` changed on the strength of a number that could not
+    // respond to `fillDensity`. It was computed, printed, and then not used. A
+    // model that reaches the floor on *either* reading has not collapsed toward
+    // one beat: a producer pressing Generate gets a different hat every time,
+    // which is the thing Mike reported missing on 2026-08-05.
+    //
+    // ⚠ **This does not excuse a frozen kit, and it did not have to.** A model
+    // whose hat is a single-value `continuous` stream at the 16th has no gaps
+    // left for `fillDensity` to fill, so the lane writes one identical stream at
+    // every seed and *both* readings stay low. `bela-fleck` and `bryan-sutton`
+    // were in exactly that state at 7 and 9, and this gate still failed them
+    // until their data was fixed: both entries name two note values — "a
+    // continuous **8th- or 16th-note** arpeggio", "continuous 8ths/16ths" — and
+    // authoring `hihat.base` as the weighted choice the research states took
+    // them to 60 and 62.
     const FLOOR: usize = 20;
     let thin: Vec<&(String, usize, usize, usize)> = rows
         .iter()
-        .filter(|(_, beats, _, _)| *beats < FLOOR)
+        .filter(|(_, beats, _, hats)| *beats < FLOOR && *hats < FLOOR)
         .collect();
     assert!(
         thin.is_empty(),
-        "these models barely vary their beat over {SEEDS} seeds (floor {FLOOR}): {thin:?}"
+        "these models barely vary their beat over {SEEDS} seeds on either reading \
+         (floor {FLOOR}), as (model, beat, kick, hat): {thin:?}"
     );
 }
 
@@ -405,17 +436,57 @@ fn two_different_artists_do_not_write_the_same_beat_or_fill() {
             .collect()
     };
 
+    // ⛔⛔ **THE OWNER WITHDREW THE DISTINCTNESS REQUIREMENT ON 2026-08-15, AND
+    // THIS IS WHAT REPLACED IT.** Mike, verbatim: *"instead of pushing the
+    // variations apart like you've done for all the other artists/producers i
+    // have on my list, revert them to their actual research's dataset that I got
+    // to ensure that they do sound like the other artists more, and i don't care
+    // that they overlap, just ensure that it doesn't use copyrighted material
+    // when it does generate them."*
+    //
+    // ▶ **So the product's goal changed, not the measurement.** Two artists who
+    // work in the same lane, on the same kit, at the same tempo, *should* land on
+    // the same bar sometimes — that is what makes each of them sound like
+    // themselves rather than like a deliberately-detuned version of a neighbour.
+    // The chance-derived ceiling above is still computed and still printed,
+    // because a pair drifting together is worth seeing; it no longer fails a
+    // build.
+    //
+    // ⛔ **What still fails: a pair that is identical at EVERY seed.** Two models
+    // may sound alike; they may not *be* the same model. A pair that never once
+    // diverges across {SEEDS} seeds is a file copied under a second name — a name
+    // in a list rather than a style — and that is a dataset defect no product
+    // decision makes acceptable.
+    //
+    // ⛔ **What protects the output from somebody else's record is the novelty
+    // guard, not this test** — and it was widened in the same change, because
+    // that argument only holds if it is true: `novelty::screens` had excluded
+    // every bassline on the strength of `mirror_kick`, leaving 207 shipped
+    // models' independent figures unscreened. It now screens any bass that places
+    // its own onsets, on the pattern path *and* in Song Mode.
     let beat_over = over(&beat_hits, beat_ceiling);
     let fill_over = over(&fill_hits, fill_ceiling);
+    println!(
+        "\n  above the chance floor (reported, not failed): {} beat pair(s), {} fill pair(s)",
+        beat_over.len(),
+        fill_over.len()
+    );
+
+    let identical = |hits: &BTreeMap<String, usize>| -> Vec<(String, usize)> {
+        hits.iter()
+            .filter(|(_, count)| **count as u64 == SEEDS)
+            .map(|(pair, count)| (pair.clone(), *count))
+            .collect()
+    };
+    let beat_same = identical(&beat_hits);
+    let fill_same = identical(&fill_hits);
     assert!(
-        beat_over.is_empty() && fill_over.is_empty(),
-        "these models are too close to tell apart — they land on an identical result \
-         more often than coincidence explains at this roster size (beat ≥{beat_ceiling} \
-         of {SEEDS}, fill ≥{fill_ceiling} of {SEEDS}).\n  beat: {beat_over:?}\n  \
-         fill: {fill_over:?}\n\
-         Each pair is a model and its parent, or two siblings under one parent; the cure \
-         is authored difference in the child, not a looser gate — and the ceiling is \
-         derived from the run's own data, so raising it by hand is not available."
+        beat_same.is_empty() && fill_same.is_empty(),
+        "these models are not two models — they produce an identical result at every \
+         one of {SEEDS} seeds, which means one is a copy of the other under a second \
+         name.\n  beat: {beat_same:?}\n  fill: {fill_same:?}\n\
+         Overlap is allowed by the owner's decision of 2026-08-15; being the same file \
+         is not. Give the copy the research its own entry is based on, or delete it."
     );
 }
 

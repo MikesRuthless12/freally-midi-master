@@ -1,0 +1,295 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "little-texas",
+  "type": "artist",
+  "name": "Little Texas",
+  "aliases": [
+    "little texas",
+    "littletexas"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-train"
+  ],
+  "era": "1991-1997",
+  "genres": [
+    "country-train",
+    "country",
+    "country rock"
+  ],
+  "relatedGenres": [
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-train — Little Texas",
+    "https://www.bpmdatabase.com/music/search/?artist=Little+Texas"
+  ],
+  "notes": "Young-band country-rock on a two-beat foundation, and the most guitar-and-harmony-forward of the 90s band acts. `bpm` spans the entry's 52–141 with `mode` at 140, inside the stated 123–141 uptempo group (\"Kick a Little\" 141, \"Life Goes On\" 140); keys are the stated E/A/D/G. Drums follow the entry sentence for sentence: \"the 140-BPM cuts run a straight 8th snare stream with a rock backbeat and quarter kick under choruses, hat closed on quarters, crash on chorus downbeats\" — `swing.grid` 8th at 0.50, `kick` [2,4] on anchors 1 and 3, `hihat.base` \"4th\", and a crash lane in `percs`. The rock reading is what separates this kit from the honky-tonk names beside it, so the accents sit at 110–127 with the fill density and open hat both higher than the Chesnutt/Tippin end of the section. Harmony is the stated I–IV–V, I–♭VII–IV and I–V–vi–IV with the ballads' vi–IV–I–V rotation. The identity device is stated plainly — \"three- and four-part band harmony on every chorus in close thirds\" — which is the countermelody weighted to octave_echo at `densityRatio` 0.6, and the arrangement keeps the entry's pre-chorus, which most of this section does not have. The bass is the other stated separator: \"more sustain than the honky-tonk names, which is what makes the band read as rock-adjacent\", hence a wider register ceiling and a raised `anticipationProb` rather than the mirror_kick lock its neighbours use. ⚠ INFERRED: velocity tiers, `percs` contents, humanize, and every melody, countermelody and bassline number. \"High tenor lead, mid-density, chorus a fifth above the verse on sustained notes\" is the source for the 57–81 register and the arch-weighted contour, and both are this author's reading. ⚠ Tempo readings [LOW-CONF] as a class; the entry states \"palette and harmony generalised from the lane [LOW-CONF]\".",
+  "session": {
+    "bpm": {
+      "min": 52,
+      "max": 141,
+      "mode": 140
+    },
+    "keys": {
+      "values": [
+        "E",
+        "A",
+        "D",
+        "G"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 5,
+        "closedHat": 5,
+        "perc": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        127
+      ],
+      "main": [
+        80,
+        94
+      ],
+      "ghost": [
+        34,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ]
+    },
+    "hihat": {
+      "base": "4th",
+      "fillDensity": 0.18,
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.16
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "ride",
+        "tomHigh",
+        "tomLow",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.2,
+      "ninth": 0.02
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      81
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.34,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.8,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "register": [
+      28,
+      44
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.16
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.22,
+        "beats": 2
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

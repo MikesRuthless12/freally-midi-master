@@ -166,13 +166,12 @@
         "even"
       ],
       "velocityRampRange": [
-        52,
-        104
+        58,
+        105
       ],
-      "rampJitter": 10,
-      "descendProb": 0.57,
-      "gapProb": 0.09,
-      "pitchWalk": 2
+      "rampJitter": 8,
+      "descendProb": 0.55,
+      "gapProb": 0.1
     }
   },
   "chords": {
@@ -286,16 +285,16 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.95,
+    "followRootsProb": 0.92,
     "register": [
       26,
       43
     ],
-    "glideProb": 0.11,
+    "glideProb": 0.06,
     "passingTones": [
       "P5"
     ],
-    "anticipationProb": 0.13
+    "anticipationProb": 0.12
   },
   "arrangement": {
     "sectionBars": {

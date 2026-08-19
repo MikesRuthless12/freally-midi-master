@@ -1,0 +1,403 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dylan-brady",
+  "type": "producer",
+  "name": "Dylan Brady",
+  "aliases": [
+    "dylan brady",
+    "dylanbrady",
+    "100 gecs",
+    "gecs"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2019-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "hyperpop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "edm-trap",
+    "dance-pop",
+    "phonk"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Dylan Brady",
+    "Wikipedia — 100 gecs (https://en.wikipedia.org/wiki/100_Gecs)",
+    "Wikipedia — A. G. Cook (https://en.wikipedia.org/wiki/A._G._Cook)"
+  ],
+  "notes": "Hyperpop producer working by file-exchange, colliding incompatible tempo grammars inside one track, and one of the fully documented entries here — DAW, remote workflow, the switch-driven method and the genre inventory are all sourced. The research is explicit that the switch, not any one groove, is the parameter: \"BPM 90—200 within a single song — ska/pop-punk at 150—180, nightcore at 160—175, dubstep half-time at 140, happy hardcore at 170—180; the backbeat placement changes with each switch, which is the point.\" A single `placement` field cannot change with a section, so the switch is carried where it can be: `switchUpProb` is 0.5 — the highest number in this whole section — `fills.smallEveryBars` is 2, the section lengths are 4—8 bars, and `kick.densityPerBar` runs 2—8 to span a ska upstroke and a blast beat in one range. The straight class is encoded because it is the one the pop-punk and hardcore modes share. \"Clipping and over-limiting are intentional\" is the highest velocity tier table authored here plus a hard-transient snare, and \"whichever kit the current section demands … cut together hard with no transitions\" is why `fillBeforeSection` is false: a jump cut has no fill. The 808 is authored because the entry names it: \"distorted 808s, dubstep LFO growl bass and pop-punk electric bass all appear; the bass is the loudest and most distorted element\", so `bass808` is `counter_riff` at `saturated` distortion — the only saturated setting in this section — while the pop-punk electric bass stays as an `independent_riff` bassline. Harmony is \"minor keys with power-chord and pop-punk diatonic harmony, interrupted by chromatic or atonal interjections\", so the families are plain, `triad` is high and `halfStepDissonance` and `susOrDimProb` carry the interjections. \"Pitch-shifted, heavily Auto-Tuned vocals as the constant across switches\" is the melody timbre and the high `octaveJumpProb`. ⚠ The INFERRED parameters are every drum probability, the velocity tiers, the humanize pair and `bpm.mode` 165 (the research gives four named sub-tempos inside 90—200 and no single centre; 165 is the overlap of the nightcore and happy-hardcore bands, which are the two it names most often). ⚠ The entry's own [LOW-CONF] mark on the harmonic claim is repeated here. ⚠ **The countermelody reached 896/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** The 1-bar value came out of `melody.phraseBars`, which is now [2,4] weighted [3,4]. `generators::melody` writes a phrase's rhythm **once** and reuses it for every repeat, so a 1-bar phrase gives the whole clip one bar of rhythmic entropy — and the counter, whose onsets are read off the lead's, inherits that ceiling. Distinctness is combinatorial in the shape LENGTH, not in the option count. ⚠ The value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"pitch-shifted, heavily Auto-Tuned vocals as the constant across switches (deliberately reduced on the later album); the palette is drawn from \"pop punk, nightcore, ska, dubstep, deconstructed club, trance, metal and happy hardcore\". Brady produces in Logic Pro and the duo exchange Logic project files — the documented method is \"an exquisite corpse type thing\" with \"almost an improv mentality\".\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 200,
+      "mode": 165
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "phrygian",
+        "chromatic"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.99,
+      "velocityVar": 0.05
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        124,
+        127
+      ],
+      "main": [
+        100,
+        118
+      ],
+      "ghost": [
+        40,
+        58
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        8
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.34,
+      "tresilloBias": 0.08,
+      "offbeat8thShare": 0.36
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "snare",
+        "clap"
+      ],
+      "transient": "hard",
+      "reverb": "short",
+      "layerClapOffsetMs": [
+        0,
+        2
+      ],
+      "ghost": {
+        "prob": 0.34,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.24,
+          0.5
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.66,
+      "velocities": {
+        "main": [
+          0.7,
+          0.98
+        ],
+        "ghost": [
+          0.32,
+          0.58
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "64",
+            "16T"
+          ],
+          "weights": [
+            3,
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "pre_downbeat",
+          "phrase_end"
+        ],
+        "freqPerBar": 0.46,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.36,
+        "pos": [
+          "1&",
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "impact",
+        "riser",
+        "tomLow",
+        "reverse"
+      ],
+      "densityPerBar": [
+        3,
+        8
+      ],
+      "placement": "any",
+      "gainOffsetDb": 0
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4,
+      "fillBeforeSection": false,
+      "snareRollLadder": true
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "staccato",
+      "slideProb": 0.3,
+      "slideIntervals": [
+        "P5",
+        "P8",
+        "m3"
+      ],
+      "register": [
+        24,
+        42
+      ],
+      "distortion": "saturated",
+      "distortionWet": 0.8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.8,
+      "seventh": 0.16,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        84
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ],
+    "susOrDimProb": 0.26
+  },
+  "melody": {
+    "register": [
+      60,
+      96
+    ],
+    "densityPerBar": [
+      5,
+      16
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.62,
+      "third": 0.22,
+      "leap": 0.16
+    },
+    "contour": {
+      "riff": 0.56,
+      "descend": 0.24,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.58,
+    "halfStepDissonance": 0.22,
+    "octaveJumpProb": [
+      0.18,
+      0.34
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "articulation": "staccato",
+    "endVariation": true,
+    "timbreHint": "autotuned_vocal"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": [
+      0.6,
+      0.9
+    ],
+    "styles": {
+      "values": [
+        "arp",
+        "bell_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.88,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.16,
+    "passingTones": [
+      "P5",
+      "m3",
+      "P8",
+      "m7"
+    ],
+    "anticipationProb": 0.5,
+    "cellShapes": [
+      [
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      [
+        "1",
+        "5",
+        "8"
+      ],
+      [
+        "1",
+        "b3",
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": [
+        4,
+        8
+      ],
+      "chorus": 8,
+      "bridge": 4,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.3,
+        "beats": 2
+      },
+      "switchUpProb": 0.5
+    }
+  }
+}

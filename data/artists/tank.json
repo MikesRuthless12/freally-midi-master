@@ -1,0 +1,346 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tank",
+  "type": "artist",
+  "name": "Tank",
+  "aliases": [
+    "tank",
+    "durrell babbs",
+    "blackground soloist"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "2001-2010",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "slow jam"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "trap-soul",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Tank",
+    "songdata — Tank (https://songdata.io/search?query=Tank)",
+    "songdata — Aaliyah (https://songdata.io/search?query=Aaliyah)"
+  ],
+  "notes": "Blackground male soloist and writer working Aaliyah-adjacent programming plus explicit slow jams, 2001–2010. The research gives \"56–105; ballads 56–87 with the backbeat on 3\", and since the ballad band covers most of the sourced catalogue it is the base: 56–87 felt, `halfTime` true, `halftime_3` snare. F♯ major and F♯ minor are named as his home key and are weighted accordingly. Three drum deltas come from the camp grammar: \"syncopated 16th kick pairs\" (syncopation 0.6, tresillo lean 0.24, secondary anchor `2a`) with \"deliberate silence\" as a 0.26 `beatSkipProb`; \"snare displaced off the grid\" as a 5–11 ms push against the parent's 1–4; and \"clicky non-hat percussion\", which is a hat lane cut to 0.12 fill density and a four-lane perc/woodblock/rim/snap bed at −5 dB. Harmony is \"near-static modal beds with a single Rhodes or bell chord, so the falsetto stack does the harmonic work\", so the single-chord family leads and `chordDurationBeats` runs to 32. \"Tank's signature is layered falsetto used as the pad\" is the high melody register with a `sustain_pad`-led counter at −12. The low end is \"sub-808 with portamento slides, alternating with the kick rather than stacking on it\" — a moving bass part with a 0.46 `glideProb`, so no `drums.bass808` block, which would have silenced it. ⚠ Confidence is medium; the research says the drum grammar is \"inherited from the documented camp\" rather than name-specific. ⚠ Every velocity and density number and `swing.amount` 0.54 is INFERRED. ⚠ **`chords.impliedByRiff` declared (2026-08-17, harmony variety floor).** The entry says \"near-static modal beds with a single Rhodes or bell chord, **so the falsetto stack does the harmonic work**\" and \"Tank's signature is layered falsetto used as the pad\" - which is this flag's exact meaning: no pad states the changes, the lead does. A single chord is therefore the honest chord lane here, and `chords.rs`'s variety floor exempts a model that says so rather than being cleared with a second chord the entry denies. ⚠ Consequence, and it is wanted: `generators::melody` raises this model's `chordToneBias` from the authored 0.76 to the 0.85 floor, which is what \"the falsetto stack does the harmonic work\" means in notes. ⚠ **The countermelody reached 940/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.18 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. ⚠ The value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"near-static modal beds with a single Rhodes or bell chord, so the falsetto stack does the harmonic work; Tank's signature is layered falsetto used as the pad. \"Gone\" and \"Come Over\" with Aaliyah (82, 109) mark the shared grammar.\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 56,
+      "max": 87,
+      "mode": 82
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "F#m",
+        "F#",
+        "G",
+        "Bb",
+        "D"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 8,
+        "perc": 8,
+        "closedHat": 5
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.6,
+      "tresilloBias": 0.24,
+      "beatSkipProb": 0.26
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        0,
+        3
+      ],
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.1,
+          0.2
+        ]
+      },
+      "offGridMs": [
+        5,
+        11
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.12,
+      "velocities": {
+        "main": [
+          0.24,
+          0.4
+        ],
+        "ghost": [
+          0.1,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.04,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.03
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "woodblock",
+        "rim",
+        "snap"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "any",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.46,
+      "ninth": 0.24
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        51,
+        79
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      32
+    ],
+    "impliedByRiff": true
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.38,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.04,
+    "emptyBarBias": 0.1,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "soft_keys"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "rhythm": "independent_riff",
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0.46,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.28,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 4
+      },
+      "switchUpProb": 0.25
+    }
+  }
+}

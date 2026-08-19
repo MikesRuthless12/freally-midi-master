@@ -1,0 +1,281 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "adrian-younge",
+  "type": "producer",
+  "name": "Adrian Younge",
+  "aliases": [
+    "adrian younge",
+    "linear labs",
+    "twelve reasons to die"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2011-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul",
+    "funk"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "boom-bap",
+    "funk",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Adrian Younge",
+    "Wikipedia — Adrian Younge (https://en.wikipedia.org/wiki/Adrian_Younge)",
+    "Medium/Cuepoint — Meet the soulful composer who loves being sampled (https://medium.com/cuepoint/meet-the-soulful-composer-who-loves-being-sampled-58e0f5ca1b6e)",
+    "NPR First Listen — The Delfonics / Adrian Younge (https://www.npr.org/2013/03/04/172983631/first-listen-the-delfonics-adrian-younge-presents-the-delfonics)"
+  ],
+  "notes": "LA's analog absolutist, and the entry says the method is the parameter: \"**he composes and records music designed to be sampled**, tracked to tape with vintage kits, tight damping, and a dry close-mic'd sound. Kick on 1 and the offbeat of 2, snare cracked on 2&4, tambourine and bongo overlay, no 16th hat carpet. Because the source is his own new recording rather than an old record, the sample is harmonically complete.\" So `secondaryAnchor` is 2&, the velocity tiers are hard and tight, the hat is an 8th at a fill density of 0.16, and the percussion is tambourine, bongo and conga rather than a shaker bed. Harmony is \"1970s soul-cinema — minor-mode with m9/m11 and half-diminished colour, chromatic descending bass lines, and Italian-library/blaxploitation-score cadences; he writes for strings and horns rather than looping\", which is the raised `susOrDimProb` for the half-diminished colour, a chromatic passing-tone set on the bass and a harmonic rhythm that actually moves. The melody is instrumental by design: \"melodies are instrumental themes with a vocal only on top\", drawn from \"a one-man orchestra of Rhodes, Clavinet, vibraphone, harpsichord, sitar, fuzz guitar, flute, string quartet and horn section\" — hence the harpsichord timbre hint and a dense sustain-pad-and-answer counter for the strings and horns. Bass is \"played electric bass with flatwounds, muted and short, moving in melodic 8ths; no 808\". The arrangement is \"cinematic — 8-bar thematic statements, instrumental interludes, dialogue/skit segues\". ⚠ The INFERRED parameters are all drum probabilities and velocity tiers and every melody figure; the research sources the analog method, studio, label and credits but marks the specific drum values as inferred.",
+  "session": {
+    "bpm": {
+      "min": 72,
+      "max": 100,
+      "mode": 86
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "harmonic_minor",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.68,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 5,
+        "tambourine": 8,
+        "conga": 9
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        104,
+        120
+      ],
+      "main": [
+        74,
+        94
+      ],
+      "ghost": [
+        28,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.38,
+      "tresilloBias": 0.07
+    },
+    "snare": {
+      "offGridMs": [
+        0,
+        5
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.16,
+      "velocities": {
+        "main": [
+          0.46,
+          0.72
+        ],
+        "ghost": [
+          0.14,
+          0.3
+        ]
+      },
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "bongo",
+        "conga",
+        "rim"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -4
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.14,
+      "seventh": 0.5,
+      "ninth": 0.36
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "susOrDimProb": 0.3,
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      82
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.76,
+      "third": 0.2,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.44,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.6,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "harpsichord"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.4,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      46
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "m7",
+      "m3",
+      "M2",
+      "M6"
+    ],
+    "anticipationProb": 0.38
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.3
+    }
+  }
+}

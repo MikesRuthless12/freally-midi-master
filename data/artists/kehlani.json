@@ -1,0 +1,389 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kehlani",
+  "type": "artist",
+  "name": "Kehlani",
+  "aliases": [
+    "kehlani",
+    "kehlani parrish",
+    "tsunami mob",
+    "sweetsexysavage"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap-soul"
+  ],
+  "era": "2015-present",
+  "genres": [
+    "trap-soul",
+    "rnb",
+    "oakland"
+  ],
+  "relatedGenres": [
+    "trap-soul",
+    "west-coast-club",
+    "rnb-2000s",
+    "dancehall"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 trap-soul — Kehlani",
+    "Wikipedia — Kehlani (https://en.wikipedia.org/wiki/Kehlani)",
+    "songdata.io — Kehlani (https://songdata.io/search?query=Kehlani)",
+    "Wikipedia — Alternative R&B (https://en.wikipedia.org/wiki/Alternative_R%26B)"
+  ],
+  "notes": "Claimed here on `west-coast-club`'s explicit hand-off. The tempo spine is the largest in the batch and the entry lists it title by title; the trap-facing bulk is the 101–137 read band folding to 51–69 felt, so that band is `session.bpm` and `halfTime` is true. The named keys are authored exactly — F minor, D♭, B♭ minor and F♯ — and `scales` carries `major` because the entry names D♭ major and F♯ major alongside the minors. Harmony is the entry's two-sided claim: \"two-chord minor loops for the trap material against genuine 4-chord 90s-R&B cycles with cadences for the retro material\", so both shapes are families rather than one. The kit is the first of her three, with the finger-snap and live-percussion overlay the entry says \"run through all three\". The melody carries the sentence that actually distinguishes her: \"mid-alto with a rap-adjacent rhythmic delivery in the verses and full singing on the hooks\" — a moderate density with a wide phrase range rather than a fixed one. ⚠ The **INFERRED** parameters are the swing amount, every drum probability and density, the 808 slide numbers, and the melody density band; the entry marks drum detail as lane inference. ⚠ `confidence` is medium — the research rates it high-medium, which this dataset maps to medium. ⚠ `session.bpm.mode` is **INFERRED**: the number is not stated in the entry, and it is an authored centre of gravity inside the band the entry does state.",
+  "session": {
+    "bpm": {
+      "min": 101,
+      "max": 137,
+      "mode": 118
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Fm",
+        "Dbm",
+        "Bbm",
+        "Db",
+        "F#"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.57
+    },
+    "humanize": {
+      "quantizeStrength": 0.79,
+      "velocityVar": 0.19,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 5,
+        "clap": 5,
+        "closedHat": 4,
+        "snap": 6,
+        "conga": 7
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.3,
+      "tresilloBias": 0.28,
+      "lockTo808": 0.76
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.34,
+        "pos": [
+          "1a",
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.38
+        ]
+      },
+      "offGridMs": [
+        2,
+        6
+      ],
+      "stack": [
+        "clap",
+        "snap"
+      ],
+      "fullTimeVariantProb": 0.35
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.46,
+      "velocities": {
+        "main": [
+          0.56,
+          0.78
+        ],
+        "ghost": [
+          0.26,
+          0.42
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.38,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "conga",
+        "tambourine",
+        "shaker"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "any",
+      "gainOffsetDb": -5
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.48,
+      "slidesPer4Bars": [
+        2,
+        3
+      ],
+      "slideIntervals": {
+        "values": [
+          "m3",
+          "P4",
+          "P5",
+          "M2"
+        ],
+        "weights": [
+          3,
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_2"
+      ],
+      "register": [
+        25,
+        39
+      ],
+      "distortion": "none"
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.18,
+      "seventh": 0.5,
+      "ninth": 0.32
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      58,
+      81
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.42,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.76,
+    "colorTones": [
+      2,
+      6
+    ],
+    "endVariation": true,
+    "octaveJumpProb": 0.07,
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.58,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 16,
+      "prechorus": 4,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.45,
+        "beats": 2
+      },
+      "switchUpProb": 0.14
+    }
+  }
+}

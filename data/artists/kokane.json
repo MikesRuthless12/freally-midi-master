@@ -65,16 +65,15 @@
     "kick": {
       "densityPerBar": [
         3,
-        6
+        5
       ],
       "anchors": [
         "1"
       ],
       "secondaryAnchor": "2&",
-      "syncopation": 0.4,
-      "tresilloBias": 0.16,
-      "offbeat8thShare": 0.28,
-      "lockTo808": 0
+      "syncopation": 0.44,
+      "tresilloBias": 0.18,
+      "offbeat8thShare": 0.3
     },
     "snare": {
       "rimshotLayer": true,
@@ -88,9 +87,7 @@
           0.22,
           0.4
         ]
-      },
-      "placement": "backbeat_24",
-      "offGridMs": 0
+      }
     },
     "hihat": {
       "base": "16th",
@@ -142,13 +139,12 @@
         "even"
       ],
       "velocityRampRange": [
-        60,
-        109
+        56,
+        108
       ],
-      "gapProb": 0.39,
-      "descendProb": 0.5,
-      "rampJitter": 13,
-      "pitchWalk": 4
+      "gapProb": 0.34,
+      "descendProb": 0.46,
+      "rampJitter": 13
     }
   },
   "chords": {
@@ -268,7 +264,7 @@
       28,
       46
     ],
-    "glideProb": 0.59,
+    "glideProb": 0.55,
     "passingTones": [
       "M2",
       "m3",
@@ -276,33 +272,7 @@
       "P5",
       "m7"
     ],
-    "anticipationProb": 0.25,
-    "cellShapes": [
-      [
-        "1",
-        "3",
-        "4",
-        "5"
-      ],
-      [
-        "1",
-        "5",
-        "7",
-        "5"
-      ],
-      [
-        "1",
-        "2",
-        "3",
-        "5"
-      ],
-      [
-        "5",
-        "1",
-        "7",
-        "4"
-      ]
-    ]
+    "anticipationProb": 0.2
   },
   "arrangement": {
     "sectionBars": {

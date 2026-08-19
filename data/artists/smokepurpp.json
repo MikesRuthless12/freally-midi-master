@@ -57,12 +57,9 @@
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3",
+      "secondaryAnchor": "3&",
       "syncopation": 0.3,
-      "lockTo808": 1,
-      "tresilloBias": 0.35,
-      "avoidPreSnareGap": "8th",
-      "andOf4EveryOtherBar": true
+      "lockTo808": 1
     },
     "snare": {
       "placement": "halftime_3",
@@ -119,10 +116,10 @@
         "even"
       ],
       "velocityRampRange": [
-        46,
-        91
+        52,
+        96
       ],
-      "rampJitter": 10
+      "rampJitter": 9
     },
     "bass808": {
       "role": "bassline",
@@ -145,12 +142,12 @@
   },
   "melody": {
     "register": [
-      70,
-      92
+      66,
+      88
     ],
     "densityPerBar": [
       1,
-      5
+      4
     ],
     "phraseBars": {
       "values": [
@@ -162,29 +159,7 @@
         2
       ]
     },
-    "timbreHint": "dark_bell",
-    "structure": "riff_loop",
-    "twoBarCellRepeat": true,
-    "intervals": {
-      "step": 0.6,
-      "third": 0.29,
-      "leap": 0.14
-    },
-    "contour": {
-      "riff": 0.5,
-      "descend": 0.39,
-      "arch": 0.14
-    },
-    "chordToneBias": 0.28,
-    "halfStepDissonance": 0.3,
-    "monophonicBias": 0.85,
-    "endVariation": true,
-    "octaveJumpProb": 0.08,
-    "colorTones": [
-      2,
-      4,
-      6
-    ]
+    "timbreHint": "dark_bell"
   },
   "countermelody": {
     "registerOffset": 12,

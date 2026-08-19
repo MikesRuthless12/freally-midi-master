@@ -92,10 +92,28 @@ const PATTERN: Pattern = {
   ppq: 960,
 };
 
+/**
+ * The reply `generate_pattern` has had since TASK-166.
+ *
+ * ⛔ The command hands back the clip **and the parts it was written against**,
+ * so the page no longer re-requests them. These tests drive the store directly,
+ * so they have to speak the same shape the bridge does; `upstream` is empty
+ * unless a case is specifically about filling.
+ */
+const generated = (pattern: Pattern, upstream: Pattern[] = []) => ({ pattern, upstream });
+
 /** Let every pending promise settle. */
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 /** The request `generate_pattern` was last called with. */
+/** The request a generation sent, including the fields only TASK-125 uses. */
+function lastFullRequest(): Record<string, unknown> {
+  const calls = invoke.mock.calls.filter((call: unknown[]) => call[0] === 'generate_pattern');
+  expect(calls.length, 'generate_pattern should have been invoked').toBeGreaterThan(0);
+  const [, args] = calls[calls.length - 1] as [string, { request: Record<string, unknown> }];
+  return args.request;
+}
+
 function lastRequest(): {
   session?: Record<string, unknown>;
   seed?: string | null;
@@ -103,6 +121,40 @@ function lastRequest(): {
 } {
   const calls = invoke.mock.calls.filter((call: unknown[]) => call[0] === 'generate_pattern');
   expect(calls.length, 'generate_pattern should have been invoked').toBeGreaterThan(0);
+  const [, args] = calls[calls.length - 1] as [
+    string,
+    {
+      request: {
+        session?: Record<string, unknown>;
+        seed?: string | null;
+        songSeed?: string | null;
+      };
+    },
+  ];
+  return args.request;
+}
+
+/**
+ * The last `generate_pattern` request **for one part**.
+ *
+ * ⚠ **`lastRequest` stopped being enough at TASK-129.** A melodic Generate now
+ * sends its upstream fills *after* its own request, so "the last call" is no
+ * longer the call the test made — and a test that asks about the take a melody
+ * rolled would be reading the chords fill's seed instead.
+ */
+function requestFor(part: Part): {
+  session?: Record<string, unknown>;
+  seed?: string | null;
+  songSeed?: string | null;
+} {
+  const calls = invoke.mock.calls.filter(
+    (call: unknown[]) =>
+      call[0] === 'generate_pattern' &&
+      (call[1] as { request: { part?: Part } }).request.part === part,
+  );
+  expect(calls.length, `generate_pattern should have been invoked for ${part}`).toBeGreaterThan(
+    0,
+  );
   const [, args] = calls[calls.length - 1] as [
     string,
     {
@@ -124,7 +176,7 @@ beforeEach(() => {
         (args as { styleId: string }).styleId === 'uk-drill' ? DRILL : TRAP,
       );
     }
-    if (command === 'generate_pattern') return Promise.resolve(PATTERN);
+    if (command === 'generate_pattern') return Promise.resolve(generated(PATTERN));
     return Promise.resolve(null);
   });
 
@@ -319,7 +371,9 @@ describe('auto-sync', () => {
 
     async function generateReturning(seed: string) {
       invoke.mockImplementation((command: string) =>
-        command === 'generate_pattern' ? Promise.resolve(take(seed)) : Promise.resolve(null),
+        command === 'generate_pattern'
+          ? Promise.resolve(generated(take(seed)))
+          : Promise.resolve(null),
       );
       await useSession.getState().generate('drums');
     }
@@ -385,7 +439,7 @@ describe('auto-sync', () => {
       invoke.mockImplementation((command: string) => {
         if (command !== 'generate_pattern') return Promise.resolve(null);
         call += 1;
-        return Promise.resolve(take(String(500 + call * 11)));
+        return Promise.resolve(generated(take(String(500 + call * 11))));
       });
       await useSession.getState().generateAll();
 
@@ -440,7 +494,9 @@ describe('auto-sync', () => {
         { startTick: 960 * 16, lenTicks: 120, pitch: 36, vel: 100 },
       ];
       invoke.mockImplementation((command: string) =>
-        command === 'generate_pattern' ? Promise.resolve(long) : Promise.resolve(null),
+        command === 'generate_pattern'
+          ? Promise.resolve(generated(long))
+          : Promise.resolve(null),
       );
       await useSession.getState().generate('drums');
       useSession.getState().setLaneLocked('kick', true);
@@ -466,7 +522,9 @@ describe('auto-sync', () => {
       // Recall asks the engine again; answer with the original take, as a
       // deterministic engine would for the same seed.
       invoke.mockImplementation((command: string) =>
-        command === 'generate_pattern' ? Promise.resolve(take('100')) : Promise.resolve(null),
+        command === 'generate_pattern'
+          ? Promise.resolve(generated(take('100')))
+          : Promise.resolve(null),
       );
       await useSession.getState().recallVariation(first);
 
@@ -514,7 +572,7 @@ describe('auto-sync', () => {
       });
 
       invoke.mockImplementation((command: string) => {
-        if (command === 'generate_pattern') return Promise.resolve(take('100'));
+        if (command === 'generate_pattern') return Promise.resolve(generated(take('100')));
         if (command === 'session_defaults') return Promise.resolve(TRAP);
         return Promise.resolve(null);
       });
@@ -641,9 +699,12 @@ describe('going back to a seed', () => {
     expect(record, 'the engine answers with the record it chose').not.toBe('');
 
     // Every part after it joins that record rather than starting its own.
+    // ⚠ Asked for by part: since TASK-129 a melodic Generate is followed by its
+    // upstream fills, and those carry the record too — so `lastRequest` would
+    // pass this even if the part's own request had not.
     for (const part of ['melody', 'chords', 'bass'] as const) {
       await useSession.getState().generate(part);
-      expect(lastRequest().songSeed, `${part} must join the record`).toBe(record);
+      expect(requestFor(part).songSeed, `${part} must join the record`).toBe(record);
     }
     expect(useSession.getState().songSeed).toBe(record);
   });
@@ -661,8 +722,8 @@ describe('going back to a seed', () => {
     expect(useSession.getState().seedPinned, 'the take is not pinned').toBe(false);
 
     await useSession.getState().generate('melody');
-    expect(lastRequest().seed, 'the take still rerolls').toBeNull();
-    expect(lastRequest().songSeed, 'the record still travels').toBe(record);
+    expect(requestFor('melody').seed, 'the take still rerolls').toBeNull();
+    expect(requestFor('melody').songSeed, 'the record still travels').toBe(record);
   });
 });
 
@@ -880,6 +941,7 @@ describe('applyPreset', () => {
       bars: 4,
       pins: NO_PINS,
       autoSync: true,
+      complexity: 'authored' as const,
       patterns: {},
       editedParts: [],
       mood: null,
@@ -924,13 +986,15 @@ describe('each part keeps its own pattern', () => {
       if (command === 'generate_pattern') {
         const { part, seed } = (args as { request: { part: Part; seed: string | null } })
           .request;
-        return Promise.resolve({
-          ...PATTERN,
-          id: `trap-${part}`,
-          part,
-          seed: seed ?? '77',
-          songSeed: seed ?? '77',
-        } satisfies Pattern);
+        return Promise.resolve(
+          generated({
+            ...PATTERN,
+            id: `trap-${part}`,
+            part,
+            seed: seed ?? '77',
+            songSeed: seed ?? '77',
+          } satisfies Pattern),
+        );
       }
       return Promise.resolve(null);
     });
@@ -984,10 +1048,10 @@ describe('each part keeps its own pattern', () => {
     // is that the producer says when they want it.
     useSession.getState().setSeed('4242');
     await useSession.getState().generate('melody');
-    expect(lastRequest().seed).toBe('4242');
+    expect(requestFor('melody').seed).toBe('4242');
 
     await useSession.getState().generate('bass');
-    expect(lastRequest().seed).toBe('4242');
+    expect(requestFor('bass').seed).toBe('4242');
   });
 
   it('asks for a fresh seed on every press while the seed is unpinned', async () => {
@@ -1236,7 +1300,9 @@ describe('each part keeps its own pattern', () => {
         if (part === 'bass') {
           return Promise.reject(new Error("Drake's 808 is the bassline"));
         }
-        return Promise.resolve({ ...PATTERN, id: `trap-${part}`, part, seed: seed ?? '77' });
+        return Promise.resolve(
+          generated({ ...PATTERN, id: `trap-${part}`, part, seed: seed ?? '77' }),
+        );
       }
       return Promise.resolve(null);
     });
@@ -1287,6 +1353,316 @@ describe('each part keeps its own pattern', () => {
     useSession.getState().clearAll();
     useSession.getState().clearAll();
     expect(useSession.getState().patterns).toEqual({});
+  });
+});
+
+/**
+ * A downstream generator fills the parts it was written against (TASK-129).
+ *
+ * ⛔ **The defect is not that the notes were wrong — it is that they answered
+ * something invisible.** `engine/src/parts.rs` writes a countermelody against
+ * `melody::generate(model, ctx, song, …)` whether or not the producer has ever
+ * pressed Generate on the Melody tab, so a counter on a fresh session is a line
+ * answering a melody nobody can hear — and the first press of Generate on Melody
+ * then writes a *different* one, leaving the counter answering a melody that no
+ * longer exists.
+ *
+ * ⚠ **The seed is what these tests are really about.** Filling the tab with a
+ * fresh take would look identical on screen and be the same defect wearing the
+ * fix's clothes, so every case below asserts what was *sent*.
+ */
+describe('a generator fills the parts it was written against', () => {
+  /** Every `generate_pattern` request, in the order they were sent. */
+  function requests(): {
+    part: Part;
+    seed: string | null;
+    songSeed: string | null;
+    complexity?: string;
+  }[] {
+    return invoke.mock.calls
+      .filter((call: unknown[]) => call[0] === 'generate_pattern')
+      .map(
+        (call: unknown[]) =>
+          (
+            call[1] as {
+              request: {
+                part: Part;
+                seed: string | null;
+                songSeed: string | null;
+                complexity?: string;
+              };
+            }
+          ).request,
+      );
+  }
+
+  beforeEach(() => {
+    // ⛔ **Take and record are different numbers here, and a fixture where they
+    // coincide cannot test this at all.** The engine answers `song_seed = seed`
+    // when no record is sent, so on the *first* generation of a fresh session the
+    // two are equal — under which a fill that sent the take would pass. Every
+    // test below therefore generates drums first, which establishes the record,
+    // and the mock counts takes upward so the two can be told apart.
+    let takes = 0;
+    invoke.mockImplementation((command: string, args?: unknown) => {
+      if (command === 'session_defaults') {
+        return Promise.resolve({
+          ...TRAP,
+          parts: ['drums', 'chords', 'melody', 'counter', 'bass'],
+        });
+      }
+      if (command === 'generate_pattern') {
+        const { part, seed, songSeed } = (
+          args as { request: { part: Part; seed: string | null; songSeed: string | null } }
+        ).request;
+        const take = seed !== null && seed !== '' ? seed : String(++takes);
+        // What the bridge does: an absent record means "this generation is its
+        // own record". Mirroring `seed` unconditionally would make the carry
+        // look like it worked whatever the page sent.
+        const record = songSeed !== null && songSeed !== '' ? songSeed : take;
+        const clip = (of: Part, at: string): Pattern => ({
+          ...PATTERN,
+          id: `trap-${of}-${at}`,
+          part: of,
+          seed: at,
+          songSeed: record,
+        });
+        // ⛔⛔ **The reply carries what the take was written against** (TASK-166),
+        // mirroring `engine/src/parts.rs`. The page used to buy these back with
+        // extra requests; the tests below now assert they arrive with the clip,
+        // and that no second request is made for them.
+        //
+        // ⚠ **At the RECORD, not at the take** — the engine builds a counter
+        // against the *song's* lead, so a fill at the counter's own take would be
+        // a different melody from the one it answers.
+        const against: Partial<Record<Part, readonly Part[]>> = {
+          melody: ['chords'],
+          counter: ['chords', 'melody'],
+          bass: ['chords'],
+        };
+        return Promise.resolve(
+          generated(
+            clip(part, take),
+            (against[part] ?? []).map((dep) => clip(dep, record)),
+          ),
+        );
+      }
+      return Promise.resolve(null);
+    });
+    useSession.setState({
+      selectedId: 'trap',
+      patterns: {},
+      seed: '',
+      songSeed: '',
+      partsOff: [],
+      editedParts: [],
+      edited: false,
+    });
+    useVariations.setState({ entries: {}, position: {}, kept: {}, history: {} });
+  });
+
+  it('fills the melody a countermelody answers, and the harmony both are written against', async () => {
+    await useSession.getState().generate('drums');
+    await useSession.getState().generate('counter');
+
+    expect(Object.keys(useSession.getState().patterns).sort()).toEqual([
+      'chords',
+      'counter',
+      'drums',
+      'melody',
+    ]);
+  });
+
+  it('takes the fills at the RECORD from the reply, without asking again', async () => {
+    // ⛔⛔ **Rewritten for TASK-166, and the assertion got stronger.** This used
+    // to check that the *extra requests* the page sent carried the record seed.
+    // The page sends none now — `parts::render` already built these parts to
+    // write the counter against, so it hands them back and the page files them.
+    // What was a rule the page had to remember is now true by construction.
+    await useSession.getState().generate('drums');
+    const record = useSession.getState().songSeed;
+    const before = requests().length;
+    await useSession.getState().generate('counter');
+
+    const counter = requests().find((request) => request.part === 'counter');
+    expect(counter?.seed, 'an unpinned press must still roll its own take').toBeNull();
+
+    // ⛔ **One request, not three.** Each one was a synchronous round trip served
+    // on the webview thread, which blocks the hosted DAW's window.
+    expect(
+      requests().length - before,
+      'a counter press must cost exactly one request now',
+    ).toBe(1);
+
+    for (const part of ['chords', 'melody'] as const) {
+      const filled = useSession.getState().patterns[part];
+      // ⛔ Both fields, because `Seeds { song, part }` must be the same number
+      // for the engine to reproduce the dependency it used. A fill at the
+      // counter's own take is a different melody from the one it answers.
+      expect(filled?.seed, `${part} was filled at a take rather than at the record`).toBe(
+        record,
+      );
+      expect(filled?.songSeed).toBe(record);
+    }
+  });
+
+  it('generates the fills at the SWITCH the producer set, not at the authored reading', async () => {
+    // ⛔⛔ **This shipped broken and three reviewers found it independently.**
+    // The fill request was hand-copied from the main one and every field was
+    // kept in step except this. At Busy the engine builds the counter against a
+    // melody generated at `complex` — `melody.densityPerBar` is a range on
+    // essentially every model, and `Complexity::draw` takes *two* numbers off
+    // the stream instead of one — so a fill sent without the field came back at
+    // `authored`: a different note count, from a different draw. The producer
+    // then had a counter on screen answering a melody that is not the melody
+    // beside it, which is the readout-that-lies failure TASK-129 exists to
+    // close, dressed as the fix for it.
+    // ▶ **TASK-166 made this unreachable rather than merely fixed.** The fills
+    // are no longer a second request that could be built with a different set of
+    // fields — they are the parts the engine generated *while answering this
+    // one*, at this request's own `complexity`. There is no longer a second
+    // payload to keep in step, so the class of defect is gone rather than
+    // guarded. The assertion is kept, aimed at what still exists to be wrong:
+    // the one request must carry the switch, and the fills must arrive with it.
+    useSession.getState().setComplexity('complex');
+    await useSession.getState().generate('drums');
+    await useSession.getState().generate('counter');
+
+    const counter = requests().find((r) => r.part === 'counter');
+    expect(counter?.complexity, 'the press itself must carry the switch').toBe('complex');
+
+    for (const part of ['chords', 'melody'] as const) {
+      expect(
+        useSession.getState().patterns[part],
+        `${part} must arrive with the counter rather than be asked for separately`,
+      ).toBeDefined();
+      expect(requests().some((r) => r.part === part)).toBe(false);
+    }
+  });
+
+  it('leaves the drums alone, because a melody is phrased around a reference kit', async () => {
+    // ⛔ `parts.rs` phrases the melodic parts around `drums::generate` at the
+    // *song* seed — not the take on screen. Filling the Drums tab would put a
+    // kit there that neither the melody was written against nor Generate would
+    // produce.
+    await useSession.getState().generate('drums');
+    const drums = useSession.getState().patterns.drums;
+
+    await useSession.getState().generate('counter');
+
+    expect(useSession.getState().patterns.drums).toBe(drums);
+    expect(requests().filter((request) => request.part === 'drums')).toHaveLength(1);
+  });
+
+  it('does not replace a melody the producer already has', async () => {
+    await useSession.getState().generate('drums');
+    await useSession.getState().generate('melody');
+    const melody = useSession.getState().patterns.melody;
+
+    await useSession.getState().generate('counter');
+
+    expect(
+      useSession.getState().patterns.melody,
+      "the producer's own take was overwritten",
+    ).toBe(melody);
+  });
+
+  it('does not fill a generator that has been switched off', async () => {
+    // `partsOff` is a statement about the record (TASK-058H), so a producer who
+    // switched the melody off has already answered this question.
+    await useSession.getState().generate('drums');
+    useSession.setState({ partsOff: ['melody'] });
+
+    await useSession.getState().generate('counter');
+
+    expect(useSession.getState().patterns.melody).toBeUndefined();
+    expect(useSession.getState().patterns.chords).toBeDefined();
+  });
+
+  it('does not refill a part the style writes nothing for', async () => {
+    // ⚠ **Absent and empty are different.** A present pattern with no notes is a
+    // real answer from a style whose 808 is its bassline; refilling it would
+    // argue with the model on every press.
+    await useSession.getState().generate('drums');
+    await useSession.getState().generate('chords');
+    const chords = useSession.getState().patterns.chords;
+
+    await useSession.getState().generate('bass');
+
+    expect(useSession.getState().patterns.chords).toBe(chords);
+  });
+
+  it('leaves the seed chip showing the take that was asked for', async () => {
+    await useSession.getState().generate('drums');
+    await useSession.getState().generate('counter');
+
+    const counter = useSession.getState().patterns.counter;
+    expect(useSession.getState().seed, 'the fill overwrote the seed readout').toBe(
+      counter?.seed,
+    );
+  });
+
+  it("marks nothing as edited, because a fill is the seed's own output", async () => {
+    await useSession.getState().generate('drums');
+    await useSession.getState().generate('counter');
+
+    expect(useSession.getState().editedParts).toEqual([]);
+    expect(useSession.getState().edited).toBe(false);
+  });
+
+  it('lands the take even when a part it was written against comes back silent', async () => {
+    // ⛔⛔ **Rewritten because TASK-166 made the old version vacuous, and a
+    // review caught that rather than the suite.** It used to reject the *chords
+    // fill request* and check the counter survived — but the page sends no fill
+    // requests now, so the reject branch was dead and the test passed while
+    // covering nothing.
+    //
+    // ▶ **The risk moved rather than disappeared.** The page no longer asks for
+    // these parts, so they can no longer fail on their own; what can happen is
+    // the engine handing back an upstream entry with no notes in it — a style
+    // that authors no separate chord part, for instance. That must land the take
+    // the producer asked for and simply not fill the empty tab, rather than
+    // putting a silent clip on screen under a tab that looks generated.
+    await useSession.getState().generate('drums');
+
+    invoke.mockImplementation((command: string, args?: unknown) => {
+      if (command === 'session_defaults') return Promise.resolve(TRAP);
+      if (command === 'generate_pattern') {
+        const { part } = (args as { request: { part: Part } }).request;
+        return Promise.resolve(
+          generated({ ...PATTERN, id: `trap-${part}`, part } satisfies Pattern, [
+            // The harmony this counter was written against came back empty.
+            { ...PATTERN, id: 'trap-chords', part: 'chords', lanes: [] } satisfies Pattern,
+            { ...PATTERN, id: 'trap-melody', part: 'melody' } satisfies Pattern,
+          ]),
+        );
+      }
+      return Promise.resolve(null);
+    });
+
+    await useSession.getState().generate('counter');
+
+    expect(
+      useSession.getState().patterns.counter,
+      'the generation the producer asked for was discarded',
+    ).toBeDefined();
+    // The melody that did arrive is filled; the empty one is still filed, because
+    // "a present pattern with no notes is a real answer from a style that authors
+    // no separate part" — the rule the fill block states.
+    expect(useSession.getState().patterns.melody).toBeDefined();
+    expect(useSession.getState().generating, 'the button stayed stuck').toBe(false);
+  });
+
+  it('records each fill as its own take, in dependency order', async () => {
+    await useSession.getState().generate('drums');
+    await useSession.getState().generate('counter');
+
+    // The nav is per part, and each of these is a real take of its own part —
+    // `generateAll` records five for one press for the same reason.
+    const entries = useVariations.getState().entries;
+    expect(entries.chords).toHaveLength(1);
+    expect(entries.melody).toHaveLength(1);
+    expect(entries.counter).toHaveLength(1);
   });
 });
 
@@ -1576,22 +1952,26 @@ describe('the base genre', () => {
     useSession.setState({ selectedId: 'trap', base: null, patterns: {} });
     invoke.mockImplementation((command: string) =>
       command === 'generate_pattern'
-        ? Promise.resolve({
-            id: 'x',
-            artistId: 'trap',
-            seed: '1',
-            songSeed: '1',
-            bars: 4,
-            bpm: 140,
-            timeSigNum: 4,
-            timeSigDen: 4,
-            keyRoot: 0,
-            scale: 'naturalMinor',
-            part: 'drums',
-            lanes: [],
-            ppq: 960,
-            mood: null,
-          })
+        ? Promise.resolve(
+            generated({
+              id: 'x',
+              artistId: 'trap',
+              seed: '1',
+              songSeed: '1',
+              bars: 4,
+              bpm: 140,
+              timeSigNum: 4,
+              timeSigDen: 4,
+              keyRoot: 0,
+              // ⚠ Corrected by TASK-166: wrapping this fixture in `generated()` gave
+              // it a type it never had, and the literal was wrong.
+              scale: 'natural_minor',
+              part: 'drums',
+              lanes: [],
+              ppq: 960,
+              mood: null,
+            }),
+          )
         : Promise.resolve(null),
     );
   });
@@ -1782,5 +2162,165 @@ describe('an import switches off what it did not find', () => {
   it('aiming at a part the split did not produce falls back rather than opening nothing', () => {
     useSession.getState().importSplit([drumsOn(['kick', 'snare']), melody], 'chords');
     expect(useUi.getState().activeTab).toBe('drums');
+  });
+});
+
+/**
+ * The Simple / Complex switch, from the page's side (TASK-125).
+ *
+ * ⛔ **What the engine does with it is `engine/tests/complexity.rs`**, measured
+ * over the shipped roster. What only this can show is that the producer's answer
+ * *leaves the page* — on a single Generate and on Generate-all alike — and that
+ * it is part of the project rather than a view setting.
+ */
+describe('how busy a reading the producer asked for', () => {
+  beforeEach(() => {
+    useSession.setState({ selectedId: 'trap', patterns: {}, complexity: 'authored' });
+  });
+
+  it('is sent with every generation, and defaults to the model as written', async () => {
+    await useSession.getState().generate('drums');
+    expect(lastFullRequest().complexity).toBe('authored');
+
+    useSession.getState().setComplexity('complex');
+    await useSession.getState().generate('drums');
+    expect(lastFullRequest().complexity).toBe('complex');
+  });
+
+  it('reaches Generate-all too, which is where a rule usually goes missing', async () => {
+    // ⛔ The failure this repo has recorded four times: a rule installed at one
+    // door and not at the other. `generateAll` has its own request builder.
+    useSession.getState().setComplexity('simple');
+    await useSession.getState().generateAll();
+    expect(lastFullRequest().complexity).toBe('simple');
+  });
+
+  it('sends only the model as written once As Written is on, whatever side it was', async () => {
+    // ⛔⛔ **Mike asked for this in as many words**, 2026-08-16: *"if you have it
+    // on Complex and you switch to As Written … it doesn't write anything simple
+    // or complex and only As Written"*.
+    //
+    // ⚠ **The risk is `lean`, and it is a real one to check rather than a
+    // formality.** The knob has to keep showing Complex while it is disabled, so
+    // the side the producer chose is deliberately *remembered* — and a memory
+    // one line away from the request is exactly how a UI value ends up on the
+    // wire. This asserts the two stay separate at both doors.
+    useSession.getState().setComplexity('complex');
+    await useSession.getState().generate('drums');
+    expect(lastFullRequest().complexity).toBe('complex');
+
+    useSession.getState().setComplexity('authored');
+    // The knob still remembers the side, which is the whole point of it...
+    expect(useSession.getState().lean).toBe('complex');
+
+    // ...and neither door is told about it.
+    await useSession.getState().generate('drums');
+    expect(lastFullRequest().complexity).toBe('authored');
+
+    await useSession.getState().generateAll();
+    expect(lastFullRequest().complexity).toBe('authored');
+  });
+
+  it('is part of the project, not a view setting', async () => {
+    // ⛔ **Asserted through the undo snapshot rather than against the list.**
+    // `SAVED_FIELDS` drives the project payload and the snapshot together, and a
+    // field named there but missing from `snapshotOf`'s destructure would save
+    // less than it undoes — which is the drift the list exists to prevent and
+    // which a membership test cannot see.
+    const { useHistory } = await import('./history');
+    useSession.getState().setComplexity('complex');
+    await vi.waitFor(() =>
+      expect(useHistory.getState().present?.state.complexity).toBe('complex'),
+    );
+  });
+});
+
+/**
+ * Pointing a lane at another drum, everywhere it is named (2026-08-17).
+ *
+ * ⛔⛔ **Here rather than only in Playwright, because a review found three
+ * defects in the seam this action replaced.** The pad picker and the grid's row
+ * picker each hand-wrote "and the other side follows" and disagreed: one moved a
+ * single pad, the other looped every pad, and neither checked whether the other
+ * write had been refused. `e2e/pad-lane-sync.spec.ts` proves the two controls
+ * agree on screen; these prove the rules the action is made of, including the
+ * refusals a browser test cannot reach without contriving a kit.
+ */
+describe('reassigning a lane everywhere it is named', () => {
+  const withLanes = (...lanes: string[]): Pattern => ({
+    ...PATTERN,
+    lanes: lanes.map((lane) => ({ lane, notes: [] })) as Pattern['lanes'],
+  });
+
+  beforeEach(() => {
+    useSession.setState({
+      selectedId: 'trap',
+      patterns: { drums: withLanes('kick', 'snare') },
+      mutedLanes: [],
+      soloedLanes: [],
+      lockedLanes: [],
+    });
+    useUi.setState({ pads: { trap: ['kick', 'snare', 'clap', 'closedHat'] } });
+  });
+
+  const padsNow = () => useUi.getState().pads.trap;
+  const lanesNow = () => useSession.getState().patterns.drums?.lanes.map((l) => l.lane);
+
+  it('renames the clip and moves the pad that plays it', () => {
+    useSession.getState().reassignLaneEverywhere('kick', 'tom');
+    expect(lanesNow()).toEqual(['tom', 'snare']);
+    expect(padsNow()?.[0]).toBe('tom');
+  });
+
+  it('carries every pad holding the lane, because two may', () => {
+    // ⛔ `PAD_LIMIT` allows the same lane twice — the layering case. Leaving the
+    // sibling behind pointed it at a lane the clip no longer had.
+    useUi.setState({ pads: { trap: ['kick', 'kick', 'clap', 'closedHat'] } });
+    useSession.getState().reassignLaneEverywhere('kick', 'tom');
+    expect(padsNow()?.slice(0, 2)).toEqual(['tom', 'tom']);
+    expect(lanesNow()).toEqual(['tom', 'snare']);
+  });
+
+  it('refuses as a whole when the pads cannot take it', () => {
+    // ⛔⛔ **The defect this action exists to make unreachable.** `setPad` refuses
+    // past `PAD_LIMIT` and returns state unchanged; the old code renamed the clip
+    // anyway, so the grid lost its Kick row while the pad still read Kick.
+    useUi.setState({ pads: { trap: ['kick', 'tom', 'tom', 'closedHat'] } });
+    useSession.getState().reassignLaneEverywhere('kick', 'tom');
+    expect(padsNow()?.[0]).toBe('kick');
+    expect(lanesNow()).toEqual(['kick', 'snare']);
+  });
+
+  it('leaves the beat alone when the target lane is already in it', () => {
+    // Renaming onto an occupied lane would merge two lanes' hits and lose part
+    // of the beat. The pad still moves — that is the layering case.
+    useSession.getState().reassignLaneEverywhere('kick', 'snare');
+    expect(lanesNow()).toEqual(['kick', 'snare']);
+    expect(padsNow()?.[0]).toBe('snare');
+  });
+
+  it('moves a pad pointed at a lane the clip has never generated', () => {
+    // A kit layout may name a lane no take has produced yet; that is not an error.
+    useSession.getState().reassignLaneEverywhere('clap', 'rim');
+    expect(padsNow()?.[2]).toBe('rim');
+    expect(lanesNow()).toEqual(['kick', 'snare']);
+  });
+
+  it('carries the mute, the solo and the lock with the rename', () => {
+    // ⛔ All three are keyed by lane, so a rename that left them behind would
+    // start a silenced lane sounding under its new name.
+    useSession.setState({ mutedLanes: ['kick'], soloedLanes: ['kick'], lockedLanes: ['kick'] });
+    useSession.getState().reassignLaneEverywhere('kick', 'tom');
+    expect(useSession.getState().mutedLanes).toEqual(['tom']);
+    expect(useSession.getState().soloedLanes).toEqual(['tom']);
+    expect(useSession.getState().lockedLanes).toEqual(['tom']);
+  });
+
+  it('does not move the view state when nothing was renamed', () => {
+    // The pad-only move above must not steal the mute from the lane that still
+    // holds it in the clip.
+    useSession.setState({ mutedLanes: ['clap'] });
+    useSession.getState().reassignLaneEverywhere('clap', 'rim');
+    expect(useSession.getState().mutedLanes).toEqual(['clap']);
   });
 });

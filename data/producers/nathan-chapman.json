@@ -1,0 +1,277 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "nathan-chapman",
+  "type": "producer",
+  "name": "Nathan Chapman",
+  "aliases": [
+    "nathan chapman",
+    "nathanchapman",
+    "nate chapman"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2006-2016",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Nathan Chapman",
+    "Mix — Taylor Swift \"Love Story\" (https://www.mixonline.com/recording/taylor-swift-love-story)",
+    "Wikipedia — Nathan Chapman (https://en.wikipedia.org/wiki/Nathan_Chapman_(record_producer))"
+  ],
+  "notes": "The demo-guy-turned-hitmaker who set the template for country-pop crossover in the 2010s. Two documented practices reach the engine directly. First the foundation: \"documented original instrumentation on his flagship single was simply acoustic guitar, bass and drums — a deliberately thin foundation on which everything else is overdubbed,\" so the kit is small and dry and the perc lane set is the shortest of any producer here, with \"the arrangement rather than the kit providing dynamics.\" Second the live vocal: tracking at Blackbird with \"the lead vocal captured live with the band — the same 'vocal live in the room' practice as the older generation, not a modern comp-first approach,\" which is why the humanize is a played-take reading rather than a grid one. Harmony is \"four-chord loop based with the vocal carrying the interest,\" so no new families are invented — the genre's are inherited — and only the extension spread and a `2_bars_per_chord` weighting are authored, which is what a loop under a busy vocal actually is. His signature method is an arrangement rule and is quoted: he \"pulled the mix engineer's stems into a laptop, opened them in Logic, added electric guitars, banjo and fiddle while muting the country elements to make a pop version. That is a directly implementable arrangement rule — one arrangement, two mutually-exclusive instrument sets.\" ⚠ That two-instrument-set rule is a *palette* swap over one arrangement, not two grooves, so it is noted rather than authored as moods — a mood pair that differs only in timbre would fail the build. ⚠ Logic's Ultrabeat is credited for \"programmed beats on the pop remakes,\" which is the modest programmed clap layer here rather than an 808. ⚠ The INFERRED parameters are the humanize values, the velocity tiers and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 140,
+      "mode": 100
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "natural_minor"
+      ],
+      "weights": [
+        7,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 4,
+        "closedHat": 4
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        102,
+        118
+      ],
+      "main": [
+        70,
+        86
+      ],
+      "ghost": [
+        26,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.12,
+      "offbeat8thShare": 0.14
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        4
+      ],
+      "ghost": {
+        "prob": 0.11,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.16,
+      "openHat": {
+        "prob": 0.19,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -6,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.74,
+      "seventh": 0.22,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    },
+    "maxChords": 4
+  },
+  "melody": {
+    "register": [
+      57,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.3,
+      "arch": 0.5
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.06,
+    "endVariation": true,
+    "timbreHint": "acoustic_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.54,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.84,
+    "register": [
+      28,
+      44
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.18
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.34,
+        "beats": 4
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

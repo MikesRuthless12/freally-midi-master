@@ -1,0 +1,231 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rodney-atkins",
+  "type": "artist",
+  "name": "Rodney Atkins",
+  "aliases": [
+    "rodney atkins",
+    "rodneyatkins",
+    "rodney adkins"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2006-2011",
+  "genres": [
+    "country-pop",
+    "country",
+    "anthem country"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-train",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Rodney Atkins",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Rodney+Atkins)"
+  ],
+  "notes": "Uptempo small-town anthem country — chant hooks, kid-and-family narratives, straight rock drive. The drums are the stated pattern: \"quarter kick under choruses and 8th hats; the uptempo cuts use a driving two-beat with hat opening on 4; ballads use cross-stick and light shaker,\" so the kick sits on all four beats and the open hat lands on beat 4. The entry adds one genuinely unusual claim — \"gang-vocal chorus layers double as a percussive element\" — which is authored as a clap/snap perc lane rather than as a vocal, because the engine has no vocal lane. The bass is quoted: \"8ths locked to the kick, quarters under verses,\" hence `mirror_kick` with a real anticipation figure. Harmony is \"I–IV–V and I–V–vi–IV with a ♭VII borrow on the rockers.\" Melody is \"mid-baritone, syllabic, narrow; the chorus is a repeated short cell designed for crowd singing,\" which is the high two-bar cell repeat against a narrow register. ⚠ Confidence is medium, matching the research; the per-track readings are marked [LOW-CONF] there. ⚠ The INFERRED parameters are the velocity tiers, the perc density and the counter ratio — \"driving\" and \"gang-vocal layers\" are directions, and 106–127 / 2–5 / 0.4 are this author's reading of them.",
+  "session": {
+    "bpm": {
+      "min": 63,
+      "max": 144,
+      "mode": 116
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        6,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.13
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        106,
+        127
+      ],
+      "main": [
+        86,
+        100
+      ],
+      "ghost": [
+        32,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.11,
+      "offbeat8thShare": 0.09
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.09,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.23,
+      "openHat": {
+        "prob": 0.44,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -4,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.83,
+      "seventh": 0.15,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      53,
+      74
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.32,
+      "descend": 0.3,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.86,
+    "octaveJumpProb": 0.03,
+    "twoBarCellRepeat": 0.56
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.91,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      43
+    ],
+    "passingTones": [
+      "P5",
+      "M3"
+    ],
+    "anticipationProb": 0.16
+  }
+}

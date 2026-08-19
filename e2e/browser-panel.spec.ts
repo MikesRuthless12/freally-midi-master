@@ -570,3 +570,46 @@ test('the history can be emptied', async ({ page }) => {
   await page.getByRole('button', { name: 'Clear history' }).click();
   await expect(page.getByRole('list', { name: 'Recent' })).toHaveCount(0);
 });
+
+/**
+ * Training a style on a `.mid` from the browser (TASK-040T).
+ *
+ * ⛔⛔ **The gesture this task waited on, and the reason it is an e2e.** The fit,
+ * its anti-collapse rules, the SMF reader and the keep/train loop all shipped on
+ * 2026-08-09 — and the reader was reachable *only over the bridge*, so a producer
+ * could train on their own generations and not on their own files. Every piece
+ * was individually tested and the door was missing, which is the same shape as
+ * the ten explorer commands this file's header records: each gate asked "does
+ * what is wired up work" and none asked "is it wired up".
+ *
+ * ⚠ **The count is the assertion, not the button's own state.** A toggle that
+ * lights up and reaches nothing is exactly the failure above. `riff.mid` splits
+ * into three parts in the mock, so the style editor must move from `0 / 30` to
+ * `3 / 30` — the number `engine::fit::MIN_KEPT` is a floor on.
+ */
+test('a .mid can be kept to train on, and the style editor counts its parts', async ({
+  page,
+}) => {
+  await browserRow(page, 'Samples').click();
+  await browserRow(page, 'riff.mid').click();
+
+  const keep = page.getByRole('button', { name: 'Train on this' });
+  await expect(keep).toHaveAttribute('aria-pressed', 'false');
+  await keep.click();
+  await expect(keep).toHaveAttribute('aria-pressed', 'true');
+
+  await page.getByRole('button', { name: /Original Workflow/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Style editor' });
+  await expect(dialog).toBeVisible();
+  // Three parts out of one file, counted as three patterns — which is what the
+  // engine's floor is a floor on.
+  await expect(dialog.locator('.styleeditor__kept')).toHaveText('3 / 30 kept');
+
+  // ...and it is undone where it was done, rather than only inside the dialog.
+  await dialog.getByRole('button', { name: 'Close' }).click();
+  await keep.click();
+  await expect(keep).toHaveAttribute('aria-pressed', 'false');
+
+  await page.getByRole('button', { name: /Original Workflow/ }).click();
+  await expect(dialog.locator('.styleeditor__kept')).toHaveText('0 / 30 kept');
+});

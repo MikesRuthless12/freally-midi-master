@@ -1,0 +1,272 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "celine-dion",
+  "type": "artist",
+  "name": "Celine Dion",
+  "aliases": [
+    "celine dion",
+    "celinedion"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1990-2004",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "adult contemporary"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "country-pop",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Celine Dion",
+    "bpmdatabase — Celine Dion (https://www.bpmdatabase.com/music/search/?artist=Celine+Dion&title=)",
+    "Wikipedia — David Foster (https://en.wikipedia.org/wiki/David_Foster)"
+  ],
+  "notes": "The maximal adult-contemporary power ballad. 60–92 with a half-time feel and the backbeat on 3, so `halfTime` is true and the snare is `halftime_3`; the 102–137 straight uptempo band is named here rather than encoded. The drum sentence is a set of absences and they are what the block encodes: \"near-absent in verse 1\", \"a soft kick on 1 and 3\", \"a huge reverbed snare on 3 entering at the first chorus\", and — the delta that matters most — \"timpani and orchestral bass drum used as fills; cymbal swells rather than snare rolls into sections\", which is why `snareRollLadder` is off, the hat rolls sit at 0.02, the fill schedule is every 16 bars and the perc block is toms and a crash. Harmony is I–V–vi–IV and vi–IV–I–V with \"suspended (sus4) chords on the pre-chorus to delay resolution\", hence `susSubstitutionProb` 0.38, the highest in this batch. The melody follows the stated dynamic plan — verse low and quiet, chorus a fifth higher, \"note density very low\" — and the woodwind/oboe counter-melody answering vocal phrases is the `answer_lick` counter at a low ratio. ⚠ `confidence` is medium because the research rates it high-medium. ⚠ The **INFERRED** parameters are all drum probabilities and `bpm.mode` 74. ⛔ **The bass is `mirror_kick` rather than `reese_sustain`, and that is an engine limit rather than a reading of the record.** `reese_sustain` is the only rhythm `bass.rs` reads that holds a note, and it emits one note per chord — TASK-162, still open — so this model measured **259 distinct basslines in 1,000 seeds** on it against `bass.rs`'s floor of 500. `mirror_kick` with a high root lock is the roster-wide substitution for a sustained sub (`dmx`, `coolio`, `krs-one`, `mobb-deep` all record the same one), and over a kick that plays a soft 1 and 3 with a `4&` it reads as held at this tempo. The research is *\"orchestral double-bass plus a keyboard sub on roots; whole notes, moving only at chord changes\"* — the roots are `followRootsProb` 0.94, and `M2` joins `P5` because the entry also documents *\"suspended (sus4) chords on the pre-chorus to delay resolution\"*, which is what a double bass walks through. ⚠ **INFERRED:** the exact 0.94 and `anticipationProb` 0.14 are lane-conventional, not sourced.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 92,
+      "mode": 74
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        7,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.2
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        86,
+        104
+      ],
+      "main": [
+        56,
+        74
+      ],
+      "ghost": [
+        22,
+        34
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.08
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.04,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.12,
+          0.24
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.2,
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.02
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tom",
+        "tomLow",
+        "crash"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "IV",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.44,
+      "seventh": 0.4,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        82
+      ],
+      "topVoiceStepwise": true
+    },
+    "susSubstitutionProb": 0.38,
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      83
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.82,
+      "third": 0.14,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.14,
+      "descend": 0.3,
+      "arch": 0.56
+    },
+    "chordToneBias": 0.88,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.32,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.14
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.4,
+        "beats": 2
+      },
+      "switchUpProb": 0.04
+    }
+  }
+}

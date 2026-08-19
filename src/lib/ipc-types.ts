@@ -4,7 +4,32 @@
  * Performance marking. Carries intent the raw velocity cannot: a ghost note
  * and a quiet main hit are the same number but not the same musical event.
  */
-export type Articulation = "ghost" | "accent" | "legato" | "staccato" | "roll";
+export type Articulation = "ghost" | "accent" | "legato" | "staccato" | "roll" | "cluster";
+
+/**
+ * What the 808 is doing musically.
+ */
+export type Bass808Role = "bassline" | "counter_riff";
+
+/**
+ * How busy a reading of the style the producer asked for (TASK-125).
+ *
+ * ⛔⛔ **It scales WITHIN what the model authored and never overrides it**, and
+ * that is the whole design rather than a caveat. The roadmap states the rule:
+ * *"Complex must not mean 'wrong for the style': a rage vamp made busy is no
+ * longer rage, so the switch scales within each model's authored ranges rather
+ * than overriding them."* So this only ever biases a **choice the model already
+ * offered** — a draw inside an authored range, or a pick from an authored
+ * weighted list. A model that authors one value gets that value at every
+ * setting, which is the correct answer for a lane whose whole identity is a
+ * one-chord vamp.
+ *
+ * ⚠ **`Authored` is the default and means "exactly what the model says".** Every
+ * project written before this existed deserialises to it, so a saved seed keeps
+ * rebuilding the beat the producer heard — the same compatibility rule
+ * `auto_sync` follows.
+ */
+export type Complexity = "simple" | "authored" | "complex";
 
 /**
  * A model the app could not use, in the form the UI reports it (FR-001).
@@ -17,6 +42,36 @@ export type DatasetProblem = {
  * The file it came from, or the model id when the failure was in the merge.
  */
 source: string, message: string, };
+
+/**
+ * A generated part, and the parts it was written **against**.
+ *
+ * ⛔⛔ **TASK-166.** `parts::render` builds a Counter's harmony and the song's
+ * lead at exactly the seeds the page then re-requested over IPC — so one
+ * Counter press cost 3 chord generations where 1 was needed and 3 round trips
+ * where 1 was. `editor.rs` registers `with_custom_protocol`, the *synchronous*
+ * variant, so every one of those round trips was served on the webview thread
+ * and blocked the hosted DAW's window for a whole generation.
+ *
+ * ⚠ **A wrapper rather than a field on [`Pattern`].** `Pattern` is saved into
+ * projects and handed to the audio thread; giving it a recursive `upstream`
+ * would put nested clips into every save for the benefit of one command's
+ * reply. This type exists only on the wire.
+ *
+ * ⚠ **`upstream` is empty for Drums and Chords**, which answer to nothing —
+ * see [`engine::parts`]. The page fills only what it is given, so the list
+ * being empty is the whole instruction.
+ */
+export type Generated = { 
+/**
+ * The part the producer actually pressed Generate on.
+ */
+pattern: Pattern, 
+/**
+ * The parts it was written against, already generated. In `parts.rs`'
+ * order, which is the order a producer watches the tabs fill.
+ */
+upstream: Array<Pattern>, };
 
 /**
  * How far generated notes are pulled off the grid, and how much velocities
@@ -296,7 +351,15 @@ keyRoot: number, scale: Scale, swing: Swing, bars: number,
  * Halves the perceived tempo — the drums sit at half speed against the
  * stated BPM, which is how most trap and drill models are notated.
  */
-halfTime: boolean, humanize: Humanize, };
+halfTime: boolean, humanize: Humanize, 
+/**
+ * How busy a reading of the style to generate (TASK-125).
+ *
+ * ⚠ **`serde(default)` and it matters**: this arrives in a payload from the
+ * page and in a project file written before it existed, and absent has to
+ * mean [`Complexity::Authored`] rather than a parse error or a busier beat.
+ */
+complexity: Complexity, };
 
 /**
  * What a model asks for, before a seed picks among the options it offers.
@@ -377,7 +440,19 @@ keyRoot: number | null, scale: Scale | null, swing: number | null, bars: number 
  * producer writing a 3/4 clip in a 4/4 project has been more specific than
  * the project.
  */
-timeSigNum: number | null, timeSigDen: number | null, };
+timeSigNum: number | null, timeSigDen: number | null, 
+/**
+ * How busy a reading of the style to generate (TASK-125).
+ *
+ * ⚠ Absent is [`Complexity::Authored`], which is what every payload and
+ * every project written before the switch existed sends.
+ */
+complexity: Complexity | null, };
+
+/**
+ * Where the snare lands, bar by bar (PRD § 3, research ch. 1).
+ */
+export type SnarePlacement = "halftime_3" | "backbeat_24" | "drill_3_4" | "train_16ths" | "downbeat_1_3";
 
 /**
  * A full arrangement — what Song Mode produces and what the multi-track SMF

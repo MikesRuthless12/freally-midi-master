@@ -1,0 +1,370 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "070-shake",
+  "type": "artist",
+  "name": "070 Shake",
+  "aliases": [
+    "070 shake",
+    "danielle balbuena",
+    "modus vivendi",
+    "you cant kill me"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap-soul"
+  ],
+  "era": "2018-present",
+  "genres": [
+    "trap-soul",
+    "rnb",
+    "shoegaze rnb"
+  ],
+  "relatedGenres": [
+    "trap-soul",
+    "cloud-rap",
+    "emo-rap",
+    "trap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 trap-soul — 070 Shake",
+    "Wikipedia — 070 Shake (https://en.wikipedia.org/wiki/070_Shake)",
+    "Wikipedia — Alternative R&B (https://en.wikipedia.org/wiki/Alternative_R%26B)",
+    "Wikipedia — Kanye West (https://en.wikipedia.org/wiki/Kanye_West)"
+  ],
+  "notes": "\"The lane's most rock-and-atmosphere-facing voice.\" The kit is \"sparse and huge — one deep 808 or gated kick per bar, a heavily-reverbed snare or clap on beat 3, minimal or absent hats, and long drumless passages\", so this is a one-kick-per-bar model with the hat carpet near the floor and the section's largest snare reverb; the rock-tempo four-on-the-floor variant is documented in the entry and recorded here rather than authored, since the volume gives it no separate harmony. The harmony claim is that there mostly is not one: \"static m9/m11 sonorities held for long stretches, with **shoegaze-style guitar and synth drones supplying the harmony rather than a chord comp**\", which is a single-sonority family at top weight, `harmonicRhythm` on `vamp` and the longest chord durations in the section beside Jhené Aiko's. The melody is the entry's most specific claim: \"a low, husky, androgynous contralto delivered near-monotone, very low note-density, long held notes, heavy Auto-Tune used as a texture rather than for correction, and octave doubles rather than harmony stacks\" — hence a narrow low register, a `densityPerBar` floor of 1, the highest `emptyBarBias` here and an `octave_echo` counter. The 808 is \"deep sustained… mixed enormous and low-passed\" with slow slides. ⚠ `confidence` is **low**, mirroring medium-low: \"her production milieu and stylistic positioning are sourced; parametric detail is inference\". ⚠ All drum, 808 and density numbers are **INFERRED**. ⚠ `session.bpm.mode` is **INFERRED**: the number is not stated in the entry, and it is an authored centre of gravity inside the band the entry does state. ⚠ **`session.keys` is INFERRED.** The entry's Keys line describes the harmonic grammar but names no key centre, so these values and their weights are an authored choice — no key in this set is stated in the research. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry's harmony line is \"static m9/m11 sonorities held for long stretches, with **shoegaze-style guitar and synth drones** supplying the harmony rather than a chord comp; occasional real progressions with a major-key lift\", and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\") — so a `vamp`-dominant weighting rendered a **one**-chord bed the research nowhere describes. `vamp` **keeps the top weight** here, because \"held for long stretches\" is the entry's first claim. What was unencoded is its second: \"occasional real progressions\" cannot be stated at all when every generation is a single chord, so `2_bars_per_chord` and a small `1_per_bar` are now authored underneath it. ⚠ The weights among the three rates are **INFERRED** — the entry says \"occasional\", not how often. ⚠ **The countermelody reached 699/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.42 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. Second, `melody.densityPerBar` went from [1, 3] to [2, 4]. A lead allowed to thin to a single note a bar leaves the counter almost nothing to answer, and no amount of counter density recovers what the lead never played. This is the lead becoming reliably present rather than busier — the floor is what moved and the ceiling carries the density claim. ⚠ Every value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"washed, saturated electric guitar and synth pads with very long reverbs — the texture is closer to shoegaze than to R&B. Melody is a low, husky, androgynous contralto delivered near-monotone, very low note-density, long held notes, heavy Auto-Tune used as a texture rather than for correction, and octave doubles rather than harmony stacks.\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 120,
+      "max": 150,
+      "mode": 134
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Dm",
+        "Am",
+        "Gm",
+        "Cm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.51
+    },
+    "humanize": {
+      "quantizeStrength": 0.91,
+      "velocityVar": 0.13,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 4,
+        "clap": 5,
+        "closedHat": 2,
+        "bass808": 1
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        120,
+        127
+      ],
+      "main": [
+        64,
+        78
+      ],
+      "ghost": [
+        22,
+        32
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.06,
+      "tresilloBias": 0.03,
+      "lockTo808": 0.98
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.03,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.12,
+          0.2
+        ]
+      },
+      "offGridMs": [
+        1,
+        5
+      ],
+      "reverb": 0.98,
+      "detuneSemis": -1
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.05,
+      "velocities": {
+        "main": [
+          0.24,
+          0.38
+        ],
+        "ghost": [
+          0.1,
+          0.18
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0,
+        "positions": [
+          "phrase_end"
+        ],
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "impact",
+        "crash",
+        "reverse"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -7
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.24,
+      "portamentoMs": [
+        130,
+        220
+      ],
+      "slidesPer4Bars": [
+        1,
+        1
+      ],
+      "slideIntervals": {
+        "values": [
+          "M2",
+          "m3",
+          "P5"
+        ],
+        "weights": [
+          3,
+          2,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        20,
+        34
+      ],
+      "distortion": "medium",
+      "lowPassed": true
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 32
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "III"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.16,
+      "seventh": 0.4,
+      "ninth": 0.44
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        84
+      ],
+      "adjacentSecondProb": 0.52,
+      "lowPassed": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      16,
+      32
+    ]
+  },
+  "melody": {
+    "register": [
+      50,
+      67
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "densityPerBar": [
+      2,
+      4
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.9,
+      "third": 0.09,
+      "leap": 0.01
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.42,
+      "arch": 0.14
+    },
+    "chordToneBias": 0.84,
+    "emptyBarBias": 0.1,
+    "twoBarCellRepeat": true,
+    "octaveJumpProb": 0.01,
+    "articulation": "legato",
+    "timbreHint": "saturated_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.9,
+    "styles": {
+      "values": [
+        "octave_echo"
+      ],
+      "weights": [
+        1
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": 16,
+      "hook": [
+        8,
+        16
+      ],
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 4
+      },
+      "switchUpProb": 0.28
+    }
+  }
+}

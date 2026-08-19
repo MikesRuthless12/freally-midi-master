@@ -1,0 +1,372 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "imagine-dragons",
+  "type": "artist",
+  "name": "Imagine Dragons",
+  "aliases": [
+    "imagine dragons",
+    "imaginedragons",
+    "imagine dragons band",
+    "idragons"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2012-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "alt-pop",
+    "stadium rock"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "pop-2000s",
+    "emo-rap",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Imagine Dragons",
+    "Wikipedia — Imagine Dragons (https://en.wikipedia.org/wiki/Imagine_Dragons)",
+    "Wikipedia — Joel Little (https://en.wikipedia.org/wiki/Joel_Little)",
+    "Wikipedia — Alex da Kid (https://en.wikipedia.org/wiki/Alex_da_Kid)"
+  ],
+  "notes": "Percussive stadium alt-pop built on a tom-driven floor. The entry says the identity is \"a four-on-the-floor tom/kick pulse rather than a backbeat-led kit\", so the backbeat class stays straight but the kit is inverted: the kick anchors all four beats at a density of 4, the perc lanes are `tom`, `tomLow`, `tomHigh` and `crash` at the highest perc density and the highest gain offset in this section, and the snare sits under a large gated tail with a low ghost probability. \"Handclaps and stomps in place of hats\" is `hihat.continuous` false at `fillDensity` 0.06, and \"fills are tom cascades, not snare rolls\" is the roll vocabulary switched off with the ladder disabled. No `bass808` block: \"distorted sub and synth bass doubling the tom pulse; low end is deliberately blunt and mono\", which is a kick mirror at 0.97 with a single passing tone and the narrowest bass register here. Harmony is the entry's stated pair, \"i—VI—III—VII or i—VII—VI … with a sustained tonic drone\", so those two families lead and a tonic family carries the drone. Melody encodes \"chant-like with a short repeated cell in verses and a shouted wide-interval hook\" as a two-to-three-pitch motif with a raised `octaveJumpProb`; \"countermelody is a distorted synth or vocal-chop riff\" is `answer_lick` plus `bell_echo`. ⚠ `confidence` is medium and the research says \"tempo/key bands inferred\": every drum probability, the humanize numbers, the melody register and `bpm.mode` 130 (the midpoint of the stated 120—140 anthem core) are INFERRED, and the entry's [LOW-CONF] mark on the rock-tenor claim is repeated here.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 150,
+      "mode": 130
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        6,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.19,
+      "timingJitterMs": {
+        "kick": 5,
+        "tom": 9,
+        "tomLow": 9,
+        "clap": 8
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        86,
+        104
+      ],
+      "ghost": [
+        36,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.06,
+      "tresilloBias": 0.02,
+      "offbeat8thShare": 0.04
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "reverb": "large",
+      "transient": "hard",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        4,
+        12
+      ],
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.06,
+      "velocities": {
+        "main": [
+          0.44,
+          0.72
+        ],
+        "ghost": [
+          0.16,
+          0.32
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tom",
+        "tomLow",
+        "tomHigh",
+        "crash"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": 0
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.8,
+      "seventh": 0.16,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        79
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      81
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      2,
+      3
+    ],
+    "intervals": {
+      "step": 0.7,
+      "third": 0.2,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.24,
+      "arch": 0.16
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": [
+      0.14,
+      0.28
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4,
+        2
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": [
+      0.4,
+      0.62
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "bell_echo"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.97,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      42
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.16,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "1"
+      ],
+      [
+        "1",
+        "1",
+        "1",
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": [
+        8,
+        16
+      ],
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 4
+      },
+      "switchUpProb": 0.07
+    }
+  }
+}

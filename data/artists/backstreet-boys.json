@@ -1,0 +1,270 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "backstreet-boys",
+  "type": "artist",
+  "name": "Backstreet Boys",
+  "aliases": [
+    "backstreet boys",
+    "backstreetboys",
+    "bsb"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1996-2001",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "teen pop"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "country-pop",
+    "rnb-2000s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Backstreet Boys",
+    "Wikipedia — \"I Want It That Way\" (https://en.wikipedia.org/wiki/I_Want_It_That_Way)",
+    "Wikipedia — Cheiron Studios (https://en.wikipedia.org/wiki/Cheiron_Studios)"
+  ],
+  "notes": "The Cheiron ballad/mid-tempo template, and the restrained end of the lane: 88–105 with ballads at 64–80, straight, backbeat on 2&4 throughout, so the session spans 64–105 with the mode on the mid-tempo centre. The harmonic signature the research names is the major key that opens on the minor vi — vi–IV–I in A on the 1999 single — plus the late whole-tone modulation, so vi–IV–I carries top weight. Three drum deltas come straight off the entry: \"kick 1 and 3 with an 8th pickup\" (anchors on 1 and 3, secondary on \"4&\"), \"brushed/soft hat 8ths in verse, 16ths plus tambourine in the chorus\" (8th-weighted base with a tambourine lane), and \"no fills across the chorus boundary, only a crash\" — which is why `fills` moves to every 8 and 16 bars, the hat rolls are near zero, and a crash lane sits in the percs. The bass follows the acoustic arpeggio rather than the kick (\"on roots and 5ths, legato, following the guitar arpeggio's harmonic rhythm\"), so it is `independent_riff` at 0.86 with the fifth as its passing tone. ⚠ The **INFERRED** parameters are the velocity softness, `syncopation` 0.18 and the perc densities — \"restrained\" is a direction, not a number. ⚠ The melody register 55–79 is a reading of the stated E3–B4 group range widened by the octave the chorus double adds.",
+  "session": {
+    "bpm": {
+      "min": 64,
+      "max": 105,
+      "mode": 92
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.92,
+      "velocityVar": 0.12
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        92,
+        108
+      ],
+      "main": [
+        68,
+        84
+      ],
+      "ghost": [
+        30,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.18
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          4,
+          2
+        ]
+      },
+      "fillDensity": 0.34,
+      "openHat": {
+        "prob": 0.16,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.04
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "crash",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.26,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        78
+      ],
+      "topVoiceStepwise": true
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.28,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "acoustic_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "rhythm": "independent_riff",
+    "register": [
+      30,
+      48
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.18
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

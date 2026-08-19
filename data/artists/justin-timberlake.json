@@ -1,0 +1,254 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "justin-timberlake",
+  "type": "artist",
+  "name": "Justin Timberlake",
+  "aliases": [
+    "justin timberlake",
+    "justintimberlake",
+    "jt"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2002-2007",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "rnb"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "rnb-2000s",
+    "neo-soul",
+    "dance-pop"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Justin Timberlake",
+    "Wikipedia — \"Cry Me a River\" (https://en.wikipedia.org/wiki/Cry_Me_a_River_(Justin_Timberlake_song))"
+  ],
+  "notes": "The bridge between this lane and `rnb-2000s`, and the one entry here whose signature singles the research calls **half-time-feeling** outright — \"backbeat effectively on 3 with a 2/2 pulse\" at 74–80 — so `halfTime` is true and the snare moves to `halftime_3`. The session window is trimmed to the half-time band; the straight-time end of the stated 74–120 spread is the other backbeat class and a single session block cannot carry both, so it is named here instead of encoded. Drums are quoted directly: \"kick sparse and syncopated\" (density 1–3, `syncopation` 0.55), \"16th and 32nd hat stutters as the fill vocabulary\" (a 16/32 roll vocabulary firing twice a bar), and \"beatboxed and sampled percussion layered with programmed kit\" plus \"vocal percussion doubles the hat\", which is the three-lane perc block. The low end is a synth sub with \"long tied notes, dropping out on the turnaround\" — a synth bass, not an 808, so no `bass808` block is authored and the inherited null is what lets the bassline generator run at all; `mirror_kick` is the tied-note reading. Harmony is i–VI–VII loops with \"no functional cadence\", which is why the families never contain a V. ⚠ The **INFERRED** parameters are the drum probabilities, `bpm.mode` 78 (the centre of the stated 74–80 signature band) and the modal colour weighting — the research says \"modal/'Arabic' scale colour on the riff\" and `harmonic_minor` is the nearest legal scale name to that description. ⚠ **The bass is `mirror_kick` rather than the held `reese_sustain` the research describes** — *“synth sub, long tied notes, dropping out on the turnaround; clavinet carries the mid-bass motion.”* — and that is a limit of the engine rather than a reading of the record. `generators::phrase_spans` re-articulates a held span only when it runs longer than two bars, so over the four-bar clip `reese_sustain` writes at most four notes and cannot reach the 500-bassline floor `engine/tests/bass.rs` holds every model to. `mobb-deep`, `dmx` and `capone-n-noreaga` carry the same substitution for the same reason; `followRootsProb` stays where it was so the line still reads as roots under the chord.",
+  "session": {
+    "bpm": {
+      "min": 74,
+      "max": 96,
+      "mode": 78
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "phrygian"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.16
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.55,
+      "tresilloBias": 0.3
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.7,
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            2,
+            3
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.5,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "perc2",
+        "snap"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.44,
+      "seventh": 0.4,
+      "ninth": 0.16
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      88
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.28,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.28,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.64,
+    "octaveJumpProb": 0.26,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.08,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.15
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 4
+      },
+      "switchUpProb": 0.18
+    }
+  }
+}

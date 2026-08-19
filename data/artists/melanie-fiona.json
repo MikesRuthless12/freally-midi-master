@@ -1,0 +1,296 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "melanie-fiona",
+  "type": "artist",
+  "name": "Melanie Fiona",
+  "aliases": [
+    "melanie fiona",
+    "melanie fiona hallim",
+    "toronto retro soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2009-2016",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "dancehall"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Melanie Fiona",
+    "Wikipedia — Melanie Fiona (https://en.wikipedia.org/wiki/Melanie_Fiona)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "Toronto's Motown-revivalist soul voice. `confidence` is **low** — the research rates the entry medium-low, sourcing the retro-soul lane position but marking \"tempo, drum and harmonic detail\" as inference. The drums are the stated 60s kit: \"dry, tight 60s-style kit with the snare cracked on 2&4, tambourine doubling it, no 16th hat carpet, and triplet fills into sections\". That last clause is the one field that separates her from the other retro-soul models here — `snareRoll.subdivisions` are triplets (16t and 8t) rather than straight 16ths — and the tambourine mirrors the clap over a downbeat-placed percussion set. Harmony is \"major-mode 60s-soul diatonicism — `I–vi–IV–V` and 12-bar-derived forms with dominant 7ths\", so both families are the ones the entry writes out and the triad weight is high with almost no ninths. Melody is \"mid-alto with a hard-edged belt, short repeated phrases, gospel ornament, and group-vocal answering lines on the chorus\", which is the call-and-response structure with two-and-four-bar phrases and a dense answering counter. Bass is \"Jamerson-lineage melodic 8ths on the soul material, and long root-and-fifth lovers-rock lines on the reggae-facing cuts\". ⚠ Every drum, melody and bass number here is INFERRED. ⚠ The reggae variant the entry names — kick and snare together on beat 3 — is **not** encoded: this model states the straight 2&4 spine only, and a one-drop would need a placement change the Lane line does not carry.",
+  "session": {
+    "bpm": {
+      "min": 74,
+      "max": 108,
+      "mode": 90
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor",
+        "blues"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 5,
+        "tambourine": 7
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.2,
+      "tresilloBias": 0.03
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "offGridMs": [
+        0,
+        4
+      ],
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.18,
+      "velocities": {
+        "main": [
+          0.52,
+          0.78
+        ],
+        "ghost": [
+          0.16,
+          0.34
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "rim",
+        "conga"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -3,
+      "tambourineMirrorsClap": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        50,
+        104
+      ],
+      "rampJitter": 14,
+      "gapProb": 0.3,
+      "descendProb": 0.3
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      }
+    ],
+    "extensions": {
+      "triad": 0.44,
+      "seventh": 0.46,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      78
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.23,
+      "leap": 0.05
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.34,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.12,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "organ_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.5,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.42
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 4
+      },
+      "switchUpProb": 0.22
+    }
+  }
+}

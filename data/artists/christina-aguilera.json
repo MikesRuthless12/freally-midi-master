@@ -1,0 +1,237 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "christina-aguilera",
+  "type": "artist",
+  "name": "Christina Aguilera",
+  "aliases": [
+    "christina aguilera",
+    "christinaaguilera",
+    "xtina"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1999-2006",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "rnb"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "rnb-2000s",
+    "neo-soul",
+    "dance-pop"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Christina Aguilera",
+    "Wikipedia — \"Genie in a Bottle\" (https://en.wikipedia.org/wiki/Genie_in_a_Bottle)",
+    "Wikipedia — Linda Perry (https://en.wikipedia.org/wiki/Linda_Perry)"
+  ],
+  "notes": "Teen-pop carried by a soul/R&B vocal engine: 84–110 straight with the backbeat on 2&4 and ballads down to 60, so the session window runs 60–110 with the mode on the 84 the research states for the debut single. The one drum fact that is a signature rather than a convention is the \"32nd-note bass-drum flutter under the groove\", and since the schema has no kick-subdivision field the flutter is encoded as the only thing that reaches the generator — a high kick `densityPerBar` of 4–8 with `syncopation` up at 0.48. The other two deltas are quoted directly: \"snare on 2&4 with a 16th ghost before 4\" is `ghost.pos` \"3a\" (on the e/&/a grid `engine/src/generators/grid.rs` parses, the 16th immediately *before* beat 4 is \"3a\"; \"4e\" falls after it), and \"hats mostly 16ths with an open hat on the last 8th\" is a pinned 16th base with the open hat on \"4&\". Harmony is the documented Fm–E♭–D♭ descending cell, i–VII–VI, with the extensions pushed towards sevenths because the vocal engine is R&B rather than Cheiron. ⚠ The **INFERRED** parameters are every probability in the drums block plus the two major 4-chord families: the entry says \"ballads in major with 4-chord loops\" without naming degrees, so I–V–vi–IV and vi–IV–I–V are this author's reading of that phrase and carry the lower weights. ⚠ `keys` is left inherited because the entry names one tonic.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 110,
+      "mode": 84
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.48,
+      "tresilloBias": 0.16
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.6,
+      "openHat": {
+        "prob": 0.4,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            2,
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.18
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -3
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.55,
+      "seventh": 0.33,
+      "ninth": 0.12
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      84
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.28,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.28,
+      "descend": 0.26,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.66,
+    "octaveJumpProb": 0.24,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "soft_keys"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 4
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

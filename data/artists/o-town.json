@@ -1,0 +1,264 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "o-town",
+  "type": "artist",
+  "name": "O-Town",
+  "aliases": [
+    "o town",
+    "otown"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2000-2002",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "teen pop"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "rnb-2000s",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — O-Town",
+    "Wikipedia — \"All or Nothing\" (https://en.wikipedia.org/wiki/All_or_Nothing_(O-Town_song))"
+  ],
+  "notes": "An American manufactured boy band working a UK-produced ballad template, and the research states the ballad feel explicitly — 64–92 with a \"6/8-ish subdivision with the backbeat on 3\" — so `halfTime` is true and the snare is `halftime_3`. The stated 100–124 uptempo band is the other backbeat class and is named here rather than encoded, because one session block carries one backbeat. The harmony is fully documented: C major throughout with a modulation to D after the bridge, I–vi–IV–V under the verse and IV–V–I on the chorus lift. Three drum facts are authored — \"kick 1 and 3\", \"snare (often a brushed or gated sample) on 3 in the slow songs\", and \"16th hat only from chorus 2\", which is why the hat base is 8th-weighted with a low fill density, plus the \"tom fill into the modulation\" as a tom lane and a wide fill schedule. The group range G3–A4 is tight \"so the five voices can stack\", and the chorus is \"a 4-note descending cell repeated with harmony added each time\", which is the narrow register with a descend-heavy contour and a two-bar phrase. ⚠ `confidence` is medium because the research rates it high-medium. ⚠ The **INFERRED** parameters are all drum probabilities and `bpm.mode` 78. ⚠ **The bass is `mirror_kick` rather than the held `reese_sustain` the research describes** — *“keyboard bass on roots, whole- or half-note durations under the ballads; played bass on the uptempos.”* — and that is a limit of the engine rather than a reading of the record. `generators::phrase_spans` re-articulates a held span only when it runs longer than two bars, so over the four-bar clip `reese_sustain` writes at most four notes and cannot reach the 500-bassline floor `engine/tests/bass.rs` holds every model to. `mobb-deep`, `dmx` and `capone-n-noreaga` carry the same substitution for the same reason; `followRootsProb` stays where it was so the line still reads as roots under the chord. ⚠ **The bassline reached 921 of 1,000 distinct against `bass.rs`'s 0.95 share.** The research names two low ends, and only the first was authored: *\"keyboard bass on roots, whole- or half-note durations under the ballads; **played bass on the uptempos**\"*. A played bass is the half that moves, and `followRootsProb` 0.92 with an `M2` beside `P5` is where it lives in one blended model. ⚠ **INFERRED:** the exact 0.92, the `M2` and `anticipationProb` 0.20 are lane-conventional rates, not sourced ones.",
+  "session": {
+    "bpm": {
+      "min": 64,
+      "max": 92,
+      "mode": 78
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        7,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        90,
+        106
+      ],
+      "main": [
+        64,
+        80
+      ],
+      "ghost": [
+        28,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.14
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          4,
+          2
+        ]
+      },
+      "fillDensity": 0.28,
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.05
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tom",
+        "shaker",
+        "crash"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "IV",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.3,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        49,
+        77
+      ],
+      "topVoiceStepwise": true
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      69
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.76,
+      "third": 0.2,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.5,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      30,
+      47
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 2
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

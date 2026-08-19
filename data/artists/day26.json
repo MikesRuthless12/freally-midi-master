@@ -1,0 +1,385 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "day26",
+  "type": "artist",
+  "name": "Day26",
+  "aliases": [
+    "day26",
+    "day 26",
+    "making the band men"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "2008-2010",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "808 rnb"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "trap-soul",
+    "crunk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Day26",
+    "bpmdatabase — Day26 (https://www.bpmdatabase.com/music/search/?artist=Day26)",
+    "YouKnowIGotSoul — Bryan-Michael Cox signs Day26 (https://youknowigotsoul.com/bryan-michael-cox-signs-day26-to-his-creative-content-company-illustrate-new-ideas)"
+  ],
+  "notes": "Bad Boy male group from *Making the Band*, on Hitmen-era productions and later Bryan-Michael Cox, 2008–2010. The research gives \"71–109; ballads 71–76 half-time, one uptempo at 109\", and the ballad band is the base with `halfTime` true; the single 109 outlier is a different backbeat class. Three drum deltas from \"808/clap bed with the clap on beat 3 at the ballad tempo, offbeat 808 hats, snare-roll pickup\": a kick with `lockTo808` at 0.55 and a real tresillo lean, a clap stacked on beat 3, and an offbeat shaker/snap bed at three to five hits a bar against a hat lane at 0.12 — plus a 16th `snareRoll` ladder for the pickup. This is a true 808 model — \"808 sub on the root with a slide, long decay\" — so `drums.bass808` takes role `bassline` and there is no `bassline` block. Harmony splits the way the entry says the board does: \"piano/Rhodes-led 4-chord cycles in the Cox school, two-chord vamps on the Hitmen cuts\", so both a four-chord and a two-chord family are authored, with `maxChords` 4 and a 0.16 triad share. \"Five-part male harmony with a gospel-derived spread and a belted lead, moderate note-density\" is a twenty-nine-semitone melody register with an arch-leaning contour and a counter at −12 sharing weight between `octave_echo` and `sustain_pad`. ⚠ Confidence is **low**: the research rates the entry medium-low and marks the key claim `[LOW-CONF]`. ⚠ Every velocity, density and ramp number is INFERRED. ⚠ `session.keys` is INFERRED: the entry's Keys line gives \"minor-mode with maj7 colour [LOW-CONF]\" and enumerates no tonic, so the values here and their weights are this author's reading of that line.",
+  "session": {
+    "bpm": {
+      "min": 71,
+      "max": 76,
+      "mode": 76
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Fm",
+        "Bbm",
+        "Cm",
+        "Ebm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "clap": 4,
+        "shaker": 6,
+        "bass808": 2
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.44,
+      "tresilloBias": 0.2,
+      "lockTo808": 0.55
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        0,
+        3
+      ],
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.1,
+          0.2
+        ]
+      },
+      "offGridMs": [
+        0,
+        3
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.12,
+      "velocities": {
+        "main": [
+          0.24,
+          0.4
+        ],
+        "ghost": [
+          0.1,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.04,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.06
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "snap"
+      ],
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        48,
+        108
+      ],
+      "rampJitter": 11,
+      "gapProb": 0.2,
+      "descendProb": 0.14
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "portamentoMs": [
+        50,
+        90
+      ],
+      "slideProb": 0.4,
+      "slidesPer4Bars": [
+        1,
+        2
+      ],
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "m3",
+          "P4"
+        ],
+        "weights": [
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "bar_2",
+        "phrase_end"
+      ],
+      "register": [
+        24,
+        39
+      ],
+      "distortion": "none"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.16,
+      "seventh": 0.5,
+      "ninth": 0.34
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      12
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      9
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.14,
+      "descend": 0.4,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 16,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.65,
+        "beats": 4
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

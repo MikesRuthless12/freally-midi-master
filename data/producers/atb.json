@@ -1,0 +1,377 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "atb",
+  "type": "producer",
+  "name": "ATB",
+  "aliases": [
+    "atb",
+    "andre tanneberger",
+    "sequential one"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "1993-present",
+  "genres": [
+    "dance-pop",
+    "trance",
+    "chillout",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "techno",
+    "house",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — ATB",
+    "Wikipedia — ATB (https://en.wikipedia.org/wiki/ATB_(DJ))",
+    "Wikipedia — 9 PM (Till I Come) (https://en.wikipedia.org/wiki/9_PM_(Till_I_Come))",
+    "Trance music (https://en.wikipedia.org/wiki/Trance_music)",
+    "Splice — what is trance music (https://splice.com/blog/what-is-trance-music/)",
+    "BPM Database — ATB (https://www.bpmdatabase.com/music/search/?artist=ATB)"
+  ],
+  "notes": "German trance's crossover producer — the \"synthesised slide guitar\" hook school. Two numbers here are documented rather than read: the defining 1998 record sits at **130 BPM in A minor**, and the catalogue band is 128-140 sitting on 130-135, so the mode is 132 and A minor carries the top key weight with natural minor as the scale. The identifying parameter is a timbre and a playing technique: \"the pitch-bent, guitar-emulating monosynth lead — a slide-guitar imitation made on a synth, with portamento between notes so the figure glides rather than steps. That timbre, not a chord pattern, is the brand.\" The melody schema has no portamento field, so the glide is expressed the only honest way available — a legato articulation, the highest step share of the trance models here at 0.82, an octave-jump probability of 0.01 and a timbre hint that names it — and that translation is marked INFERRED. His stated order of work is hook first, then \"put the bass in it and programmed\" the rest, so the bass \"functions as rhythm rather than melody\": a rolling offbeat saw at 0.95 roots. The kit is trance grammar with a long-tailed kick, a regular open hat on the upbeat, a kick de-emphasised in level so the bass has room, 16th closed hats and lengthy snare rolls; \"percussion is thin relative to house; the hook carries the record\", hence a 0-2 perc bed at -8 dB. Loops are 8 or 16 bars. ⚠ The drum specifics come from the trance convention by the entry's own statement.",
+  "session": {
+    "bpm": {
+      "min": 128,
+      "max": 140,
+      "mode": 132
+    },
+    "keys": {
+      "values": [
+        "Am",
+        "Em",
+        "Dm",
+        "Bm",
+        "Cm"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor"
+      ],
+      "weights": [
+        7,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.99,
+      "velocityVar": 0.09,
+      "timingJitterMs": {
+        "kick": 0,
+        "clap": 1,
+        "closedHat": 1,
+        "openHat": 1
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        98,
+        112
+      ],
+      "main": [
+        74,
+        88
+      ],
+      "ghost": [
+        26,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.01,
+      "offbeat8thShare": 0.03
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "ghost": {
+        "prob": 0.09,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.29,
+      "velocities": {
+        "main": [
+          0.58,
+          0.8
+        ],
+        "ghost": [
+          0.24,
+          0.44
+        ]
+      },
+      "openHat": {
+        "prob": 0.95,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          3,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            2,
+            3
+          ]
+        },
+        "positions": [
+          "pre_downbeat",
+          "phrase_end"
+        ],
+        "freqPerBar": 0.3
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "riser"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "any",
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": true,
+      "fillBeforeSection": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        34,
+        122
+      ],
+      "rampJitter": 5,
+      "gapProb": 0.06,
+      "descendProb": 0.03,
+      "pitchWalk": 2
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "VI",
+          "VII",
+          "i",
+          "III"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.3,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        90
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.82,
+      "third": 0.16,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.54,
+      "descend": 0.24,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": 0.01,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        8,
+        16
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "glide_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.68,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "arp"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.95,
+    "rhythm": "offbeat_8ths",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.14
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 16,
+      "verse": 16,
+      "prechorus": 16,
+      "hook": 16,
+      "bridge": 16,
+      "outro": 32
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "bridge",
+          "prechorus",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

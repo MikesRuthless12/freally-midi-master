@@ -1,0 +1,269 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ali-shaheed-muhammad",
+  "type": "producer",
+  "name": "Ali Shaheed Muhammad",
+  "aliases": [
+    "ali shaheed muhammad",
+    "ali shaheed",
+    "jazz is dead",
+    "the midnight hour"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1990-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul",
+    "rap"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "boom-bap",
+    "funk",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Ali Shaheed Muhammad",
+    "Wikipedia — Ali Shaheed Muhammad (https://en.wikipedia.org/wiki/Ali_Shaheed_Muhammad)",
+    "Wikipedia — Lucy Pearl (https://en.wikipedia.org/wiki/Lucy_Pearl)",
+    "Wikipedia — Adrian Younge (https://en.wikipedia.org/wiki/Adrian_Younge)"
+  ],
+  "notes": "The lane's bridge from hip-hop, and the entry notes he was not taken by `boom-bap`, which entried A Tribe Called Quest but not him. The drums are the stated programming lineage: \"SP-1200/MPC-lineage programming — kick on 1 and the 16th before 3, snare hard on 2&4, quiet swung 16th hats, and a filtered break under the top layer. He started programming at 13. On the live projects the pattern is replayed by a drummer with a dry 60s tone.\" So the snare is layered (top layer over break) and sits on the grid, the hat is continuous but quiet, and the kick carries the section's stated position through density and tresillo bias rather than a restated anchor. Harmony is \"sample-inherited jazz harmony on the hip-hop material — unresolved m9/m11 loops of 2 bars taken from acoustic jazz records; on the Jazz Is Dead and Midnight Hour work the harmony is written and played, with modal vamps and real horn voicings\" — hence `maxChords` 2, a ninth-heavy spread and a vamp-led harmonic rhythm. The palette is named and it sets the melody timbre: \"Rhodes, vibraphone, flute and horn sections; deliberately 1970s CTI/Blue Note\", with the entry stressing that \"with Younge he works to tape with vintage instruments only\". Bass carries a first-hand fact: \"**he is the bass guitarist on the Jazz Is Dead project** — played, walking, upright-adjacent electric bass\", so the bassline walks with chromatic passing tones and there is no `bass808` block; the sample-side sub doubles a filtered sample rather than replacing the part. ⚠ The INFERRED parameters are every drum probability and velocity and all melody numbers; the research marks the programming detail as era inference. ⚠ The *Luke Cage* cue/score variant the entry asks for is not encoded as a mode.",
+  "session": {
+    "bpm": {
+      "min": 82,
+      "max": 100,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.76,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "closedHat": 6,
+        "shaker": 8
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.5,
+      "tresilloBias": 0.16
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        0,
+        4
+      ],
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.16,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.42,
+      "velocities": {
+        "main": [
+          0.3,
+          0.52
+        ],
+        "ghost": [
+          0.1,
+          0.26
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker",
+        "conga"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "gainOffsetDb": -7
+    }
+  },
+  "chords": {
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.06,
+      "seventh": 0.48,
+      "ninth": 0.46
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        47,
+        81
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      58,
+      82
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.76,
+      "third": 0.2,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.34,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.6,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "vibraphone"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "bell_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.44,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M2",
+      "m3",
+      "M3",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.4
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "outro": [
+        4,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.26
+    }
+  }
+}

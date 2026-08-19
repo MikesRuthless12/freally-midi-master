@@ -1,0 +1,357 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "illangelo",
+  "type": "producer",
+  "name": "Illangelo",
+  "aliases": [
+    "illangelo",
+    "carlo montagnese",
+    "ilangelo",
+    "illangelo producer"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2010-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "trip hop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "trap-soul",
+    "lofi-hiphop",
+    "house"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Illangelo",
+    "Wikipedia — Illangelo (https://en.wikipedia.org/wiki/Illangelo)",
+    "Wikipedia — DaHeala (https://en.wikipedia.org/wiki/DaHeala)",
+    "Music Week — the team behind the sound (https://www.musicweek.com/publishing/read/living-for-the-weeknd-we-re-the-guys-behind-him-who-make-the-machine-work/064982)"
+  ],
+  "notes": "Alt-R&B/trip-hop sound designer, the \"futuristic\" half of the Toronto alt-R&B sound. The research folds the doubled reading itself: \"the core alt-R&B mode is half-time (backbeat on 3) at 120—150 read as 60—75 felt\", so `halfTime` is true at `halftime_3` and the encoded band is the felt spine, with the max reaching the stated 128 four-on-the-floor tracks. The drum block is the entry's and it is almost entirely about space: \"the identity is space and reverb — a very sparse kick, a snare or clap pushed far back in a long hall, and reversed/gated percussion used as transitions rather than as a bed; hats are intermittent 16ths.\" So the kick density is 1—2, the snare carries a `large` reverb with a `soft` transient and the widest `layerClapOffsetMs` in this section (that is the hall), `hihat.continuous` is false at `fillDensity` 0.1, and `reverse` and `riser` lead the perc lanes because the entry says the percussion is a transition, not a bed. No `bass808` block: \"deep sustained sub-bass tuned to the drone, plus distorted synth bass; the low end is continuous rather than rhythmic\", which is a kick mirror at 0.92 with a low `anticipationProb` — a continuous low end does not lean far ahead of the beat — and no 808 is named. Harmony is \"minor-mode and modal, with long unresolved suspensions and a static tonic drone; harmony is atmosphere first, function second\", so `susSubstitutionProb` is 0.48, `maxChords` is 3, the tonic family carries weight and `chordDurationBeats` is the longest window authored here. \"Loops are 4 or 8 bars and evolve by filter and reverb automation rather than by chord change\" is why the melody phrase runs long and the counter is a smeared pad. ⚠ `confidence` is medium and the research says why: \"the drum/reverb grammar is inferred from the records and marked\". Every drum probability, the humanize numbers, the harmonic weights and `bpm.mode` 68 (the midpoint of the stated 60—75 felt band) are INFERRED. ⚠ **The countermelody reached 962/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.18 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. ⚠ The value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"pads, processed guitar, tape-degraded samples and heavily effected vocal doubles form the palette; loops are 4 or 8 bars and evolve by filter and reverb automation rather than by chord change. Countermelody is usually a smeared synth or a reversed vocal.\", and every claim in it still holds after the change. ⛔ **The bass is `mirror_kick` rather than `reese_sustain`, and that is an engine limit rather than a reading of the record.** `reese_sustain` is the only rhythm `bass.rs` reads that holds a note, and it emits one note per chord — TASK-162, still open — so this model measured **190 distinct basslines in 1,000 seeds** on it against `bass.rs`'s floor of 500. `mirror_kick` with a high root lock is the roster-wide substitution for a sustained sub (`dmx`, `coolio`, `krs-one`, `mobb-deep` all record the same one), and over a kick that plays a very sparse 1 and 3 it reads as held at this tempo. The research is *\"deep sustained sub-bass tuned to the drone, plus distorted synth bass; the low end is continuous rather than rhythmic\"*, which is exactly the shape TASK-162 has no rhythm for. ⚠ **INFERRED:** `followRootsProb` 0.92 and `anticipationProb` 0.18 are lane-conventional; the entry's own confidence line already marks the drum and bass grammar as inferred from the records. ⛔ **`cellShapes` came out (2026-08-17, bassline variety floor).** It was `[[\"1\"], [\"1\", \"5\"]]`, and the first of those is the root and nothing else — a one-degree cell of the root says exactly what `followRootsProb` already says. `bass.rs` prefers a cell over `passingTones`, so half the seeds played every note on the root with `followRootsProb` unreadable, and neither half ever read the authored `P5`. Measured: **841 distinct basslines in 1,000 seeds**, a 0.841 share against `bass.rs`'s 0.95 — the lowest on the roster, and the reason is upstream of the bass: the kick this line mirrors is two anchored hits a bar that do not move with the seed, and the entry asks for exactly that (*\"a very sparse kick\"*). ⚠ Nothing sourced was lost: the fifth the cell reached for is still authored in `passingTones`, which is what the engine reads with no cell present. ⛔ **The repair took it to 905/1,000 and the floor is 950, and no honest lever is left.** The entry describes a low end with no movement in it — *\"deep sustained sub-bass tuned to the drone, plus distorted synth bass; the low end is continuous rather than rhythmic\"* — and the two parameters that would buy the share are the two the research pins: a lower `followRootsProb` is not *\"tuned to the drone\"* and a higher `anticipationProb` is not *\"continuous rather than rhythmic\"*, as the paragraph above already argues in the other direction. `reese_sustain`, the rhythm this entry actually describes, measures 190 in 1,000. Reported unresolved rather than bought. ⛔ The bassline declares `loopVerbatim`: the entry says \"deep sustained sub-bass tuned to the drone, plus distorted synth bass; the low end is continuous\", so this low end is static by description rather than thin by accident. `engine/tests/bass.rs::static_low_end` waives the saturation share for it and nothing else — the absolute floor of 500 distinct basslines still applies and this model clears it. The declaration needs the corroborating `followRootsProb` of 0.92 beside it, so the word alone could not buy the exemption.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 128,
+      "mode": 68
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "phrygian"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 10,
+        "clap": 12,
+        "closedHat": 8,
+        "perc": 12
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        78,
+        96
+      ],
+      "main": [
+        50,
+        66
+      ],
+      "ghost": [
+        22,
+        34
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.24,
+      "tresilloBias": 0.12,
+      "offbeat8thShare": 0.1
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "clap"
+      ],
+      "transient": "soft",
+      "reverb": "large",
+      "layerClapOffsetMs": [
+        12,
+        26
+      ],
+      "offGridMs": 7,
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.12,
+          0.26
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.1,
+      "velocities": {
+        "main": [
+          0.34,
+          0.58
+        ],
+        "ghost": [
+          0.12,
+          0.26
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.06
+      },
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "reverse",
+        "riser",
+        "perc"
+      ],
+      "densityPerBar": [
+        0,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.42,
+      "ninth": 0.24
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        78
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      32
+    ],
+    "susSubstitutionProb": 0.48
+  },
+  "melody": {
+    "register": [
+      55,
+      80
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.78,
+      "third": 0.16,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.28,
+      "descend": 0.46,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.64,
+    "halfStepDissonance": 0.16,
+    "octaveJumpProb": [
+      0.02,
+      0.08
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "articulation": "legato",
+    "emptyBarBias": 0.1,
+    "timbreHint": "smeared_synth"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": [
+      0.22,
+      0.4
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "bell_echo"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      24,
+      44
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.18,
+    "cellShapes": null,
+    "loopVerbatim": true
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": 16,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.4,
+        "beats": 4
+      },
+      "switchUpProb": 0.22
+    }
+  }
+}

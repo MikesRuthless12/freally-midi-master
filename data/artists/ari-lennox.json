@@ -1,0 +1,297 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ari-lennox",
+  "type": "artist",
+  "name": "Ari Lennox",
+  "aliases": [
+    "ari lennox",
+    "courtney shanade salter",
+    "badu descended soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2019-present",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "trap-soul",
+    "rnb-2000s",
+    "boom-bap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Ari Lennox",
+    "Wikipedia — Ari Lennox (https://en.wikipedia.org/wiki/Ari_Lennox)",
+    "Wikipedia — Erykah Badu (https://en.wikipedia.org/wiki/Erykah_Badu)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "Dreamville's soul voice and \"the lane's most explicitly Badu-descended 2019+ artist\". The entry flags her as \"a legitimate cede to `trap-soul`… she is the one artist in this section whose low end is a genuine 808\", and she is entried here because the harmony and the vocal placement are Badu-descended — so this model carries the strongest 808 of the seven that have one: `drums.bass808` with role **counter_riff**, a slide probability of 0.14 across P5/P8/m3 and light distortion, matching \"a real 808/sub… with a long decay and occasional slides\". Role `counter_riff` rather than `bassline` is deliberate: \"played bass appears on the band-tracked material\", and role `bassline` would silence the bass generator entirely. ⛔ `kick.lockTo808` is authored here at **0.8** and it has to be: `neo-soul` pairs `bass808: null` with `lockTo808: 0`, and the engine reads that lock as how many of the kick's own onsets the 808 rides — so inheriting the parent's zero silenced this model's 808 completely (`bass808.rs`: \"ari-lennox seed 0: no 808 at all\"). A model that adds an 808 over a genre that has none must state the lock itself. ⚠ INFERRED, and taken from `trap-soul`'s own 0.8 rather than picked, because the research calls her \"the section's closest neighbour to `trap-soul`\" and says the sub is present \"on much of her catalogue\". Drums are \"hip-hop-gridded but soft — kick on 1 and the 16th before 3, clap/snare on 2&4, swung 16th hats with occasional 32nd rolls, and a live-percussion overlay\", so the kick is the most syncopated of the soft-programmed models here with the highest tresillo bias, and the hat rolls are 32nds. Harmony is \"m9/m11 colour and 2-to-4-bar cycles; jazz-club voicings (root-7th-9th-11th) on Rhodes, plus a habit of holding a single sonority under a whole verse\" — no families, the lowest triad weight in this batch and long chord durations. Melody is \"warm alto, conversational, moderate note-density, with a Badu-style behind-the-beat lag and blues-scale ornament\", which is the moderate density, a mid `chordToneBias` and a raised `halfStepDissonance`. ⚠ The INFERRED parameters are every drum number, the 808 values and all melody figures; the research marks the whole parametric detail as inference.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 100,
+      "mode": 84
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "blues",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.72,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 7,
+        "clap": 6,
+        "conga": 10,
+        "bass808": 5
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.5,
+      "tresilloBias": 0.18,
+      "lockTo808": 0.8
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        1,
+        6
+      ],
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.12,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.34,
+          0.58
+        ],
+        "ghost": [
+          0.12,
+          0.28
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.22,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "shaker",
+        "rim",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -6
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "slideProb": 0.14,
+      "slideIntervals": [
+        "P5",
+        "P8",
+        "m3"
+      ],
+      "register": [
+        24,
+        41
+      ],
+      "distortion": "light",
+      "monoCutSelf": true,
+      "portamentoMs": 70
+    }
+  },
+  "chords": {
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.04,
+      "seventh": 0.46,
+      "ninth": 0.5
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      54,
+      76
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.44,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.5,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "warm_rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.78,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        12
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

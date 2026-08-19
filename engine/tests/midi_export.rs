@@ -73,6 +73,8 @@ fn context(bars: u16) -> SessionContext {
                 .into_iter()
                 .collect(),
         },
+        // The default (TASK-125): an export is of the beat the model wrote.
+        complexity: engine::context::Complexity::Authored,
     }
 }
 

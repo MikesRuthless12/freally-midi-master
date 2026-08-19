@@ -166,6 +166,172 @@ pub mod read {
             .and_then(|v| serde_json::from_value::<StrSpec>(v.clone()).ok())
             .and_then(|spec| spec.sample(rng).ok())
     }
+    /// Which way a parameter moves when the producer asks for a busier reading.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub enum Lean {
+        /// A bigger number is the busier one: more notes, more often.
+        Busier,
+        /// A **smaller** number is the busier one — two beats a chord is busier than
+        /// eight. `Complexity::inverted` exists to prove this direction is
+        /// parameter-specific rather than global.
+        Shorter,
+    }
+
+    /// **Every authored parameter that leans with Simple/Complex, and which way.**
+    ///
+    /// ⛔⛔ **TASK-170: this is the one place to review what the switch reaches.** The
+    /// lean was opt-in per call site in four different spellings — `read::*_leaning`
+    /// twice, plus `ctx.complexity.draw(..)` inline in `melody.rs` and
+    /// `ctx.complexity.inverted().draw(..)` inline in `chords.rs` — so a generator
+    /// author picked between four shapes, and the plain `read::number` /
+    /// `read::string_spec`, the ones that silently miss the feature, were the
+    /// defaults. Which parameters opted in was spread over four files with nowhere
+    /// to review it.
+    ///
+    /// ⚠ **Opt-in is still correct and this does not change that.** Blanket-leaning
+    /// every numeric read would be wrong: leaning a register or a swing is a
+    /// different feature, and the direction is parameter-specific. The point is that
+    /// adding one is a **row here** rather than a remembered function name.
+    ///
+    /// ⚠ **A parameter absent from this table does not lean**, by construction —
+    /// [`leaning`] answers `Authored` for anything it does not find, which is the
+    /// engine's own "leave it alone" value. `engine/tests/complexity.rs` holds the
+    /// table to what the generators actually do.
+    pub const LEANING: &[(&str, &str, Lean)] = &[
+        // A busier bassline rhythm places more of its own onsets.
+        ("bassline", "rhythm", Lean::Busier),
+        // A busier harmonic rhythm changes chord more often.
+        ("chords", "harmonicRhythm", Lean::Busier),
+        // ...and a shorter cell is what "more often" means in beats.
+        ("chords", "chordDurationBeats", Lean::Shorter),
+        // A busier counter answers the lead more densely.
+        ("countermelody", "densityRatio", Lean::Busier),
+        // A busier melody puts more notes in the bar.
+        ("melody", "densityPerBar", Lean::Busier),
+    ];
+
+    /// The complexity to draw `block.key` with, honouring [`LEANING`].
+    ///
+    /// ⚠ Anything not in the table comes back `Authored` — the model as written —
+    /// so a call site cannot lean a parameter the table does not declare, and a row
+    /// deleted by accident shows up as generation changing rather than as silence.
+    pub fn leaning(
+        complexity: crate::context::Complexity,
+        block: &str,
+        key: &str,
+    ) -> crate::context::Complexity {
+        match LEANING.iter().find(|(b, k, _)| *b == block && *k == key) {
+            Some((_, _, Lean::Busier)) => complexity,
+            Some((_, _, Lean::Shorter)) => complexity.inverted(),
+            None => crate::context::Complexity::Authored,
+        }
+    }
+
+    /// A numeric parameter, leaning to the busy end of what the model authored.
+    ///
+    /// ⛔ **Only a `[min, max]` range leans** (TASK-125). An exact number is the
+    /// model being specific and is returned untouched, and a weighted list is a
+    /// set of named choices rather than a spread — leaning either would be
+    /// overriding the model instead of scaling within it, which is the one thing
+    /// this feature must not do.
+    pub fn number_leaning(
+        block_name: &str,
+        block: Option<&Value>,
+        key: &str,
+        default: f64,
+        complexity: crate::context::Complexity,
+        rng: &mut impl Rng,
+    ) -> f64 {
+        use crate::dataset::schema::NumSpec;
+
+        let spec: Option<NumSpec> = block
+            .and_then(|b| b.get(key))
+            .and_then(|v| serde_json::from_value(v.clone()).ok());
+
+        match spec {
+            Some(NumSpec::Range([min, max])) if max > min => {
+                leaning(complexity, block_name, key).draw(min, max, rng)
+            }
+            Some(other) => other.sample(rng).unwrap_or(default),
+            None => default,
+        }
+    }
+
+    /// Sample a categorical parameter, leaning to one end of an authored order.
+    ///
+    /// ⛔⛔ **This is the whole of TASK-125's "within the model's own ranges"
+    /// rule, in one function.** `order` runs plain → busy and is supplied by the
+    /// caller, because busy-ness is a fact about the *parameter*: only
+    /// `chords.rs` knows that `vamp` is the plainest harmonic rhythm and only
+    /// `bass.rs` knows that `mirror_kick` is the plainest bass. What this does is
+    /// scale the **authored** weights by position — so a value the model never
+    /// listed stays unreachable at every setting, and a model that authors one
+    /// value gets that value whatever the producer asked for. A rage vamp made
+    /// busy is still a vamp.
+    ///
+    /// ⚠ **`Authored` returns `string_spec` exactly**, including its draw from
+    /// the same rng position, so the switch's default cannot move a saved seed's
+    /// beat by a single note.
+    ///
+    /// ⚠ A value missing from `order` keeps its authored weight rather than being
+    /// dropped or pushed to an end — an unknown name is a model saying something
+    /// this function was not told about, and guessing where it sits would be
+    /// worse than leaving it alone.
+    pub fn string_spec_leaning(
+        block_name: &str,
+        block: Option<&Value>,
+        key: &str,
+        complexity: crate::context::Complexity,
+        order: &[&str],
+        rng: &mut impl Rng,
+    ) -> Option<String> {
+        use crate::dataset::schema::StrSpec;
+
+        let spec: StrSpec = block
+            .and_then(|b| b.get(key))
+            .and_then(|v| serde_json::from_value(v.clone()).ok())?;
+
+        let StrSpec::Weighted { values, weights } = &spec else {
+            return spec.sample(rng).ok();
+        };
+        if complexity == crate::context::Complexity::Authored || values.len() < 2 {
+            return spec.sample(rng).ok();
+        }
+
+        // Position each authored value on the plain → busy axis the caller gave,
+        // then scale its weight by where it sits.
+        let mut scaled: Vec<f64> = match weights {
+            Some(w) if w.len() == values.len() => w.clone(),
+            _ => vec![1.0; values.len()],
+        };
+        let mut ranked: Vec<(usize, usize)> = values
+            .iter()
+            .enumerate()
+            .filter_map(|(index, value)| {
+                order
+                    .iter()
+                    .position(|name| name == value)
+                    .map(|rank| (index, rank))
+            })
+            .collect();
+        if ranked.len() < 2 {
+            return spec.sample(rng).ok();
+        }
+        ranked.sort_by_key(|(_, rank)| *rank);
+
+        let mut lane: Vec<f64> = ranked.iter().map(|(index, _)| scaled[*index]).collect();
+        leaning(complexity, block_name, key).reweight(&mut lane);
+        for ((index, _), weight) in ranked.iter().zip(lane) {
+            scaled[*index] = weight;
+        }
+
+        StrSpec::Weighted {
+            values: values.clone(),
+            weights: Some(scaled),
+        }
+        .sample(rng)
+        .ok()
+    }
 
     /// A two-element numeric array — a register, a velocity range, a ramp.
     pub fn pair(block: Option<&Value>, key: &str) -> Option<(f64, f64)> {

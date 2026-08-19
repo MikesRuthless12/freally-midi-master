@@ -1,0 +1,322 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "michael-knox",
+  "type": "producer",
+  "name": "Michael Knox",
+  "aliases": [
+    "michael knox",
+    "michaelknox",
+    "mike knox"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1998-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "trap",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Michael Knox",
+    "Wikipedia — Michael Knox (https://en.wikipedia.org/wiki/Michael_Knox_(record_producer))",
+    "songdata.io — Jason Aldean (https://songdata.io/search?query=Jason+Aldean)",
+    "bpmdatabase — Jason Aldean (https://www.bpmdatabase.com/music/search/?artist=Jason+Aldean)",
+    "Wikipedia — Bro-country (https://en.wikipedia.org/wiki/Bro-country)"
+  ],
+  "notes": "The man who put rock guitars and a rapped verse on country radio, and the owner of the bro-country drum grammar. The tempo band is unusually tight because the entry gives only one class: \"notated 78–95 with the backbeat on 2&4, equivalently 156–190 with the snare on beat 3\" — the folded 2&4 reading is encoded per the section's stated convention, so `halfTime` stays inherited false. The key set is the entry's headline: \"the most minor-key producer in this section — D♭ minor, C minor, F♯ minor, E♭ minor, A♭ minor and E minor all carry singles from his flagship act, against major-key cuts in G/A/D/F,\" with \"i–VI–III–VII, i–VII–VI, and I–♭VII–IV on the major rockers.\" The drum grammar is quoted whole: \"a slow heavy backbeat with kick on 1 and the 'and-of-2,' snare hard on the backbeat, 8th hats in verse opening to 16ths in chorus, programmed claps and a sampled 808-adjacent low kick layered under the acoustic kit, half-time chorus lifts, and a hard full-band drop-out before the last chorus.\" The 808 takes `counter_riff` because the entry names two layers with two jobs: \"overdriven live electric bass doubled by a short gated synth/sampled sub on the low-kick hits; on the country-rap cuts a longer sub with a slide into the downbeat.\" His most-copied structural invention is \"the rapped/spoken verse over a two-bar loop,\" which is the high melodic density ceiling and the `2_bars_per_chord` weighting. ⚠ Confidence is medium (research: high-medium) — \"his own workflow statements are not reachable [LOW-CONF]\" and the catalogue readings carry the section's class mark. ⚠ The INFERRED parameters are the 808 register, the clap offsets and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 78,
+      "max": 95,
+      "mode": 88
+    },
+    "keys": {
+      "values": [
+        "Dbm",
+        "Cm",
+        "F#m",
+        "Ebm",
+        "Em",
+        "G",
+        "A",
+        "F"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "minor_pentatonic",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        4,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.91,
+      "velocityVar": 0.15,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 3,
+        "clap": 3,
+        "closedHat": 3
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        116,
+        127
+      ],
+      "main": [
+        86,
+        106
+      ],
+      "ghost": [
+        28,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.34,
+      "offbeat8thShare": 0.53
+    },
+    "snare": {
+      "layered": true,
+      "layerClapOffsetMs": [
+        3,
+        6
+      ],
+      "ghost": {
+        "prob": 0.11,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          4,
+          3
+        ]
+      },
+      "fillDensity": 0.35,
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.22,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "crash",
+        "shaker",
+        "tomLow"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -4,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "staccato",
+      "register": [
+        24,
+        37
+      ],
+      "slideProb": 0.16,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "M2"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_4"
+      ],
+      "distortion": "light"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.82,
+      "seventh": 0.16,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      50,
+      74
+    ],
+    "densityPerBar": [
+      4,
+      11
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.32,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.75,
+    "octaveJumpProb": 0.03,
+    "twoBarCellRepeat": 0.6,
+    "timbreHint": "octave_doubled_riff"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.34,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.87,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      42
+    ],
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.16
+  }
+}

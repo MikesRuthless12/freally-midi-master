@@ -173,24 +173,15 @@
         "8t"
       ],
       "grouping": [
-        "strong_weak_weak_weak"
+        "even"
       ],
       "velocityRampRange": [
-        75,
-        127
+        70,
+        126
       ],
-      "rampJitter": 22,
-      "descendProb": 0.31,
-      "gapProb": 0.54,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25,
-      "pitchWalk": 4
+      "rampJitter": 23,
+      "descendProb": 0.34,
+      "gapProb": 0.52
     }
   },
   "melody": {

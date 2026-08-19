@@ -1,0 +1,300 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "patty-loveless",
+  "type": "artist",
+  "name": "Patty Loveless",
+  "aliases": [
+    "patty loveless",
+    "loveless"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-train"
+  ],
+  "era": "1990-2005",
+  "genres": [
+    "country-train",
+    "country",
+    "honky-tonk",
+    "bluegrass"
+  ],
+  "relatedGenres": [
+    "country-train",
+    "country-pop",
+    "country-shuffle"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-train — Patty Loveless",
+    "https://www.bpmdatabase.com/music/search/?artist=Patty+Loveless",
+    "Wikipedia — Neotraditional country (https://en.wikipedia.org/wiki/Neotraditional_country)",
+    "Wikipedia — Bluegrass music (https://en.wikipedia.org/wiki/Bluegrass_music)"
+  ],
+  "notes": "The hardest-country female voice of the 90s, and the entry calls four singles in the 148–172 band \"the strongest fast-train catalogue among the section's female leads\". `bpm` spans the stated 60–172 with `mode` at 161 (\"Halfway Down\" and \"I Try to Think About Elvis\"); the era is the MCA/Epic run, with the 1980s debut excluded exactly as the entry excludes it. Keys are the stated G/A/B♭ of the bluegrass-leaning cuts — the entry names no others, so no fourth key is authored — and the scale weights carry the entry's \"strong modal/mixolydian colour from the mountain repertoire\" — I–♭VII–IV takes joint top weight with I–IV–V, alongside the stated I–IV–I–V frame. Drums have two stated states and the model sits between them: the fast cuts are \"canonical train beat — straight 8th snare stream, sticks, two-beat kick, hat closed on quarters\", while \"the mountain/bluegrass-flavoured cuts move to brushes and drop the kick to 1 only\", which is why `kick.densityPerBar` is [1,3] rather than a flat two-beat. The bluegrass feel rule from the section's grammar block — \"notes are anticipated, in contrast to laid-back blues\" — is `snare.offGridMs` −5, the earliest backbeat in the radio wing here. ⚠ `countermelody.registerOffset` is 7 rather than the roster's usual ±12, and it is the one place in this batch the research demands it: her producer's \"stated harmony habit is mountain-style close intervals — parallel fourths and fifths as well as thirds — so model the harmony stack as fourths/fifths, not the radio thirds\". A fifth is the only interval of that pair this field can spell. ⚠ INFERRED: velocity tiers, the −5 ms offset value itself, `percs` contents and every melody and bassline number. ⚠ Tempo readings [LOW-CONF] as a class; the entry states \"per-track voicings generalised [LOW-CONF]\" and rates itself medium-high.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 172,
+      "mode": 161
+    },
+    "keys": {
+      "values": [
+        "G",
+        "A",
+        "Bb"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 4,
+        "closedHat": 4,
+        "perc": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        100,
+        120
+      ],
+      "main": [
+        74,
+        88
+      ],
+      "ghost": [
+        34,
+        52
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ]
+    },
+    "snare": {
+      "offGridMs": -5
+    },
+    "hihat": {
+      "base": "4th",
+      "fillDensity": 0.11,
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.07
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.8,
+      "seventh": 0.18,
+      "ninth": 0.02
+    }
+  },
+  "melody": {
+    "register": [
+      59,
+      83
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.38,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.76,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "fiddle_and_mandolin"
+  },
+  "countermelody": {
+    "registerOffset": 7,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "register": [
+      28,
+      43
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "chorus": 8,
+      "bridge": [
+        8,
+        16
+      ],
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.12,
+        "beats": 1
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

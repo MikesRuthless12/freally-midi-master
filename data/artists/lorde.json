@@ -1,0 +1,364 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "lorde",
+  "type": "artist",
+  "name": "Lorde",
+  "aliases": [
+    "lorde",
+    "ella marija lani yelich oconnor",
+    "ella yelich oconnor",
+    "lorde music"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "art-pop",
+    "electropop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "trap-soul",
+    "lofi-hiphop",
+    "pop-2000s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Lorde",
+    "Wikipedia — Lorde (https://en.wikipedia.org/wiki/Lorde)",
+    "Wikipedia — Royals (https://en.wikipedia.org/wiki/Royals_(song))",
+    "Wikipedia — Joel Little (https://en.wikipedia.org/wiki/Joel_Little)"
+  ],
+  "notes": "Minimal-percussion art-pop with modal harmony. This is one of only a handful of models in the section that keeps the parent genre's half-time class, and it does so on the research's own words: \"backbeat is half-time-feeling — the snare/clap lands on 3 of a slow 4/4 as often as on 2&4 — at an Andante 85 BPM on the breakout single\", so `halfTime` is true and the placement is `halftime_3`. The documented 50/50 between 3 and 2&4 cannot be said in one `placement` field; it is recorded here instead of being averaged into a wrong number. Because the placement matches the parent, the separation is carried by the drum palette, which the entry gives in full: \"finger snaps, a single deep kick and a hip-hop-derived backbeat — deliberately lo-fi, with long gaps and no hat bed. Percussion is a structural event, not a groove; whole verses run on snaps alone.\" That is `hihat.continuous` false at `fillDensity` 0.04 with the roll vocabulary off, a kick density of 1—2, a `snap`-only snare stack and a `snap`-led perc lane list at high density with a positive gain offset. Mode is the strongest harmonic fact in the entry — \"Mixolydian is her documented signature mode (the breakout single is written G major functioning as D Mixolydian), i.e. major with a flattened 7th\" — so `scales` is mixolydian-dominant and the flat-7 chord is in every family; \"2-bar loops built from three chords\" is `maxChords` 3 with a 2-bar harmonic rhythm. Melody register is the documented contralto span F♯3—F♯5 \"written low and smoky\", and \"narrow, syllabic and back-phrased\" is the step share and the low `octaveJumpProb`. The counter is not an instrument: \"harmony is delivered by stacked multitracked vocals rather than instruments\", so it runs at a high density as a pad. ⚠ The INFERRED parameters are every drum probability, the humanize numbers, the perc gain and `session.keys` beyond G and D — the research documents a palette and a philosophy, not a pattern, and its key line gives only \"the breakout single is written G major functioning as D Mixolydian\", so A and C are inferred neighbours and are not in the research. ⛔ **The bass was authored `reese_sustain` and the research does not say the bass is held.** It says *\"sub-bass and synth bass on roots, mixed loud and round; the low end plus the vocal stack is often the entire arrangement\"* — a level and timbre claim, not a duration one — over *\"finger snaps, a single deep kick and a hip-hop-derived backbeat\"*. `mirror_kick` follows that kick; `reese_sustain` emits one note per chord (TASK-162) and left this model at **287 distinct basslines in 1,000 seeds** against a floor of 500. The `b7` in `cellShapes` is the sourced half — *\"**Mixolydian** is her documented signature mode ... i.e. major with a flattened 7th\"*. ⚠ **INFERRED:** `followRootsProb` 0.90 and `anticipationProb` 0.20 are lane-conventional rates, not sourced ones. ⛔ **`cellShapes` came out (2026-08-17, bassline variety floor), and the sourced `b7` did not go with it.** The list led with `[\"1\"]`, a one-degree cell of the root that says exactly what `followRootsProb` already says; and because `bass.rs` prefers a cell over `passingTones`, drawing it made both `followRootsProb` and this model's own `P5`/`m7` unreadable — every note the root. Measured: **939 distinct basslines in 1,000 seeds**, a 0.939 share against `bass.rs`'s 0.95. The flat-7 the Mixolydian line asks for is already authored where the engine reads it with no cell present — `passingTones: [\"P5\", \"m7\"]` — so the colour is unchanged and now lands on any note that leaves the root instead of on every other one. The research asks for no figure beyond that: *\"sub-bass and synth bass on roots, mixed loud and round\"*. Rhythm, register, root lock and anticipation are untouched.",
+  "session": {
+    "bpm": {
+      "min": 85,
+      "max": 120,
+      "mode": 85
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "G",
+        "D",
+        "A",
+        "C"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "snap": 6,
+        "kick": 5,
+        "clap": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        98,
+        118
+      ],
+      "main": [
+        58,
+        72
+      ],
+      "ghost": [
+        26,
+        36
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.2,
+      "tresilloBias": 0.08,
+      "offbeat8thShare": 0.1
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "snap"
+      ],
+      "reverb": "short",
+      "layerClapOffsetMs": [
+        4,
+        10
+      ],
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.04,
+      "velocities": {
+        "main": [
+          0.4,
+          0.6
+        ],
+        "ghost": [
+          0.14,
+          0.28
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.04,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "any",
+      "gainOffsetDb": -1
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "VII",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "v",
+          "IV",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.24,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        74
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      32
+    ]
+  },
+  "melody": {
+    "register": [
+      54,
+      78
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.82,
+      "third": 0.14,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.56,
+      "descend": 0.32,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.7,
+    "colorTones": [
+      7
+    ],
+    "octaveJumpProb": [
+      0.02,
+      0.07
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "stacked_vocal_pad"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.55,
+      0.8
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.2,
+    "cellShapes": null
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 4,
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

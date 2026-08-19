@@ -1,0 +1,346 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sia",
+  "type": "artist",
+  "name": "Sia",
+  "aliases": [
+    "sia",
+    "sia furler",
+    "sia kate isobelle furler",
+    "siamusic"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2010-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "power ballad",
+    "dance-pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "dance-pop",
+    "pop-2000s",
+    "house"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Sia",
+    "Wikipedia — Sia (https://en.wikipedia.org/wiki/Sia)",
+    "Wikipedia — Greg Kurstin (https://en.wikipedia.org/wiki/Greg_Kurstin)"
+  ],
+  "notes": "Cracked-belt power-pop written for maximum chorus impact. The drums are a terracing device rather than a groove: \"verses on a kick and finger snaps or a half-time snare; the chorus enters with a full four-square kick, layered claps and tom cascades. Fills are noise sweeps and reversed cymbals.\" So `kick.densityPerBar` runs 1—4 with `fourOnFloorInChorus` true, the snare stack is `snap` plus `clap`, and the fills are `riser`, `reverse` and `tom` lanes with the snare-roll ladder off — the reversed cymbal is a real lane, not a metaphor. The bass is explicitly not an 808: \"synth sub doubling the kick pattern; sub swell as the chorus trigger\", so the bassline is a kick mirror at 0.95 and no `bass808` block exists. Harmony is \"piano-led 4-bar loops with 7ths\" over \"minor keys with a IV—I plagal chorus cadence\", which is the top-weighted family. The entry's other harmonic claim — \"a raised third in the final chorus\" — is a Picardy third, a major tonic ending a minor song, not a raised seventh, so it is carried by the `major` weight in `session.scales` and no `harmonic_minor` is authored. The melody block encodes the entry's most useful claim — \"written topline-first for other artists as well as herself, so the shape is extremely standardised: narrow verse, rhythmically accelerating pre-chorus, then a chorus built on one held high note approached by leap\" — as `long_arc`, a wide `densityPerBar` spread for the acceleration, the highest melody register top in this batch, and an `octaveJumpProb` ceiling of 0.34 for that approach leap. \"Stacked octave doubles and wordless eh-vowel hooks\" is the `octave_echo` counter. ⚠ `confidence` is medium against a medium-high rating because the research says the tempo band is \"partially inferred\": every drum probability and the humanize numbers are INFERRED. `bpm.mode` 118 is the entry's own stated power-ballad core. ⚠ The entry's [LOW-CONF] mark on the cracked-top-note vocal claim is repeated here.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 128,
+      "mode": 118
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major"
+      ],
+      "weights": [
+        7,
+        4
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.17,
+      "timingJitterMs": {
+        "kick": 4,
+        "snap": 6,
+        "clap": 6,
+        "tom": 7
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.16,
+      "tresilloBias": 0.04,
+      "offbeat8thShare": 0.12,
+      "fourOnFloorInChorus": true
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "snap",
+        "clap"
+      ],
+      "reverb": "large",
+      "layerClapOffsetMs": [
+        3,
+        9
+      ],
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.2,
+      "velocities": {
+        "main": [
+          0.46,
+          0.78
+        ],
+        "ghost": [
+          0.18,
+          0.36
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "riser",
+        "reverse",
+        "tom",
+        "snap"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "IV",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.38,
+      "ninth": 0.12
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        78
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      60,
+      91
+    ],
+    "densityPerBar": [
+      3,
+      12
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.26,
+      "leap": 0.14
+    },
+    "contour": {
+      "riff": 0.16,
+      "descend": 0.26,
+      "arch": 0.58
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": [
+      0.18,
+      0.34
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        4,
+        2
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.5,
+      0.75
+    ],
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.95,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.22,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 4
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

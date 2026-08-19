@@ -48,9 +48,27 @@ const REGISTER_KEYS: &[&str] = &["register"];
 /// CI, and the dataset test suite on its way to the generator.
 const PROBABILITY_SUFFIXES: &[&str] = &["prob", "bias", "ratio", "strength", "var"];
 
+/// ⚠ **No lowercased copy of the key.** This ran on every key of every model —
+/// over a million allocations across the corpus, counting the walk's own
+/// pointers — to answer a question `eq_ignore_ascii_case` answers on the tail
+/// alone. Case-insensitivity is the *point* of this function, per the constant
+/// above, so the comparison keeps it; only the allocation goes.
+///
+/// ⛔⛔ **Compared as BYTES, and `&key[i..]` here would be a crash rather than a
+/// slow path.** `str` indexing panics when the split lands inside a multi-byte
+/// character — `"naïve"` against `"var"` splits at byte 3, mid-`ï` — and this
+/// walks every key of every model *including* one a producer hand-edited or
+/// imported. `release` is built `panic = "abort"`, so that is the host DAW
+/// gone, on every launch, until the file is found and deleted. The module's own
+/// header states the rule it would have broken: a malformed model "must fail
+/// CI, never crash a user's session". No shipped model has a non-ASCII key, so
+/// CI would never have seen it.
 fn is_probability_key(key: &str) -> bool {
-    let lower = key.to_ascii_lowercase();
-    PROBABILITY_SUFFIXES.iter().any(|s| lower.ends_with(s))
+    let key = key.as_bytes();
+    PROBABILITY_SUFFIXES.iter().any(|suffix| {
+        let suffix = suffix.as_bytes();
+        key.len() >= suffix.len() && key[key.len() - suffix.len()..].eq_ignore_ascii_case(suffix)
+    })
 }
 
 /// Structural + semantic checks that the JSON Schema cannot express.
@@ -60,7 +78,7 @@ fn is_probability_key(key: &str) -> bool {
 /// mode sits outside its own bounds.
 pub fn lint(model: &Value) -> Vec<Finding> {
     let mut findings = Vec::new();
-    walk(model, String::new(), &mut findings);
+    walk(model, &mut String::new(), &mut findings);
 
     // BPM is authored as its own shape, so check it directly.
     if let Some(bpm) = model.pointer("/session/bpm") {
@@ -91,23 +109,38 @@ pub fn lint(model: &Value) -> Vec<Finding> {
     findings
 }
 
-fn walk(value: &Value, pointer: String, out: &mut Vec<Finding>) {
+/// ⛔ **`pointer` is ONE buffer, pushed and truncated down the walk, not a
+/// `String` built per key.** The old signature allocated a whole JSON pointer
+/// for every key of every model whether or not a finding ever fired, plus one
+/// more per array element — and a finding fires on almost nothing, so nearly all
+/// of it was thrown away unread. The pointers a `Finding` carries are still
+/// owned copies; only the ones nobody reads are gone.
+///
+/// ⚠ **Every early return has to truncate too**, which is why the object arm's
+/// `{values}` branch reads the buffer and falls through rather than returning
+/// from inside the loop.
+fn walk(value: &Value, pointer: &mut String, out: &mut Vec<Finding>) {
     match value {
         Value::Object(map) => {
             // A `{values, weights}` node is a weighted spec wherever it appears.
             if map.contains_key("values") {
-                check_weighted(map, &pointer, out);
+                check_weighted(map, pointer, out);
                 return;
             }
             for (k, v) in map {
-                let child = format!("{pointer}/{k}");
+                let parent = pointer.len();
+                pointer.push('/');
+                pointer.push_str(k);
+
                 if REGISTER_KEYS.contains(&k.as_str()) {
-                    check_midi(v, &child, out);
+                    check_midi(v, pointer, out);
                 }
                 if is_probability_key(k) {
-                    check_probability(v, &child, out);
+                    check_probability(v, pointer, out);
                 }
-                walk(v, child, out);
+                walk(v, pointer, out);
+
+                pointer.truncate(parent);
             }
         }
         Value::Array(items) => {
@@ -125,7 +158,24 @@ fn walk(value: &Value, pointer: String, out: &mut Vec<Finding>) {
                 }
             }
             for (i, v) in items.iter().enumerate() {
-                walk(v, format!("{pointer}/{i}"), out);
+                // ⚠ **Only a container needs a segment.** A scalar element falls
+                // straight through `walk`'s `_ => {}` arm without ever reading
+                // the pointer, and 215,538 of the corpus's 234,948 array
+                // elements are scalars — so this skips nine tenths of the
+                // formatting rather than doing it and throwing it away.
+                if !(v.is_object() || v.is_array()) {
+                    continue;
+                }
+                let parent = pointer.len();
+                pointer.push('/');
+                // `itoa`-free and allocation-free: `write!` into the buffer we
+                // already hold beats `format!` into one we would then drop.
+                use std::fmt::Write as _;
+                let _ = write!(pointer, "{i}");
+
+                walk(v, pointer, out);
+
+                pointer.truncate(parent);
             }
         }
         _ => {}

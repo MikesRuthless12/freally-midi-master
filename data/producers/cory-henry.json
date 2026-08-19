@@ -1,0 +1,280 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "cory-henry",
+  "type": "producer",
+  "name": "Cory Henry",
+  "aliases": [
+    "cory henry",
+    "funk apostles",
+    "gospel organ"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2014-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul",
+    "gospel"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "funk",
+    "rnb-2000s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Cory Henry",
+    "Wikipedia — Cory Henry (https://en.wikipedia.org/wiki/Cory_Henry)",
+    "Wikipedia — Robert Glasper (https://en.wikipedia.org/wiki/Robert_Glasper)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "Brooklyn's gospel-organ virtuoso. `confidence` is **low** because the research rates the entry medium-low and says the parametric detail is gospel-idiom inference. The stated parameter is the instrument: \"**Hammond-organ gospel harmony** — plagal and deceptive cadences, tritone substitutions, chromatic passing chords between every diatonic target, and reharmonisation of a repeated melody; drawbar registration and Leslie speed changes function as dynamics.\" Chromatic passing chords *between every diatonic target* is why `chordDurationBeats` runs 1–4 — the shortest of the producer models here — with both `susSubstitutionProb` and `susOrDimProb` raised, and no fixed progression families, because reharmonising a repeated melody is the opposite of a family. Drums are \"live funk/gospel kit — kick on 1 and the offbeat of 2, snare hard on 2&4 with dense ghost 16ths, and a shout-chorus double-time section as the climax device\", so `secondaryAnchor` is 2&, the ghost probability fills all eight 16th positions and `fillBeforeSection` marks the shout chorus. The low end is a genuinely unusual claim and it is why no `bass808` block exists and the bass glide is near zero: \"**the organ's bass pedals or the left hand carry the bass** on much of his work, which gives a legato, portamento-free low end distinct from both played bass and 808\". Melody is \"instrumental and improvised, with the vocal secondary. He sings and plays simultaneously on the solo material\" — density 5–11 with `endVariation` and a raised octave jump. ⚠ Every drum number and every melody figure here is INFERRED. ⚠ The gospel shout chorus (double-time, straight-8th, no backbeat displacement) is a section-level feel change a single model cannot state; the arrangement carries it only as a long solo-and-outro block.",
+  "session": {
+    "bpm": {
+      "min": 72,
+      "max": 115,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "dorian",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.54,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 7,
+        "tambourine": 9,
+        "closedHat": 7
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.5,
+      "tresilloBias": 0.1
+    },
+    "snare": {
+      "offGridMs": [
+        2,
+        8
+      ],
+      "ghost": {
+        "prob": 0.66,
+        "pos": [
+          "1e",
+          "1a",
+          "2e",
+          "2a",
+          "3e",
+          "3a",
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.64,
+      "velocities": {
+        "main": [
+          0.48,
+          0.8
+        ],
+        "ghost": [
+          0.16,
+          0.36
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "ride",
+        "rim",
+        "conga"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.06,
+      "seventh": 0.48,
+      "ninth": 0.46
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        82
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "susSubstitutionProb": 0.3,
+    "susOrDimProb": 0.3,
+    "chordDurationBeats": [
+      1,
+      4
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      86
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.34,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.48,
+    "endVariation": true,
+    "octaveJumpProb": 0.2,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "hammond_b3"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.66,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      46
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        12
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "outro": [
+        8,
+        32
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.34
+    }
+  }
+}

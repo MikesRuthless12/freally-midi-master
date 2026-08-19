@@ -174,12 +174,11 @@
       ],
       "velocityRampRange": [
         36,
-        76
+        84
       ],
       "rampJitter": 23,
-      "gapProb": 0.52,
-      "descendProb": 0.37,
-      "pitchWalk": 4
+      "gapProb": 0.54,
+      "descendProb": 0.34
     },
     "bass808": {
       "sustain": "legato",
@@ -236,7 +235,7 @@
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.54,
+    "densityRatio": 0.55,
     "styles": {
       "values": [
         "octave_echo",
@@ -250,9 +249,7 @@
         2,
         2
       ]
-    },
-    "fillGapsOnly": true,
-    "echoOffset": "8th"
+    }
   },
   "chords": {
     "maxChords": 2,

@@ -4,10 +4,19 @@ import { ChevronDown, Download, Upload, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { invoke } from '../../lib/ipc';
+import { BLANK, saysNothingOfItsOwn, type Draft } from './draft';
 import { idFor } from './id';
 import { useSession } from '../../state/session';
-import { keptKey, useVariations } from '../../state/variations';
-import type { Pattern, RosterEntry, Scale, SessionDefaults } from '../../lib/ipc-types';
+import { keptKey, patternsIn, useVariations } from '../../state/variations';
+import type {
+  Bass808Role,
+  Generated,
+  Pattern,
+  RosterEntry,
+  Scale,
+  SessionDefaults,
+  SnarePlacement,
+} from '../../lib/ipc-types';
 import './StyleEditor.css';
 
 /**
@@ -43,29 +52,111 @@ const MIN_KEPT = 30;
  * a producer is deciding what their style *is*.
  */
 
-type Draft = {
-  name: string;
-  basedOn: string;
-  bpmMin: number;
-  bpmMax: number;
-  swing: number;
-  hats: number;
-  melodyMin: number;
-  melodyMax: number;
-  scales: Scale[];
+/**
+ * Where the snare lands, as `drums.rs` reads it (TASK-040U).
+ *
+ * ⚠ **Labelled with numbers rather than words**, which is both how a producer
+ * reads a backbeat and why this needs no strings in eighteen catalogs: "2 & 4"
+ * and "1 & 3" mean the same thing in every one of them.
+ *
+ * ⛔⛔ **Typed as `Record<SnarePlacement, string>` since TASK-167, and that is
+ * the whole point of the type.** This used to be a `{ value: string }[]` and its
+ * own doc said the hazard out loud — *"adding a sixth there without adding it
+ * here is a placement no user model can reach"* — which is exactly what happened
+ * when TASK-158F added `downbeat_1_3` for `lowend` in two separate hand edits.
+ * `SnarePlacement` is now exported from the engine by ts-rs, so a sixth variant
+ * that nobody labels here is a **typecheck failure**, not a feature a producer
+ * silently cannot reach.
+ */
+const PLACEMENTS: Record<SnarePlacement, string> = {
+  halftime_3: '3',
+  backbeat_24: '2 & 4',
+  drill_3_4: '3 → 4',
+  train_16ths: '16ths',
+  downbeat_1_3: '1 & 3',
 };
 
-const BLANK: Draft = {
-  name: '',
-  basedOn: 'trap',
-  bpmMin: 130,
-  bpmMax: 150,
-  swing: 0.54,
-  hats: 0.5,
-  melodyMin: 3,
-  melodyMax: 7,
-  scales: [],
+/**
+ * The 808's role, by the label a producer reads for it.
+ *
+ * ⛔ **`Record<Bass808Role, ...>` for the same reason as [`PLACEMENTS`]**
+ * (TASK-167): the two radios were hand-written JSX, so a third role added to the
+ * engine's enum would have been a role no user model could reach and nothing
+ * would have said so. Keyed by the exported union, a new variant fails the
+ * typecheck here.
+ */
+const BASS_ROLES: Record<Bass808Role, string> = {
+  bassline: 'styles.bassIsTheBass',
+  counter_riff: 'styles.bassCounterRiff',
 };
+
+/**
+ * A stored value read back as one of a closed set, or unset.
+ *
+ * ⛔⛔ **Narrowing `snare` and `bassRole` to the exported unions found this**
+ * (TASK-167): both were read straight out of a saved style's JSON as plain
+ * strings and assigned without a check, so a file written by an older build — or
+ * hand-edited — could put a value in the draft that `SnarePlacement::parse` and
+ * `Bass808Role::parse` both refuse. Opening and saving such a style would then
+ * author a placement the engine cannot read, silently.
+ *
+ * ⚠ Membership is asked of the label maps rather than a second list, so the
+ * check cannot drift from the unions the radios are built from.
+ *
+ * ⚠ **What this costs, stated because a review raised it and the answer is a
+ * judgement rather than a fix:** a style authored by a *newer* build has its
+ * unrecognised placement or role read back as inherit, and saving then drops it
+ * — and because the write side refuses `slideProb` without a role, an 808 slide
+ * would go with it. Dropping is still the better half of the trade: the
+ * alternative is carrying a value into the draft that both `parse`s refuse, and
+ * saving *that* authors a style the engine cannot read at all. A build that
+ * needs to round-trip forward-authored styles wants the write side to refuse or
+ * warn, which is a feature rather than a validation rule.
+ */
+function storedChoice<K extends string>(labels: Record<K, string>, value: unknown): K | '' {
+  // ⚠ `in`, not `Object.hasOwn`: this repo sets no `build.target`, so Vite's
+  // default baseline still includes Safari 14 and does not polyfill built-ins —
+  // `Object.hasOwn` needs 15.4 and would throw on open. Same semantics here,
+  // because `labels` is a literal with no prototype chain to inherit from.
+  return typeof value === 'string' && value in labels ? (value as K) : '';
+}
+
+/** The roll subdivisions `grid::note_value_ticks` resolves, as producers write them. */
+const ROLLS = ['16', '32', '16T', '8T'];
+
+/**
+ * One value added to or removed from a checkbox group's list.
+ *
+ * ⚠ The three groups — scales, rolls, progression families — each spelled this
+ * ternary out inline, so the array-toggle was written three times and differed
+ * only in the field it read. Generic over the member type so `scales: Scale[]`
+ * keeps its narrower type rather than widening to `string[]`.
+ */
+const withToggled = <T extends string>(list: T[], value: T, on: boolean): T[] =>
+  on ? [...list, value] : list.filter((v) => v !== value);
+
+/**
+ * The progression families offered, as roman numerals.
+ *
+ * ⛔ **Written at equal weight, and that is the honest simplification.** A
+ * shipped model weights its families because its research says which one the
+ * artist reaches for most; a producer ticking boxes has said only "these ones".
+ * Inventing weights they did not choose would put numbers in their model that
+ * nobody measured.
+ *
+ * ⚠ Roman numerals need no translation — they are the same in every catalog,
+ * which is why these carry no `t()` call.
+ */
+const FAMILIES = [
+  'i',
+  'i-VI',
+  'i-VII',
+  'i-iv',
+  'i-VI-VII',
+  'i-VII-VI',
+  'I-V-vi-IV',
+  'vi-IV-I-V',
+];
 
 export function StyleEditor({
   editing,
@@ -103,8 +194,34 @@ export function StyleEditor({
         .filter((entry) => kept[keptKey(entry.part, entry.seed)]),
     [entries, kept],
   );
+  // ⛔ **A kept file counts as the patterns it holds, not as one file**
+  // (TASK-040T). `engine::fit::MIN_KEPT` is a floor on the number of *patterns*
+  // measured — its own doc says thirty is where "a single kept outlier sets a
+  // range's edge" stops being true — so counting a four-part `.mid` as one would
+  // put a number in front of the producer that the engine does not use.
+  //
+  // ⚠ **Counted through `patternsIn`, which is what `keptFilePatterns()` — the
+  // set actually sent to `user_model_train` — is built from.** Re-deriving the
+  // sum here meant the number in front of the producer and the training set were
+  // two expressions: any future change to one, deduping identical patterns
+  // across files say, would have made the readout lie. Passing the subscribed
+  // map rather than reading `getState()` inside keeps the memo's dependency real
+  // as well as its answer.
+  const keptFiles = useVariations((s) => s.keptFiles);
+  const keptCount = useMemo(
+    () => keptTakes.length + patternsIn(keptFiles).length,
+    [keptTakes, keptFiles],
+  );
 
-  const [draft, setDraft] = useState<Draft>(() => {
+  /**
+   * The draft as the dialog opened it — seeded from the session, then frozen.
+   *
+   * ⛔ **Kept as its own state, because it is the baseline `saysNothingOfItsOwn`
+   * measures against.** `BLANK` is not that baseline: `swing` and the BPM range
+   * below are read from the selected model's defaults, so an untouched draft
+   * over `trap` already differs from `BLANK` and the rule would never fire.
+   */
+  const [opened] = useState<Draft>(() => {
     // ⚠ Read once, through `getState`, rather than subscribed: these three are
     // only ever wanted as they were when the dialog opened, and subscribing
     // would re-render it on every generation behind it for nothing.
@@ -119,6 +236,18 @@ export function StyleEditor({
       swing: defaults?.swing.amount ?? BLANK.swing,
     };
   });
+  const [draft, setDraft] = useState<Draft>(opened);
+  /**
+   * Whether there was a beat on screen when this dialog opened.
+   *
+   * ⚠ **Read once and frozen**, for the same reason the draft's own seeding is:
+   * it is a fact about the moment the producer pressed the button. It is the
+   * other half of Mike's rule — a draft with nothing of its own is still worth
+   * saving when it was seeded from a take, and worth nothing when it was not.
+   */
+  const [openedOverATake] = useState(
+    () => Object.keys(useSession.getState().patterns).length > 0,
+  );
   const [offered, setOffered] = useState<Scale[]>([]);
   // ⛔ **What copying this style's samples would cost, and whether the producer
   // said yes.** Mike, 2026-08-09: *"ensure that the end user knows that creating
@@ -204,6 +333,15 @@ export function StyleEditor({
       setError(t('styles.nameNeeded'));
       return;
     }
+    // ⛔ **Refused here rather than by greying the button out.** An unedited
+    // song is deliberately not saved either (`song.ts`), and this is the same
+    // rule: the app does not write a file for a change nobody made. It *says*
+    // so, because a control that quietly greys out is a rule the producer has
+    // to guess — which is the failure TASK-040T's own note names.
+    if (!openedOverATake && saysNothingOfItsOwn(draft, opened)) {
+      setError(t('styles.nothingToSave'));
+      return;
+    }
 
     try {
       const entry = await invoke<RosterEntry>('user_model_save', {
@@ -265,20 +403,36 @@ export function StyleEditor({
       // call gets its own deadline, and a generation is milliseconds.
       const kept: Pattern[] = [];
       for (const take of keptTakes) {
-        kept.push(
-          await invoke<Pattern>('generate_pattern', {
-            request: {
-              styleId: take.artistId,
-              part: take.part,
-              seed: take.seed,
-              songSeed: take.songSeed,
-              bars: take.bars,
-              mood: take.mood ?? undefined,
-            },
-          }),
-        );
+        // ⛔ **The clip, not the reply.** `generate_pattern` hands back the take
+        // AND the parts it was written against (TASK-166), and `invoke<Pattern>`
+        // is an explicit generic — so pushing the reply straight in typechecked
+        // clean while sending `{pattern, upstream}` objects to
+        // `user_model_train`, whose Rust side reads `Vec<Pattern>` and would
+        // have failed on a missing `lanes` for every model trained from kept
+        // takes. Caught by review, not by the compiler.
+        const { pattern: clip } = await invoke<Generated>('generate_pattern', {
+          request: {
+            styleId: take.artistId,
+            part: take.part,
+            seed: take.seed,
+            songSeed: take.songSeed,
+            bars: take.bars,
+            mood: take.mood ?? undefined,
+          },
+        });
+        kept.push(clip);
       }
 
+      // ⛔ **The kept files go in beside them** (TASK-040T). They are already
+      // `Pattern`s — the explorer keeps a `.mid`'s own split — so they need no
+      // regeneration and, unlike a take, could not be regenerated at all: there
+      // is no seed that rebuilds somebody else's file.
+      kept.push(...useVariations.getState().keptFilePatterns());
+
+      // ⚠ **Only the takes carry a mood.** A file was not generated in one, and
+      // recording a mood it does not have would be provenance nobody could act
+      // on. An all-file training set therefore trains in no named mood, which is
+      // the honest answer rather than a missing one.
       const moods = [...new Set(keptTakes.map((take) => take.mood).filter((m) => m !== null))];
       const entry = await invoke<RosterEntry>('user_model_train', {
         id,
@@ -474,9 +628,7 @@ export function StyleEditor({
                   onChange={(e) =>
                     setDraft({
                       ...draft,
-                      scales: e.target.checked
-                        ? [...draft.scales, scale]
-                        : draft.scales.filter((s) => s !== scale),
+                      scales: withToggled(draft.scales, scale, e.target.checked),
                     })
                   }
                 />
@@ -484,6 +636,123 @@ export function StyleEditor({
               </label>
             ))}
             <small>{t('styles.scalesHint', { name: baseName })}</small>
+          </fieldset>
+
+          {/* ⛔⛔ **The four blocks TASK-040U's entry named**: *"they cannot yet
+              reach roll vocabulary, snare placement, 808 behaviour or progression
+              families"*. Those four are most of what separates one authored style
+              from another, and a producer building a vibe by hand could reach
+              none of them.
+
+              ⚠ **Every group leads with "from the base" and starts there.** An
+              authored value *replaces* the parent's (`inherit::deep_merge`), so a
+              control with no unset state would make opening the dialog enough to
+              overwrite the thing the style is based on. */}
+          <fieldset className="styleeditor__field styleeditor__choice">
+            <legend>{t('styles.snare')}</legend>
+            <label>
+              <input
+                type="radio"
+                name="styles-snare"
+                checked={draft.snare === ''}
+                onChange={() => setDraft({ ...draft, snare: '' })}
+              />
+              {t('styles.inherit')}
+            </label>
+            {(Object.entries(PLACEMENTS) as [SnarePlacement, string][]).map(
+              ([placement, label]) => (
+                <label key={placement}>
+                  <input
+                    type="radio"
+                    name="styles-snare"
+                    checked={draft.snare === placement}
+                    onChange={() => setDraft({ ...draft, snare: placement })}
+                  />
+                  {label}
+                </label>
+              ),
+            )}
+            <small>{t('styles.snareHint')}</small>
+          </fieldset>
+
+          <fieldset className="styleeditor__field styleeditor__choice">
+            <legend>{t('styles.rolls')}</legend>
+            {ROLLS.map((roll) => (
+              <label key={roll}>
+                <input
+                  type="checkbox"
+                  checked={draft.rolls.includes(roll)}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      rolls: withToggled(draft.rolls, roll, e.target.checked),
+                    })
+                  }
+                />
+                {roll}
+              </label>
+            ))}
+            <small>{t('styles.rollsHint', { name: baseName })}</small>
+          </fieldset>
+
+          <fieldset className="styleeditor__field styleeditor__choice">
+            <legend>{t('styles.bass808')}</legend>
+            <label>
+              <input
+                type="radio"
+                name="styles-bass"
+                checked={draft.bassRole === ''}
+                onChange={() => setDraft({ ...draft, bassRole: '' })}
+              />
+              {t('styles.inherit')}
+            </label>
+            {(Object.entries(BASS_ROLES) as [Bass808Role, string][]).map(([role, label]) => (
+              <label key={role}>
+                <input
+                  type="radio"
+                  name="styles-bass"
+                  checked={draft.bassRole === role}
+                  onChange={() => setDraft({ ...draft, bassRole: role })}
+                />
+                {t(label)}
+              </label>
+            ))}
+            {/* ⚠ Disabled until a role is chosen, because a slide probability
+                with no role is half an 808 — and the disabled state is what says
+                so without a sentence. */}
+            <label className="styleeditor__slide">
+              <span>{t('styles.slide')}</span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                disabled={draft.bassRole === ''}
+                value={draft.slide}
+                onChange={(e) => setDraft({ ...draft, slide: Number(e.target.value) })}
+              />
+            </label>
+            <small>{t('styles.bass808Hint')}</small>
+          </fieldset>
+
+          <fieldset className="styleeditor__field styleeditor__choice">
+            <legend>{t('styles.progressions')}</legend>
+            {FAMILIES.map((family) => (
+              <label key={family}>
+                <input
+                  type="checkbox"
+                  checked={draft.progressions.includes(family)}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      progressions: withToggled(draft.progressions, family, e.target.checked),
+                    })
+                  }
+                />
+                {family.split('-').join('–')}
+              </label>
+            ))}
+            <small>{t('styles.progressionsHint', { name: baseName })}</small>
           </fieldset>
         </div>
 
@@ -520,7 +789,7 @@ export function StyleEditor({
             the button being greyed out: `18 / 30 kept` is something you can act
             on and a dead control is not. */}
         <p className="styleeditor__kept">
-          {t('styles.kept', { count: keptTakes.length, needed: MIN_KEPT })}
+          {t('styles.kept', { count: keptCount, needed: MIN_KEPT })}
         </p>
 
         <footer className="styleeditor__foot">
@@ -538,7 +807,7 @@ export function StyleEditor({
           <button
             type="button"
             className="btn-ghost"
-            disabled={keptTakes.length < MIN_KEPT}
+            disabled={keptCount < MIN_KEPT}
             onClick={() => void trainFromKept()}
           >
             {t('styles.train')}
@@ -593,11 +862,64 @@ function modelFrom(draft: Draft, id: string, bases: RosterEntry[]): Record<strin
     },
   };
 
+  // ⛔ **Written only when the producer set them, for the reason `scales` gives
+  // below: `inherit::deep_merge` has an authored value *replace* the base's, so
+  // a field written unasked is the base quietly overruled.** A partial block is
+  // safe — objects merge key by key, so `snare: { placement }` keeps the parent's
+  // ghosts and its layering — but an array replaces outright, which is exactly
+  // what "these families and no others" should mean.
+  const drums = model.drums as Record<string, unknown>;
+  if (draft.snare !== '') {
+    drums.snare = { placement: draft.snare };
+  }
+  if (draft.rolls.length > 0) {
+    // ⛔⛔ **`weights` must be written beside `values`, and omitting it made the
+    // control unusable.** `inherit::deep_merge` replaces the `values` array
+    // whole but merges `vocab` key by key — so the producer's list arrived
+    // against the *parent's* weights, and 566 of the 600 shipped models author
+    // that pair. Tick one subdivision over a base with five and
+    // `validate::check_weighted` refuses the save with `5 weights for 1 values`,
+    // a JSON pointer to a field they never touched. Flat weights are the honest
+    // reading of a checkbox list: the producer said which subdivisions, not how
+    // often each.
+    (drums.hihat as Record<string, unknown>).rolls = {
+      vocab: { values: draft.rolls, weights: draft.rolls.map(() => 1) },
+    };
+  }
+  if (draft.bassRole !== '') {
+    // ⚠ The slide rides with the role and never alone — see `Draft`.
+    drums.bass808 = { role: draft.bassRole, slideProb: draft.slide };
+  }
+  if (draft.progressions.length > 0) {
+    model.chords = {
+      progressionFamilies: draft.progressions.map((roman) => ({
+        roman: roman.split('-'),
+        weight: 1,
+      })),
+    };
+  }
+
   // ⚠ Omitted entirely when nothing is ticked, rather than written as an empty
   // list: an empty `scales` would *replace* the base's rather than inherit it,
   // and a style with no scale to generate in is a style that generates nothing.
+  //
+  // ⛔⛔ **`weights` must be written beside `values`, and this control shipped
+  // without it long before TASK-040U copied the shape.** `deep_merge` replaces
+  // the `values` array whole but merges the object around it key by key, so the
+  // producer's list arrived against the base's `weights` — and **599 of the 620
+  // model files author that pair**. Unless the number of scales ticked happened
+  // to equal the base's weight count, `validate::check_weighted` refused the
+  // save with `3 weights for 1 values`, naming a field nobody touched. The Rolls
+  // control was written by copying this block and inherited the same defect;
+  // `engine/tests/user_partials.rs` is what found both, by merging every
+  // fragment this function writes over every shipped base and running the real
+  // lint. Flat weights are the honest reading of a checkbox list — the producer
+  // said which scales, not how often each.
   if (draft.scales.length > 0) {
-    (model.session as Record<string, unknown>).scales = { values: draft.scales };
+    (model.session as Record<string, unknown>).scales = {
+      values: draft.scales,
+      weights: draft.scales.map(() => 1),
+    };
   }
 
   return model;
@@ -609,8 +931,13 @@ function draftFrom(model: Record<string, unknown>): Draft {
   const bpm = (session.bpm ?? {}) as Record<string, number>;
   const swing = (session.swing ?? {}) as Record<string, number>;
   const scales = (session.scales ?? {}) as { values?: Scale[] };
-  const drums = (model.drums ?? {}) as { hihat?: { fillDensity?: number } };
+  const drums = (model.drums ?? {}) as {
+    hihat?: { fillDensity?: number; rolls?: { vocab?: { values?: string[] } } };
+    snare?: { placement?: string };
+    bass808?: { role?: string; slideProb?: number };
+  };
   const melody = (model.melody ?? {}) as { densityPerBar?: number[] };
+  const chords = (model.chords ?? {}) as { progressionFamilies?: { roman?: string[] }[] };
 
   return {
     name: typeof model.name === 'string' ? model.name : '',
@@ -622,5 +949,15 @@ function draftFrom(model: Record<string, unknown>): Draft {
     melodyMin: melody.densityPerBar?.[0] ?? BLANK.melodyMin,
     melodyMax: melody.densityPerBar?.[1] ?? BLANK.melodyMax,
     scales: scales.values ?? [],
+    // ⚠ **Absent reads back as unset, not as a default** — the same distinction
+    // the write side keeps. A saved style that never chose a snare placement must
+    // reopen still inheriting one, or opening and saving would author it.
+    snare: storedChoice(PLACEMENTS, drums.snare?.placement),
+    rolls: drums.hihat?.rolls?.vocab?.values ?? [],
+    bassRole: storedChoice(BASS_ROLES, drums.bass808?.role),
+    slide: drums.bass808?.slideProb ?? BLANK.slide,
+    progressions: (chords.progressionFamilies ?? [])
+      .map((family) => (family.roman ?? []).join('-'))
+      .filter((roman) => roman !== ''),
   };
 }

@@ -1,0 +1,305 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "clay-walker",
+  "type": "artist",
+  "name": "Clay Walker",
+  "aliases": [
+    "clay walker",
+    "walker"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-shuffle"
+  ],
+  "era": "1993-2010",
+  "genres": [
+    "country",
+    "country-shuffle",
+    "texas dancehall"
+  ],
+  "relatedGenres": [
+    "country-shuffle",
+    "country-pop",
+    "country-train"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-shuffle — Clay Walker",
+    "bpmdatabase — Clay Walker (https://www.bpmdatabase.com/music/search/?artist=Clay+Walker)",
+    "Wikipedia — Honky-tonk (https://en.wikipedia.org/wiki/Honky-tonk)"
+  ],
+  "notes": "Texas dancehall country on Nashville radio, and the research names this entry \"the section's clearest mainstream-radio realisation of the fast dancehall setting\": \"the 118–162 group runs the shuffle with a quarter-note kick and the lope on a hat, ratio narrowing as tempo rises\". That is the model's spine — kick anchors on all four beats at densityPerBar 3–4, swing narrowed to 0.62, bpm 55–162 with mode 124 inside the stated 118–162 dancehall cluster — while the mid cuts' shuffled two-beat and the ballads' cross-stick survive as the rim lane and the wide tempo range. The hat carries the lope, so fillDensity is up at 0.38 with the open hat at 0.22 and one or two per bar. The bass is the entry's most unusual documented claim for a radio act: \"walking quarters on the fastest cuts (unusual for radio country and a direct dancehall inheritance), shuffled root–five on the mid cuts, long tied notes on the ballads\" — independent_riff at followRootsProb 0.8. Harmony is the entry's own list: I–IV–V with V7, I–I7–IV turns on the honky-tonk cuts, I–V–vi–IV on the ballads. The vocal is the documented \"bright, forward mid-tenor/baritone with clear diction, mid syllabic density, chorus a fifth above the verse on a repeated rhythmic cell\" — staccato for the diction, a riff-weighted contour for the repeated cell, and a 55–79 register. The entry also specifies an \"extended instrumental outro on the dance cuts\", which is the 8–16-bar outro. ⚠ INFERRED: swing.amount, all velocity tiers, ghost probability and vel, hat and percs densities. Thirteen per-track BPM readings support the bands, but they are bpmdatabase values and [LOW-CONF] as a class, and the research states the harmony and palette are generalised from the lane [LOW-CONF]; confidence is medium because the research rates the entry medium-high.",
+  "session": {
+    "bpm": {
+      "min": 55,
+      "max": 162,
+      "mode": 124
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        6,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.62
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        106,
+        126
+      ],
+      "main": [
+        78,
+        94
+      ],
+      "ghost": [
+        30,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.1,
+      "offbeat8thShare": 0.06
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.32,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "vel": [
+          0.2,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.38,
+      "velocities": {
+        "main": [
+          0.54,
+          0.76
+        ],
+        "ghost": [
+          0.22,
+          0.4
+        ]
+      },
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "ride"
+      ],
+      "densityPerBar": [
+        3,
+        7
+      ],
+      "gainOffsetDb": -5
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "V",
+          "IV",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.62,
+      "seventh": 0.34,
+      "ninth": 0.04
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.28,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.45,
+      "descend": 0.3,
+      "arch": 0.25
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "articulation": "staccato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.45,
+      0.7
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.8,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.16
+    }
+  }
+}

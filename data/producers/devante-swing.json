@@ -1,0 +1,364 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "devante-swing",
+  "type": "producer",
+  "name": "DeVanté Swing (Donald DeGrate)",
+  "aliases": [
+    "devante swing",
+    "donald degrate",
+    "swing mob"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1990-1996",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "producer"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "neo-soul",
+    "boom-bap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — DeVanté Swing (Donald DeGrate)",
+    "Wikipedia — DeVanté Swing (https://en.wikipedia.org/wiki/DeVante_Swing)",
+    "songdata — Jodeci (https://songdata.io/search?query=Jodeci)",
+    "AllMusic — DeVanté Swing (https://www.allmusic.com/artist/p129974)"
+  ],
+  "notes": "Jodeci's producer and the Swing Mob's founder — raw, church-derived Uptown R&B, windowed **1990–1996** by the research. The band is \"56–70 half-time (backbeat on beat 3) plus 86–93 straight\", so the felt band is the base with the mode at 61 and F minor as the named house key across three albums. Three drum deltas: \"kick on 1 plus the 8th before 3\" at one or two hits with syncopation 0.08 and a 0.15 `beatSkipProb`, \"clap/snare on beat 3 only\" with the clap pushed 4–10 ms behind a snare that is itself 4–11 ms late, and \"almost no hat lane; where hats appear they are low-velocity 16ths\" at 0.07 fill density. The distinguishing claim is that the rawness is a **mix** decision, not just a programming one — \"he also engineered and mixed… so the rawness is a mix decision as much as a programming one\" — which is encoded as a deliberately low `velocityTiers` set (104–120 accent over a 62–80 main), a 0.62 quantize and a −12 dB perc bed; nothing else in this section is mixed this far down on purpose. Harmony is \"gospel-quartet voicing — m7, m9 and sus4 resolutions, two- and four-bar vamps carried by organ or Rhodes **with no countermelody**\", so `susSubstitutionProb` is 0.5 — the highest in the section — ninth is 0.38, and the counter is pushed to a 0.16 pad rather than deleted. \"The arrangement leaves space for full-throat melisma\" is the wide melody register, the low chord-tone bias and the highest leap share among the ballad producers. The bass is \"long-sustaining synth bass holding the root for a whole bar, **sitting above true sub territory** and mixed loud\" — hence a register floor of MIDI 30 rather than the 24 the 808 models use. ⚠ The machine lineage is `[LOW-CONF]` in the research and has no schema field. ⚠ Every velocity and density number is INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 56,
+      "max": 70,
+      "mode": 61
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Fm",
+        "Cm",
+        "Gm"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "blues"
+      ],
+      "weights": [
+        5,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    },
+    "humanize": {
+      "quantizeStrength": 0.62,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 7,
+        "snare": 11,
+        "clap": 12,
+        "closedHat": 8
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        104,
+        120
+      ],
+      "main": [
+        62,
+        80
+      ],
+      "ghost": [
+        22,
+        36
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.08,
+      "tresilloBias": 0.02,
+      "beatSkipProb": 0.15,
+      "andOf4EveryOtherBar": 0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        4,
+        10
+      ],
+      "ghost": {
+        "prob": 0.03,
+        "pos": [
+          "3e"
+        ],
+        "vel": [
+          0.08,
+          0.16
+        ]
+      },
+      "offGridMs": [
+        4,
+        11
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.07,
+      "velocities": {
+        "main": [
+          0.18,
+          0.3
+        ],
+        "ghost": [
+          0.06,
+          0.14
+        ]
+      },
+      "openHat": {
+        "prob": 0.01,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.01
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "snap"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "any",
+      "gainOffsetDb": -12
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.12,
+      "seventh": 0.5,
+      "ninth": 0.38
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ],
+    "susSubstitutionProb": 0.5
+  },
+  "melody": {
+    "register": [
+      57,
+      86
+    ],
+    "densityPerBar": [
+      2,
+      9
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.26,
+      "leap": 0.14
+    },
+    "contour": {
+      "riff": 0.1,
+      "descend": 0.48,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.22,
+    "octaveJumpProb": 0.14,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.16,
+    "styles": {
+      "values": [
+        "sustain_pad"
+      ],
+      "weights": [
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.98,
+    "rhythm": "independent_riff",
+    "register": [
+      30,
+      45
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.04,
+    "cellShapes": [
+      [
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "outro": [
+        16,
+        32
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 6
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.95,
+        "beats": 4
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

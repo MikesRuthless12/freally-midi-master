@@ -1,0 +1,277 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kaytranada",
+  "type": "producer",
+  "name": "Kaytranada",
+  "aliases": [
+    "kaytranada",
+    "louis kevin celestin",
+    "kaytra"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul",
+    "house"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "house",
+    "funk",
+    "trap-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Kaytranada",
+    "Wikipedia — Kaytranada (https://en.wikipedia.org/wiki/Kaytranada)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "Montreal's swing-and-shuffle producer, claimed here rather than in `trap-soul` per the roadmap's fallback order. The entry states the identifying parameter as a *disagreement* between two layers: \"kick placed slightly early and snare/clap slightly late, so the backbeat leans; the 16th grid is swung wide (closer to a triplet feel than to a straight 16th) but **the hats stay quantised — the drums and the hats disagree, and that disagreement is the groove**.\" That is authored exactly where it can be: `swing.amount` 0.72, the widest in the section, against a `timingJitterMs` map that gives the snare and clap 12 ms and the closed hat 2 — the hats are nailed to the grid while the backbeat leans. The snare is layered (\"layered clap-plus-snare, rimshot ghosts\") with an 8–18 ms window, and a filtered break sits underneath. Harmony is \"sample-inherited and static — chopped m9/maj9 fragments from soul, funk and disco records held over 2-to-4-bar loops, with the harmonic interest coming from the chop's rhythmic placement rather than from progression\", so no families, `maxChords` 3 and a syncopated-cell harmonic rhythm. ⛔ The low end deliberately carries **no** `bass808` block, because the entry rules it out in as many words: \"fat filtered synth-sub or sampled bass with a fast decay, syncopated against the kick in 16ths and mixed loud; occasional 808 with a short slide, but **the low end functions as a funk bass line rather than as a sustained tone**\". Authoring an 808 with role `bassline` would have deleted exactly the funk bass line the entry describes. ⚠ The INFERRED parameters are every drum probability and velocity and all melody figures; the research marks the swing description as inference from the records.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 115,
+      "mode": 102
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.72
+    },
+    "humanize": {
+      "quantizeStrength": 0.6,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 12,
+        "clap": 12,
+        "closedHat": 2,
+        "rim": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "syncopation": 0.56,
+      "tresilloBias": 0.14
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        8,
+        18
+      ],
+      "ghost": {
+        "prob": 0.44,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.62,
+      "velocities": {
+        "main": [
+          0.4,
+          0.68
+        ],
+        "ghost": [
+          0.14,
+          0.32
+        ]
+      },
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker",
+        "perc",
+        "conga"
+      ],
+      "densityPerBar": [
+        2,
+        6
+      ],
+      "gainOffsetDb": -5
+    }
+  },
+  "chords": {
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.08,
+      "seventh": 0.5,
+      "ninth": 0.42
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "syncopated_cell",
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      58,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.7,
+      "third": 0.24,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.46,
+      "descend": 0.3,
+      "arch": 0.24
+    },
+    "chordToneBias": 0.54,
+    "octaveJumpProb": 0.1,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.34,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "P4"
+    ],
+    "anticipationProb": 0.55
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.32
+    }
+  }
+}

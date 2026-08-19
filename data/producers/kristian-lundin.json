@@ -1,0 +1,251 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kristian-lundin",
+  "type": "producer",
+  "name": "Kristian Lundin",
+  "aliases": [
+    "kristian lundin",
+    "kristianlundin",
+    "christian lundin"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1996-2003",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Kristian Lundin",
+    "Wikipedia — Kristian Lundin (https://en.wikipedia.org/wiki/Kristian_Lundin)",
+    "Wikipedia — \"Bye Bye Bye\" (https://en.wikipedia.org/wiki/Bye_Bye_Bye)"
+  ],
+  "notes": "The Cheiron producer for the harder, more electronic boy-band records: 86–105 straight, backbeat on 2&4, minor tonic with i–VI–VII cycles and ballad productions in major turning IV–I–V–vi. \"Hard drums\" is the stated aesthetic and it is authored as a velocity tier at 112–127 accent — the loudest on the Cheiron bench — with \"a buzzy electronic layer on top\" as a `perc`/`rim` block. Two placement facts follow: \"kick doubled on the 8th before the backbeat\" (anchors on 1 and \"3&\", secondary \"1&\") and \"metallic 16th tick\", which is the pinned 16th hat. The delta that actually defines him is negative: **a string crescendo rather than a drum fill** is the standard lift into bar 1, so the fills move to every 16 bars and the hat rolls sit at 0.02 — this board does not roll into sections. The bass is \"gated synth bass tight to the kick, root-plus-octave, with a 16th stutter on turnarounds\": `mirror_kick` at 0.93 with the octave as its passing tone. His productions \"treat the group's harmony as the lead instrument\", which is the counter at a high ratio in sustained pad and octave echo. ⚠ `confidence` is medium because the research rates it high-medium. ⚠ The **INFERRED** parameters are every drum probability, the velocity tier and the melody register — the documented C-sharp2–G-sharp5 span is five voices splitting one line, and 62–92 is this author's single-part reading of it.",
+  "session": {
+    "bpm": {
+      "min": 86,
+      "max": 105,
+      "mode": 94
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        84,
+        100
+      ],
+      "ghost": [
+        32,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "3&"
+      ],
+      "secondaryAnchor": "1&",
+      "syncopation": 0.28
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.38
+        ]
+      },
+      "layerClapOffsetMs": [
+        0,
+        2
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.5,
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.02
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        3,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V",
+          "vi"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.68,
+      "seventh": 0.24,
+      "ninth": 0.08
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      92
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.64,
+      "third": 0.26,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.26,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.2,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.7,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.93,
+    "rhythm": "mirror_kick",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P8"
+    ],
+    "anticipationProb": 0.26
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        8
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.75,
+        "beats": 4
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

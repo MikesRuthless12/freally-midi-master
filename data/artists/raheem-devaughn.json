@@ -1,0 +1,285 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "raheem-devaughn",
+  "type": "artist",
+  "name": "Raheem DeVaughn",
+  "aliases": [
+    "raheem devaughn",
+    "rnb hippie",
+    "dc neo soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2005-2016",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "boom-bap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Raheem DeVaughn",
+    "Wikipedia — Raheem DeVaughn (https://en.wikipedia.org/wiki/Raheem_DeVaughn)",
+    "Wikipedia — Carvin & Ivan (https://en.wikipedia.org/wiki/Carvin_%26_Ivan)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "Washington DC's \"R&B hippie neo-soul\" tenor on the Carvin & Ivan board. `confidence` is **low** because the research rates the entry medium-low — the production relationship and the lane position are sourced, the parameters are not. The drums are the A Touch of Jazz house grammar the entry names: \"hip-hop-gridded programmed kit with a live-feel percussion overlay — the signature of a lightly-swung kit over a programmed base; snare on 2&4, swung 16th hats, congas and shaker continuous\". \"Lightly-swung\" is why `swing.amount` sits at 0.6, below the parent's 0.63, and \"continuous\" is why the percussion density (4–7 a bar) is the highest of any programmed model in this batch. Harmony is \"4-bar cycles of the `i–iv–VII–III` family, gospel passing chords, and a modulating bridge\" — the family the entry writes out, with `susOrDimProb` for the passing chords. Melody is \"high-tenor into falsetto, moderately dense, with long melismatic tags and a spoken/whispered verse device\", so the register runs high, `endVariation` carries the tags and `emptyBarBias` carries the whispered device. Bass is \"played electric bass walking under the chord changes; light sub-reinforcement on the singles. No sustained 808\" — which is why no `bass808` block exists here: the entry rules one out in as many words. ⚠ Every drum, melody and bass number is INFERRED, `swing.amount` included. ⚠ This model shares its harmonic family with Jazmine Sullivan and Andra Day because the research gives all three the same cadence; the difference between them is authored in the drums, register and density, not invented in the chords.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 98,
+      "mode": 84
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.6
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 5,
+        "conga": 10,
+        "shaker": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.44,
+      "tresilloBias": 0.12
+    },
+    "snare": {
+      "offGridMs": [
+        1,
+        5
+      ],
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "1a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.58,
+      "velocities": {
+        "main": [
+          0.44,
+          0.72
+        ],
+        "ghost": [
+          0.14,
+          0.34
+        ]
+      },
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "shaker",
+        "tambourine",
+        "rim"
+      ],
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "gainOffsetDb": -5
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.08,
+      "seventh": 0.5,
+      "ninth": 0.42
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        47,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "susOrDimProb": 0.2
+  },
+  "melody": {
+    "register": [
+      58,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.22,
+      "descend": 0.42,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.54,
+    "endVariation": true,
+    "emptyBarBias": 0.16,
+    "octaveJumpProb": 0.14,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "wurlitzer"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.44,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3"
+    ],
+    "anticipationProb": 0.44
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.2
+    }
+  }
+}

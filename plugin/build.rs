@@ -47,6 +47,20 @@ fn main() {
     // shipping a roster that silently does not match the dataset.
     println!("cargo:rerun-if-changed=../data");
 
+    // ⛔ **And the UI, for exactly the same reason.** `editor.rs` does
+    // `include_dir!("$CARGO_MANIFEST_DIR/../dist")`, so a frontend change is
+    // invisible to cargo in the identical way a model edit was: `npm run build`
+    // rewrites `dist/`, no Rust source changes, the crate is judged fresh, and
+    // the standalone reopens serving the interface it was last built with.
+    //
+    // ⚠ **The bundled-UI checks cannot see this one.** `the_built_ui_is_embedded`
+    // and `assert-plugin-bundled.mjs` ask whether *a* UI is in the binary, and
+    // `the_index_asks_for_assets_that_are_actually_bundled` compares the embedded
+    // index against the embedded assets — a stale copy is perfectly consistent
+    // with itself and passes all three. Found on 2026-08-16, relaunching to look
+    // at a control that had just been rewritten.
+    println!("cargo:rerun-if-changed=../dist");
+
     #[cfg(target_os = "windows")]
     {
         let mut resource = winresource::WindowsResource::new();

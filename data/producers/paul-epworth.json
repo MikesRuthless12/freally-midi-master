@@ -1,0 +1,361 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "paul-epworth",
+  "type": "producer",
+  "name": "Paul Epworth",
+  "aliases": [
+    "paul epworth",
+    "paulepworth",
+    "epworth",
+    "church studios"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2004-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "soul"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "pop-2000s",
+    "neo-soul",
+    "house"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Paul Epworth",
+    "Wikipedia — Paul Epworth (https://en.wikipedia.org/wiki/Paul_Epworth)",
+    "Wikipedia — Rolling in the Deep (https://en.wikipedia.org/wiki/Rolling_in_the_Deep)"
+  ],
+  "notes": "Drum-forward British producer working through vintage consoles and live tracking. The drum claim is the model: \"the identity is percussion as architecture — martial beats, stomps, hand-claps and a played kit tracked in a live room, entering as a structural event rather than running throughout.\" So the kick is a four-square martial pulse, the snare stack is `clap` alone with the widest human offset here under a `large` room tail, `hihat.continuous` is false at `fillDensity` 0.04 with the roll vocabulary off, and `tomLow`, `tom` and `tambourine` carry the stomps at a forward gain. The humanize block is a played one; \"a 72-channel vintage EMI Neve in one room and an SSL in the other, i.e. a hybrid analogue/digital chain\" is the wide velocity spread. Harmony is his most specific researched fact and it is authored as the voicing rather than as a numeral: \"minor keys with open-fifth (power-chord) voicings in place of full triads — documented on his best-known production as i5—v5—VII5 — plus natural-minor VI—VII motion and gospel plagal cadences.\" A fifth is a triad with the third removed, so `triad` sits at 0.86 (the highest in this section) with almost no extension, the voicing is `open` and wide, and the families are the i—v—VII and VI—VII sets the source names. No `bass808` block: \"no 808. Electric bass and doubled low piano; the harmonic floor is often bare fifths, which is why his records sound wide and hollow before the choir enters\", which is a `mirror_kick` at 0.94 with root-fifth cells and no passing motion. \"Massed chanting backing vocals are his standard countermelody\" is `sustain_pad`; the arrangement is the documented additive terracing, claps then kit then choir, with an abrupt full stop. ⚠ `confidence` is medium against a high-medium rating because the research says \"the tempo band is aggregated\": every drum probability, the humanize numbers and `bpm.mode` 105 (the midpoint of the stated 70—140 band) are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 140,
+      "mode": 105
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        6,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 9,
+        "clap": 14,
+        "snare": 11,
+        "tom": 12,
+        "tambourine": 12
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        127
+      ],
+      "main": [
+        72,
+        96
+      ],
+      "ghost": [
+        30,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.12,
+      "tresilloBias": 0.02,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "transient": "hard",
+      "reverb": "large",
+      "layerClapOffsetMs": [
+        8,
+        20
+      ],
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.04,
+      "velocities": {
+        "main": [
+          0.38,
+          0.68
+        ],
+        "ghost": [
+          0.14,
+          0.3
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tomLow",
+        "tom",
+        "tambourine",
+        "crash"
+      ],
+      "densityPerBar": [
+        3,
+        7
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -1
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "v",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.86,
+      "seventh": 0.12,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        81
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      82
+    ],
+    "densityPerBar": [
+      3,
+      9
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.28,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.3,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": [
+      0.1,
+      0.22
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        4,
+        3
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": [
+      0.45,
+      0.7
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      47
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.18,
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5",
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.07
+    }
+  }
+}

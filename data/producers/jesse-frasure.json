@@ -1,0 +1,280 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jesse-frasure",
+  "type": "producer",
+  "name": "Jesse Frasure",
+  "aliases": [
+    "jesse frasure",
+    "jessefrasure",
+    "jesse fraser"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2001-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "dance-pop",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Jesse Frasure",
+    "Wikipedia — Jesse Frasure (https://en.wikipedia.org/wiki/Jesse_Frasure)",
+    "songdata.io — Thomas Rhett (https://songdata.io/search?query=Thomas+Rhett)"
+  ],
+  "notes": "The DJ/electronic producer embedded in country — a Detroit-raised, EDM-trained programmer. The entry says the hip-hop/EDM vocabulary is \"first-hand, not borrowed,\" and the defining contribution is stated as a construction order: \"programmed-first construction with clap/snap backbeat, 16th hat loops, sampled kicks, and **disco-adjacent four-on-the-floor** on the dance cuts, with live cymbals and percussion overdubbed on top. Half-time bridges and hard beat drop-outs used structurally.\" So the kick carries a four-on-the-floor anchor set with `fourOnFloorInChorus` and the drop-out probability is the highest of any producer here, over the tightest quantize. The dance band is documented separately — \"four-on-the-floor dance cuts at 118–128\" inside a 65–135 window. Harmony is \"I–V–vi–IV and ii–V–I pop turnarounds, plus static i7 funk vamps\" with \"a marked D♭ major presence,\" so the seventh share is high and `vamp` carries real weight; the funk vamp is authored as the one-chord family the entry describes — a *static* i, coloured to a seventh by the `extensions` block, with no second chord, because the entry names none. The bass is the reason no 808 block appears: \"synth sub plus a funk-articulated electric bass with slides, ghost notes and syncopated 16ths — the most active bass writing in modern country,\" so the live bass is kept with a high `glideProb` and the lowest root-following of the modern producers here. `relatedGenres` is held to what the entry documents — \"disco-adjacent four-on-the-floor\" dance cuts, EDM training and \"country/EDM radio shows\" — which is a dance-pop/pop crossover claim; the entry never says house, so no house id is claimed. ⚠ Confidence is medium (research: medium-high). ⚠ The INFERRED parameters are the perc density, the four-on-the-floor share, the counter ratio and the 100 BPM centre — the entry quotes the 65–135 window and the 118–128 dance band but names no centre of gravity, so that figure is a choice, not a reading.",
+  "session": {
+    "bpm": {
+      "min": 65,
+      "max": 135,
+      "mode": 100
+    },
+    "keys": {
+      "values": [
+        "Db",
+        "G",
+        "A",
+        "Ab",
+        "Eb"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "dorian",
+        "minor_pentatonic",
+        "major_pentatonic"
+      ],
+      "weights": [
+        5,
+        2,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.98,
+      "velocityVar": 0.08,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 1,
+        "snap": 1,
+        "closedHat": 2,
+        "perc": 2
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        116,
+        127
+      ],
+      "main": [
+        84,
+        102
+      ],
+      "ghost": [
+        26,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.2,
+      "offbeat8thShare": 0.26,
+      "fourOnFloorInChorus": 0.65
+    },
+    "snare": {
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        2
+      ],
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.49,
+      "openHat": {
+        "prob": 0.42,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "shaker",
+        "conga",
+        "perc",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        5,
+        10
+      ],
+      "gainOffsetDb": -3,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.46,
+      "ninth": 0.14
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        4,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      59,
+      86
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "straightEighthsProb": 0.2,
+    "intervals": {
+      "step": 0.66,
+      "third": 0.24,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.28,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.68,
+    "octaveJumpProb": [
+      0.12,
+      0.24
+    ],
+    "timbreHint": "wah_funk_electric"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.3,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.26,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.52
+  }
+}

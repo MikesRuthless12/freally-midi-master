@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { Pause, Play, Repeat, Split, Square } from 'lucide-react';
+import { GraduationCap, Pause, Play, Repeat, Split, Square } from 'lucide-react';
 
 import { formatSeconds, useExplorer } from '../../state/explorer';
 import { useSession } from '../../state/session';
+import { useVariations } from '../../state/variations';
 import type { SplitPart } from '../../lib/ipc-types';
 
 /**
@@ -82,6 +83,15 @@ export function MidiPreview() {
   const pause = useExplorer((s) => s.pause);
   const stop = useExplorer((s) => s.stop);
   const toggleLoop = useExplorer((s) => s.toggleLoop);
+  // The file the split belongs to, which is the key it is kept under.
+  const selected = useExplorer((s) => s.selected);
+  const keepFile = useVariations((s) => s.keepFile);
+  // ⚠ **Subscribed to the one entry, not to the map.** Keeping any file
+  // republishes `keptFiles`, and this panel redraws its split rows and five
+  // buttons — the question here is only ever about the file on screen.
+  const keptHere = useVariations((s) =>
+    selected === null ? false : s.keptFiles[selected] !== undefined,
+  );
 
   // ⚠ **Reachable, and in two ways.** `PreviewPlayer` shows this the moment a
   // `.mid` is selected — before the split has answered, and for good if it never
@@ -200,6 +210,51 @@ export function MidiPreview() {
         <Split size={12} aria-hidden="true" />
         {t('explorer.midiApply')}
       </button>
+
+      {/* ⛔⛔ **The gesture TASK-040T was waiting on.** The fit, its
+          anti-collapse rules, the SMF reader and the keep/train loop have all
+          shipped since 2026-08-09 — the reader was reachable only over the
+          bridge, so a producer could train on their own *generations* and not on
+          their own *files*. This is that door.
+
+          ⚠ **It keeps the split, not the file**, which is what makes a file and
+          a generation one measurement rather than two: `StyleEditor` regenerates
+          each kept take into a `Pattern` and hands the set to
+          `engine::fit`, and these are already that shape. Its own comment says
+          so — *"a `.mid` dragged in from the browser will arrive as a `Pattern`
+          too, so a model fitted from files cannot drift from one fitted from
+          generations."*
+
+          ⚠ **A toggle rather than an Add button**, so keeping is undoable in the
+          place it was done. Pressed state is `aria-pressed` and `data-on`, the
+          same treatment the loop buttons wear. */}
+      {/* ⚠ **Not offered on a file with nothing in it.** An empty split is a real
+          answer — `explorer_midi_split` returns one for a file it can read and
+          finds no notes in — and keeping it would put a lit toggle next to zero
+          patterns, which is a control claiming to have done something. */}
+      {selected !== null && midiSplit.length > 0 && (
+        <button
+          type="button"
+          className="btn-ghost btn-toggle midi__train"
+          aria-pressed={keptHere}
+          data-on={keptHere}
+          onClick={() => {
+            // ⚠ The split is built only when keeping. Unkeeping deletes a key,
+            // so mapping the whole file's patterns for that press was work for
+            // a value the store throws away.
+            if (keptHere) keepFile(selected, false);
+            else
+              keepFile(
+                selected,
+                true,
+                midiSplit.map((split) => split.pattern),
+              );
+          }}
+        >
+          <GraduationCap size={12} aria-hidden="true" />
+          {t('explorer.midiTrain')}
+        </button>
+      )}
 
       {/* ⚠ Named rather than implied: a producer who does not want the split can
           still drag the file onto one generator, and this is where they learn

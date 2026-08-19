@@ -152,7 +152,7 @@
     ],
     "densityPerBar": [
       3,
-      7
+      6
     ],
     "phraseBars": {
       "values": [
@@ -164,26 +164,7 @@
         2
       ]
     },
-    "timbreHint": "church_organ",
-    "structure": "riff_loop",
-    "motifPitchCount": [
-      3,
-      4
-    ],
-    "intervals": {
-      "step": 0.58,
-      "third": 0.28,
-      "leap": 0.15
-    },
-    "contour": {
-      "riff": 0.63,
-      "descend": 0.23,
-      "arch": 0.15
-    },
-    "chordToneBias": 0.71,
-    "halfStepDissonance": 0.04,
-    "endVariation": true,
-    "octaveJumpProb": 0.09
+    "timbreHint": "church_organ"
   },
   "countermelody": {
     "registerOffset": 12,

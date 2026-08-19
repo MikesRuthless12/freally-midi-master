@@ -1,0 +1,257 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "nsync",
+  "type": "artist",
+  "name": "NSYNC",
+  "aliases": [
+    "nsync",
+    "n sync",
+    "in sync"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1997-2001",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "teen pop"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "rnb-2000s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — NSYNC",
+    "Wikipedia — \"Bye Bye Bye\" (https://en.wikipedia.org/wiki/Bye_Bye_Bye)",
+    "Wikipedia — Cheiron Studios (https://en.wikipedia.org/wiki/Cheiron_Studios)"
+  ],
+  "notes": "The harder-edged Orlando/Cheiron boy-band template: 86–100 straight, backbeat on 2&4, minor tonic (G-sharp minor at 86 on the flagship production) with i–VI–VII and i–VII–VI cycles and major ballads turning IV–I–V–vi. Three drum facts drive the block. \"Kick doubled on the 8th before the backbeat\" puts anchors on 1 and \"3&\" with the secondary on \"1&\", which is the pickup into beat 2; \"claps and a metallic tick on 16ths\" is a pinned 16th hat plus a rim lane; and — the one that matters most — \"a string-crescendo swell (not a drum fill) is the documented lift into bar 1\", so the fills are pushed out to every 8 and 16 bars and the hat rolls almost never fire. The bass is \"synth bass, square/saw, root-plus-octave, tightly gated to the kick; occasional 16th-note stutter on the turnaround\", which is `mirror_kick` at 0.95 with the octave as the only passing tone. ⚠ The **INFERRED** parameters are the numeric readings of \"hard\": `velocityTiers` at 104–124 accent, `fillDensity` 0.5 and the perc densities. ⚠ `keys` is left inherited — the entry names one tonic. ⚠ The melody register is widened to 62–90 rather than the literal C-sharp2–G-sharp5 group span, because that span is five voices splitting one line and the generator writes a single part.",
+  "session": {
+    "bpm": {
+      "min": 86,
+      "max": 100,
+      "mode": 92
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        104,
+        124
+      ],
+      "main": [
+        80,
+        96
+      ],
+      "ghost": [
+        36,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "3&"
+      ],
+      "secondaryAnchor": "1&",
+      "syncopation": 0.3
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.22,
+          0.36
+        ]
+      },
+      "layerClapOffsetMs": [
+        1,
+        3
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.5,
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.06
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "snap",
+        "perc"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V",
+          "vi"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.68,
+      "seventh": 0.24,
+      "ninth": 0.08
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      90
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.64,
+      "third": 0.26,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.26,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.16,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.65,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.95,
+    "rhythm": "mirror_kick",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P8"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        8
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

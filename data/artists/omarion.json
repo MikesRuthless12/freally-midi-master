@@ -1,0 +1,358 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "omarion",
+  "type": "artist",
+  "name": "Omarion",
+  "aliases": [
+    "omarion",
+    "omari grandberry",
+    "ice box",
+    "b2k frontman"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "2005-2010",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "slow jam"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "trap-soul",
+    "crunk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Omarion",
+    "bpmdatabase — Omarion (https://www.bpmdatabase.com/music/search/?artist=Omarion)",
+    "Wikipedia — Ice Box (https://en.wikipedia.org/wiki/Ice_Box_(song))",
+    "Wikipedia — Eric Hudson (https://en.wikipedia.org/wiki/Eric_Hudson)"
+  ],
+  "notes": "B2K's frontman solo, across the Timbaland camp's \"Royal Court\" and Eric Hudson's productions, 2005–2010. The research gives \"56–113; the signature band is 65 half-time (reads 131)\", so the half-time material is the base with `halfTime` true and the mode at the signature 65. The band is the entry's own two slow readings, \"I'm Tryna\" 56 and \"Ice Box\" 65; its other readings — 96, 105, 107, 113 — are the Eric Hudson cuts the entry describes as \"live-feel drums and organ\", a different backbeat class, and are not folded into this grid. Three drum deltas from \"Timbaland-camp grammar at half-time\": \"kick clusters of two 16ths\" (three to five hits a bar, syncopation 0.66, tresillo lean 0.26, secondary anchor `2a`), \"snare/clap on beat 3\" pushed 4–10 ms off the grid, and \"hats replaced by clicks and reversed ticks, long silences\" — a hat lane at 0.1 fill density against a four-lane perc/perc2/reverse/woodblock bed at −4 dB and a 0.3 `beatSkipProb`. The `reverse` lane is authored specifically for the reversed ticks the entry names. Harmony is \"two-chord modal beds with a synth-string or bell figure\", and the sourced key is E♭ **major** at 65 — \"major-mode over a minor-feeling bed\" — so the major two-chord families carry real weight against the lane default. \"Tenor lead with the melody sitting in a 5th and rhythmic, syncopated phrasing; stacked falsetto on the hook\" is a seventeen-semitone register with a riff-dominant contour and a 3–5 pitch motif. The low end is \"808 sub with portamento, alternating with the kick; Hudson's records use played bass guitar instead\" — two documented bass behaviours, both of them bass parts, so no `drums.bass808` block and a `glideProb` of 0.44. ⚠ Confidence is medium; the research says the drum grammar is camp-level inference. ⚠ Every velocity and density number is INFERRED. ⚠ `session.keys` is part-sourced: the entry names `Eb`, and the remaining values `Bbm`, `Fm`, `Ab`, together with all 4 weights, are INFERRED rather than read from the entry. ⚠ **The countermelody reached 947/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor), and every other lever this gate has was already clean here** — no empty-bar bias, no one-bar phrase length, and no lead allowed to thin below two notes a bar. What was left was the style pool: `generators::counter` can play five answer shapes and this block asked for 2. `octave_echo` is added at weight 2 because the entry already names it — \"two-chord modal beds with a synth-string or bell figure; tenor lead with the melody sitting in a 5th and rhythmic, syncopated phrasing; stacked falsetto on the hook\" — and the stacked falsetto on the hook is a copy of the lead an octave up, which is `octave_echo`; the bell figure and the synth-string bed are the `bell_echo` and `sustain_pad` already authored. ⚠ The weight is INFERRED; the layer it weights is not.",
+  "session": {
+    "bpm": {
+      "min": 56,
+      "max": 65,
+      "mode": 65
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Eb",
+        "Bbm",
+        "Fm",
+        "Ab"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        3,
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 8,
+        "clap": 8,
+        "perc": 8
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.66,
+      "tresilloBias": 0.26,
+      "beatSkipProb": 0.3
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        0,
+        3
+      ],
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.1,
+          0.2
+        ]
+      },
+      "offGridMs": [
+        4,
+        10
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.1,
+      "velocities": {
+        "main": [
+          0.22,
+          0.38
+        ],
+        "ghost": [
+          0.08,
+          0.18
+        ]
+      },
+      "openHat": {
+        "prob": 0.03,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.03
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "perc2",
+        "reverse",
+        "woodblock"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "any",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.46,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        51,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      62,
+      79
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.84,
+      "third": 0.14,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.32,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.03,
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.38,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "bell_echo",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.84,
+    "rhythm": "independent_riff",
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0.44,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.3,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 16,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 4
+      },
+      "switchUpProb": 0.28
+    }
+  }
+}

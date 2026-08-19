@@ -14,7 +14,9 @@
 use std::collections::BTreeMap;
 
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use ts_rs::TS;
 
 use crate::context::SessionContext;
 use crate::dataset::StyleModel;
@@ -34,6 +36,17 @@ use crate::theory;
 /// note — but a zero-length note is invalid in an SMF and invisible in a piano
 /// roll, so drums get a 16th and the sampler ignores it.
 const HIT_TICKS: u32 = grid::SIXTEENTH;
+
+/// The tempo at which a half-time genre is heard as fast, for
+/// `snare.fullTimeAtHighTempoProb`.
+///
+/// 140 is the line the roster itself draws: every half-time trap and drill model
+/// sits under it and `rage` — the one model that authors the key — states
+/// `bpm.mode: 150` over a 130–170 range, so the switch is reachable from inside
+/// its own tempo and silent at the bottom of it. `ctx.half_time` deliberately
+/// does not enter into it: the producer reads the number on the transport, and
+/// that number is the stated BPM.
+const FULL_TIME_BPM: f32 = 140.0;
 
 /// How close a snare has to be to an 808 note before the two count as the same
 /// musical moment rather than one muting the other.
@@ -133,27 +146,50 @@ pub const PERC_LANES: &[Lane] = &[
 ];
 
 /// Where the snare lands, bar by bar (PRD § 3, research ch. 1).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
 pub enum SnarePlacement {
     /// Beat 3 only — the half-time feel of trap and drill.
+    #[serde(rename = "halftime_3")]
     Halftime3,
     /// Beats 2 and 4 — the full-time backbeat.
+    #[serde(rename = "backbeat_24")]
     Backbeat24,
     /// Beat 3 in the first bar, beat 4 in the second: the NY drill two-bar form.
+    #[serde(rename = "drill_3_4")]
     Drill34,
     /// A 16th-note stream with the backbeat accented — the country train beat.
+    #[serde(rename = "train_16ths")]
     Train16ths,
+    /// Beats 1 and 3 — the Milwaukee `lowend` cell, and the only placement here
+    /// that puts a snare on the downbeat.
+    ///
+    /// ⛔ **Added 2026-08-15 because the archetype could not be spelled without
+    /// it.** Volume 3 sources `lowend` as *"8th-note handclaps + snares on 1 and
+    /// 3"*, and `jerk` carries Certified Trapper and J.P. as a **declared
+    /// exception** precisely because no model could hold them. Two placements
+    /// shipped — `halftime_3` and `backbeat_24` — and a snare on 1 and 3 is
+    /// neither: it is the backbeat displaced a beat early, which is what makes
+    /// the lane sound like it is falling forwards.
+    #[serde(rename = "downbeat_1_3")]
+    Downbeat13,
 }
 
 impl SnarePlacement {
+    /// ⛔⛔ **Parsed THROUGH serde, so the names exist once** (TASK-167). This was
+    /// a hand-written match beside a hand-written list in
+    /// `StyleEditor.tsx::PLACEMENTS`, and the doc there stated the hazard
+    /// outright — *"adding a sixth there without adding it here is a placement no
+    /// user model can reach"*. TASK-158F then did exactly that for `lowend`, and
+    /// it only worked because both edits were remembered, which is not a
+    /// mechanism. The variant renames above are now the single spelling: serde
+    /// reads them, ts-rs exports them to `ipc-types.ts`, and the editor's radio
+    /// list is driven off that union — so a sixth placement is a typecheck
+    /// failure rather than an unreachable feature.
+    ///
+    /// ⚠ Same idiom as `lane_by_name` below, for the same reason.
     pub fn parse(text: &str) -> Option<Self> {
-        match text {
-            "halftime_3" => Some(Self::Halftime3),
-            "backbeat_24" => Some(Self::Backbeat24),
-            "drill_3_4" => Some(Self::Drill34),
-            "train_16ths" => Some(Self::Train16ths),
-            _ => None,
-        }
+        serde_json::from_value(Value::String(text.to_owned())).ok()
     }
 
     /// The snare hits in one bar, as `(tick within the bar, articulation)`.
@@ -177,6 +213,11 @@ impl SnarePlacement {
         match self {
             Self::Halftime3 => vec![(beat * 2, None)],
             Self::Backbeat24 => vec![(beat, None), (beat * 3, None)],
+            // ⚠ **Beat 1 is tick 0**, so this is the one placement that puts a
+            // snare on the downbeat with the kick. That collision is the sound,
+            // not a fault: the research names the pair together — handclaps on
+            // the eighths *over* snares on 1 and 3.
+            Self::Downbeat13 => vec![(0, None), (beat * 2, None)],
             // Bar 1 of the pair takes beat 3, bar 2 takes beat 4.
             Self::Drill34 => {
                 if bar.is_multiple_of(2) {
@@ -428,6 +469,27 @@ fn kick_grammar(
     (!form.is_empty()).then_some(form)
 }
 
+/// The positions a model says its kick always plays, in ticks from the bar.
+///
+/// Shared by the fill logic below and by `beatSkipProb`, which must not be able
+/// to take one of them away.
+fn anchor_ticks(kick: Option<&Value>, ctx: &SessionContext) -> Vec<u32> {
+    let mut ticks: Vec<u32> = strings(kick, "anchors")
+        .iter()
+        .filter_map(|p| grid::position_ticks(p, ctx))
+        .collect();
+    if let Some(secondary) = kick
+        .and_then(|k| k.get("secondaryAnchor"))
+        .and_then(Value::as_str)
+        .and_then(|p| grid::position_ticks(p, ctx))
+    {
+        ticks.push(secondary);
+    }
+    ticks.sort_unstable();
+    ticks.dedup();
+    ticks
+}
+
 /// One bar of kick, placed from the grammar in the model.
 fn kick_bar(
     kick: Option<&Value>,
@@ -436,6 +498,11 @@ fn kick_bar(
     bar: u32,
     snares: &[u32],
     rng: &mut impl Rng,
+    // ⛔ `beatSkipProb` and `walkingRunProb`, and nothing else. Drawing them from
+    // `rng` would shift every *later* bar's grammar as well as changing this
+    // one — so turning a skip on would move 43 models' kicks in bars it never
+    // touched. See [`generate`]'s streams for where that lesson came from.
+    extras: &mut impl Rng,
 ) -> Vec<u32> {
     // An explicit multi-bar grammar wins over everything statistical: drill's
     // `[["1","2&","4"], ["1&","3"]]` is the genre's signature two-bar form and
@@ -453,19 +520,11 @@ fn kick_bar(
     let density = number(kick, "densityPerBar", 3.0, rng).round().max(1.0) as usize;
 
     // Anchors first: the positions the genre always plays.
-    let mut ticks: Vec<u32> = strings(kick, "anchors")
-        .iter()
-        .filter_map(|p| grid::position_ticks(p, ctx))
-        .collect();
-    if let Some(secondary) = kick
-        .and_then(|k| k.get("secondaryAnchor"))
-        .and_then(Value::as_str)
-        .and_then(|p| grid::position_ticks(p, ctx))
-    {
-        ticks.push(secondary);
-    }
-    ticks.sort_unstable();
-    ticks.dedup();
+    let mut ticks = anchor_ticks(kick, ctx);
+    // ⚠ Everything pushed from here on was filled to density, and `Pools::build`
+    // skips every tick already `taken` — so `ticks[..anchors]` stays exactly the
+    // anchor set without a second parse of the model to prove it.
+    let anchors = ticks.len();
 
     // Then fill to the sampled density.
     let mut pools = Pools::build(ctx, tresillo_bias, &ticks);
@@ -491,6 +550,37 @@ fn kick_bar(
             // The bar is full. A density wider than the grid is a model error,
             // not a reason to loop forever.
             None => break,
+        }
+    }
+
+    // ⛔ **The skip comes after the density is met, not out of it.** Taking one
+    // off `density` would make the bar shorter *and* re-shape which pools it
+    // drew from; dropping a placed note leaves the bar's grammar intact and
+    // takes a hit out of it, which is what a skipped beat is.
+    //
+    // ⚠ **Anchors are never skipped.** They are the positions the genre "always
+    // plays" — `kick_bar`'s own words — so a skip that can take beat 1 is not a
+    // sparser bar, it is a different genre.
+    if let Some(chance) = optional_number(kick, "beatSkipProb", extras) {
+        let droppable = ticks.len() - anchors;
+        if droppable > 0 && extras.random_bool(chance.clamp(0.0, 1.0)) {
+            ticks.remove(anchors + extras.random_range(0..droppable));
+        }
+    }
+
+    // Jerk's walking kick run: three 16ths climbing into the next downbeat,
+    // rather than the single lead-in `andOf4EveryOtherBar` writes.
+    if let Some(chance) = optional_number(kick, "walkingRunProb", extras) {
+        if extras.random_bool(chance.clamp(0.0, 1.0)) {
+            let bar_ticks = ctx.ticks_per_bar();
+            // Ends on the last 16th of the bar, so the run arrives *at* the next
+            // downbeat instead of landing on it — the downbeat is the next bar's
+            // to place, and doubling it is what makes a run sound like a stutter.
+            for step in 1..=3u32 {
+                if let Some(tick) = bar_ticks.checked_sub(step * grid::SIXTEENTH) {
+                    ticks.push(tick);
+                }
+            }
         }
     }
 
@@ -560,6 +650,31 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
 
     let mut snare_rng = rng::stream(seed, "drums/snare");
     let mut kick_rng = rng::stream(seed, "drums/kick");
+    // ⛔⛔ **A decoration draws from its OWN stream, and a gate two lanes away is
+    // what proved it.** This module's header states the rule — "each draws from
+    // its own seeded stream, so rerolling the snare cannot move the kick" — and
+    // a per-hit draw taken from `kick_rng` breaks it from the inside: the sub
+    // layer's velocity advanced the kick's own stream, so every later bar drew
+    // its grammar from a shifted position. The kick moved, `bass.rs`'s
+    // `mirror_kick` rhythm follows the kick, and `jeru-the-damaja` fell to
+    // 946/1000 distinct basslines against a floor of 950 — a **bassline** gate
+    // failing because of a **drum velocity**.
+    //
+    // ⚠ **Two keys on one stream still move each other**, and `cluster` and
+    // `grammar-extras` each carry two: the snare's cluster with
+    // `fullTimeAtHighTempoProb`, and `beatSkipProb` with `walkingRunProb`. That
+    // is not the property being bought here. The property is that a model which
+    // authors *neither* key of a pair draws nothing at all — every reader above
+    // is `optional_number`, `flag` or `pair`, and none of the three touches the
+    // rng for a key that is absent — so no model on the roster generates a note
+    // it did not generate before. Within a pair the two do interact, and no
+    // model authors both today; splitting them further would be four more names
+    // for a case that does not exist.
+    let mut snare_extra_rng = rng::stream(seed, "drums/snare/cluster");
+    let mut kick_extra_rng = rng::stream(seed, "drums/kick/grammar-extras");
+    let mut sub_rng = rng::stream(seed, "drums/kick/sub");
+    let mut sloppy_rng = rng::stream(seed, "drums/kick/sloppy");
+    let mut hat_extra_rng = rng::stream(seed, "drums/hats/extras");
 
     // ⛔ Drawn once, before the bar loop, for the reason `kick_grammar` gives:
     // a form chosen per bar cuts between two two-bar shapes mid-phrase.
@@ -578,21 +693,65 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
             placement = SnarePlacement::Backbeat24;
         }
     }
+    // The same switch, but asked for by the tempo rather than unconditionally:
+    // rage's half-time snare goes full time when the session is fast.
+    //
+    // ⚠ **The draw happens whatever the tempo is**, and only its *effect* is
+    // gated. Rolling inside the `if` would make the snare's rng position depend
+    // on the BPM, so moving the tempo slider would change the rest of the
+    // pattern — a saved seed at 130 and the same seed at 150 would not share a
+    // ghost note.
+    if let Some(chance) =
+        optional_number(snare_block, "fullTimeAtHighTempoProb", &mut snare_extra_rng)
+    {
+        if snare_extra_rng.random_bool(chance.clamp(0.0, 1.0)) && ctx.bpm >= FULL_TIME_BPM {
+            placement = SnarePlacement::Backbeat24;
+        }
+    }
 
     // A deliberate displacement, in milliseconds, that the genre is made of —
     // UK drill's snare sits off the grid on purpose. Negative pulls it early.
     let off_grid_ticks = optional_number(snare_block, "offGridMs", &mut snare_rng)
-        .map(|ms| ctx.ms_to_ticks(ms as f32).round() as i64)
+        .map(|ms| offset_ticks(ms, ctx))
         .unwrap_or(0);
+
+    // ⛔ **Not `offGridMs` under another name.** `offGridMs` is ONE displacement
+    // the whole lane shares — drill's snare sits late, every time, and that is
+    // the genre. `sloppyOffsetMs` is a range drawn PER HIT: the west-coast drag,
+    // where no two kicks are late by the same amount. A single number cannot
+    // express it and a range applied once would just be a worse `offGridMs`.
+    //
+    // ⚠ It stays inside the grammar rather than moving to `humanize` for this
+    // module's own stated reason: a hand being imprecise is humanize's, a
+    // looseness the genre is *made of* is the grammar's.
+    let sloppy_ms = pair(kick_block, "sloppyOffsetMs");
 
     let ghost = snare_block.and_then(|s| s.get("ghost"));
     let ghost_positions = strings(ghost, "pos");
     let clap_offset_ms = optional_number(snare_block, "layerClapOffsetMs", &mut snare_rng);
 
+    // Jerk's headline marker, and it was authored by 19 models before anything
+    // read it. Drawn per hit inside the bar loop, so a cluster is something that
+    // happens to *a* backbeat rather than to the whole pattern.
+    // ⛔ **Stays an `Option`, and the per-hit draw below is inside it.** Every
+    // lane's stream is a seeded sequence, so an unconditional `random_bool` —
+    // even one that can only answer `false` at probability zero — advances the
+    // snare's rng for the 601 models that never authored a cluster and moves
+    // every saved seed's beat. A new parameter must be free for the models that
+    // do not use it.
+    let cluster = optional_number(snare_block, "clusterProb", &mut snare_extra_rng).map(|p| {
+        (
+            p.clamp(0.0, 1.0),
+            pair(snare_block, "clusterHits").unwrap_or((2.0, 3.0)),
+        )
+    });
+
     let bar_ticks = ctx.ticks_per_bar();
     // Kept per bar because the roll engine's `pre_snare` position needs
     // something to be before.
     let mut snares_by_bar: Vec<Vec<u32>> = Vec::with_capacity(usize::from(ctx.bars));
+    // The kick's onsets before `sloppyOffsetMs` moves them — see the `hats` call.
+    let mut kick_grid: Vec<u32> = Vec::new();
 
     for bar in 0..u32::from(ctx.bars) {
         let bar_start = bar * bar_ticks;
@@ -600,17 +759,51 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
 
         for (offset, articulation) in &hits {
             let tick = displace(bar_start + offset, off_grid_ticks);
-            kit.hit(
-                Lane::Snare,
-                tick,
-                tiers.pick(*articulation, &mut snare_rng),
-                *articulation,
-            );
+            // A cluster replaces the hit rather than joining it: the middle note
+            // still lands on the beat, so the backbeat has not moved — it has
+            // been surrounded. Only an unarticulated hit clusters, because a
+            // train beat's stream is already every 16th and bursting 32nds over
+            // it would be clustering the whole part rather than its backbeat.
+            let clustered = cluster
+                .filter(|_| articulation.is_none())
+                .filter(|(prob, _)| snare_extra_rng.random_bool(*prob));
+            if let Some((_, hits)) = clustered {
+                for note in snare_cluster(tick, hits, &mut snare_extra_rng) {
+                    // ⚠ **The note ON the beat keeps the placement's own
+                    // articulation and its tier velocity**, so to every reader —
+                    // the off-grid gates, the fill histogram, the humanizer's
+                    // tiers — the backbeat is exactly the hit it always was. The
+                    // rest are marked [`Articulation::Cluster`]; its doc records
+                    // the three gates that needed to tell the two apart.
+                    let on_the_beat = note.start_tick == tick;
+                    kit.hit(
+                        Lane::Snare,
+                        note.start_tick,
+                        if on_the_beat {
+                            tiers.pick(*articulation, &mut snare_rng)
+                        } else {
+                            note.vel
+                        },
+                        if on_the_beat {
+                            *articulation
+                        } else {
+                            Some(Articulation::Cluster)
+                        },
+                    );
+                }
+            } else {
+                kit.hit(
+                    Lane::Snare,
+                    tick,
+                    tiers.pick(*articulation, &mut snare_rng),
+                    *articulation,
+                );
+            }
 
             // Layered clap a few milliseconds off the snare — the trap sound is
             // the two together, and the offset is what stops them phasing.
             if let Some(ms) = clap_offset_ms {
-                let clap = displace(tick, ctx.ms_to_ticks(ms as f32).round() as i64);
+                let clap = displace(tick, offset_ticks(ms, ctx));
                 kit.hit(
                     Lane::Clap,
                     clap,
@@ -659,13 +852,46 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
             bar,
             &snares,
             &mut kick_rng,
+            &mut kick_extra_rng,
         ) {
-            kit.hit(
-                Lane::Kick,
-                bar_start + tick,
-                tiers.pick(None, &mut kick_rng),
-                None,
-            );
+            kick_grid.push(bar_start + tick);
+            // ⚠ `displace(t, 0)` is `t`, so the un-authored case stays exact.
+            let sloppy = sloppy_ms
+                .map(|(lo, hi)| sloppy_rng.random_range(lo.min(hi)..=hi.max(lo)))
+                .unwrap_or(0.0);
+            let at = displace(bar_start + tick, offset_ticks(sloppy, ctx));
+            // ⛔ **`velocityRange` is read on the kick and only on the kick.**
+            // `rnb-2000s` is the one model in the corpus that authors it and it
+            // authors it there; the same file spells `velocities: {main, ghost}`
+            // and the ghost's `vel` correctly, which is what makes this a
+            // mistake rather than a feature nobody had built. ⚠ **A second lane
+            // wants a different shape, not another call here**: on the snare or
+            // the hats a single band would *replace* `tiers.pick(articulation)`
+            // and erase the accent/ghost distinction `VelocityTiers` exists for.
+            // The shape for that is `VelocityTiers::for_lane`, overriding only
+            // the `main` band — worth building when a model asks for it.
+            let vel = fractional_velocity(kick_block, "velocityRange", &mut kick_rng)
+                .unwrap_or_else(|| tiers.pick(None, &mut kick_rng));
+            kit.hit(Lane::Kick, at, vel, None);
+
+            // Boom-bap's sub layer: a second, quieter kick voice underneath the
+            // first. `Lane::SubKick` has been in `LANE_ORDER` and had a GM voice
+            // the whole time with nothing writing to it.
+            if let Some(sub_vel) = fractional_velocity(kick_block, "subLayerVelocity", &mut sub_rng)
+            {
+                // ⚠ `separateLayerProb` is how often the layer is its *own* hit
+                // rather than doubling the kick, so the sub is offset by an 8th
+                // when it separates. Read only when the sub exists — a model
+                // that authors neither must draw neither.
+                let separate = optional_number(kick_block, "separateLayerProb", &mut sub_rng)
+                    .is_some_and(|prob| sub_rng.random_bool(prob.clamp(0.0, 1.0)));
+                let sub_at = if separate {
+                    at.saturating_add(grid::ticks_per_beat(ctx) / 2)
+                } else {
+                    at
+                };
+                kit.hit(Lane::SubKick, sub_at, sub_vel, None);
+            }
         }
     }
 
@@ -679,7 +905,31 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
 
     let hihat = block(drums, "hihat");
     let mut hat_rng = rng::stream(seed, "drums/hats");
-    let (mut closed, mut open) = hats(hihat, ctx, &tiers, &mut hat_rng);
+    // ⛔ **Collected once, here, and read again by the 808 below.** Nothing
+    // between the two writes to `Lane::Kick` — `fills` writes the snare and the
+    // clap, and `percs` is forbidden the kick by `PERC_LANES`' own rule — so the
+    // "both lanes finished" the 808 needs is already true of this one. A `Vec`
+    // rather than a slice because `kit` is borrowed mutably by everything in
+    // between.
+    let kicks: Vec<u32> = kit.notes(Lane::Kick).iter().map(|n| n.start_tick).collect();
+    // ⛔⛔ **The MIRRORED hat takes the grid positions, not these.** An open hat
+    // lands on the grid and removes the closed hit underneath it by exact tick —
+    // `close_over_open`'s rule, "one hi-hat cannot be open and shut at the same
+    // instant". `west-coast-club` authors `mirrorsKick` *and*
+    // `kick.sloppyOffsetMs: [3, 9]`, so a hat mirroring the drag would sit 5–14
+    // ticks off the open hat it belongs under, miss the exclusion, and export GM
+    // 42 and GM 46 together — the exact defect that rule exists to prevent.
+    //
+    // ⚠ It is also the truer reading: the drag is one hand being imprecise on
+    // the kick, and the hat is the other hand playing the same rhythm.
+    let (mut closed, mut open) = hats(
+        hihat,
+        ctx,
+        &tiers,
+        &kick_grid,
+        &mut hat_rng,
+        &mut hat_extra_rng,
+    );
 
     // ⛔⛔ **A MODEL THAT DECLARES A HAT BLOCK HAS TO PRODUCE HATS**, and the
     // hat stream alone is redrawn until it does — Mike, 2026-08-12: *"redo just
@@ -718,7 +968,14 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
                 break;
             }
             let mut redraw = rng::stream(seed, domain);
-            (closed, open) = hats(hihat, ctx, &tiers, &mut redraw);
+            (closed, open) = hats(
+                hihat,
+                ctx,
+                &tiers,
+                &kick_grid,
+                &mut redraw,
+                &mut hat_extra_rng,
+            );
         }
     }
 
@@ -754,8 +1011,9 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
     close_over_open(&mut closed, &open);
 
     // The 808 last, because it rides the kick and stops for the snare — it
-    // needs both lanes finished before it can be placed.
-    let kicks: Vec<u32> = kit.notes(Lane::Kick).iter().map(|n| n.start_tick).collect();
+    // needs both lanes finished before it can be placed. The kick's were taken
+    // above, where the hats needed them; the snare's have to be taken here,
+    // because `fills` writes to that lane in between.
     // The backbeat, not every snare note: a fill is a wall of them, and muting
     // the 808 under each one would shred the line instead of clearing the way
     // for the hit that matters.
@@ -1079,22 +1337,48 @@ fn bass808(
     let bar_ticks = ctx.ticks_per_bar();
     let mute = flag(block, "muteUnderSnare", false);
 
-    let kept: Vec<u32> = kicks
+    // ⛔⛔ **The 808 can only ever SUBTRACT from the kick, and this is the
+    // authored way out.** The line below filters the kick's own onsets, so
+    // `lockTo808` at 0.6 does not give an 808 that goes its own way four times
+    // in ten — it gives one that plays four fewer notes in the same places. A
+    // sub cannot syncopate against a kick it is a subset of, and 15 models
+    // spell `melodicallyIndependent: true` asking for exactly that.
+    //
+    // ⛔⛔ **The count is the LOCKED count, not the kick's, and the difference is
+    // a genre.** Independence is about *where* the notes are; how many of them
+    // there are is what `lockTo808` already said, and 15 models say it. Taking
+    // the kick's own count instead made uk-drill's 808 40% busier at a stroke —
+    // 5 notes to 7 in the four-bar golden — which is a change to how the genre
+    // sounds that no gate in this repo can hear. The lock is drawn either way,
+    // so the line has exactly the density it always had, in its own places.
+    //
+    // ⚠ Drawing the lock on both paths is also what keeps the ordinary path byte
+    // for byte what it was: same draws, same order, same notes.
+    let independent = flag(block, "melodicallyIndependent", false);
+    let locked: Vec<u32> = kicks
         .iter()
         .copied()
         .filter(|_| rng.random_bool(lock))
-        // "Mutes at snare hits" means the 808 does not play there at all —
-        // not that it plays and is cut to a click. Dropped *here*, before
-        // slides are chosen, so a slide is never handed to a note that is
-        // about to disappear: doing it the other way round silently cost UK
-        // drill a third of the slides its model asks for.
-        .filter(|tick| {
-            !mute
-                || !snares
-                    .iter()
-                    .any(|snare| snare.abs_diff(*tick) <= MUTE_TOLERANCE)
-        })
         .collect();
+
+    let kept: Vec<u32> = if independent {
+        independent_onsets(ctx, locked.len(), rng)
+    } else {
+        locked
+    }
+    .into_iter()
+    // "Mutes at snare hits" means the 808 does not play there at all —
+    // not that it plays and is cut to a click. Dropped *here*, before
+    // slides are chosen, so a slide is never handed to a note that is
+    // about to disappear: doing it the other way round silently cost UK
+    // drill a third of the slides its model asks for.
+    .filter(|tick| {
+        !mute
+            || !snares
+                .iter()
+                .any(|snare| snare.abs_diff(*tick) <= MUTE_TOLERANCE)
+    })
+    .collect();
 
     // Which of those may slide, by the model's positions.
     let eligible: Vec<usize> = kept
@@ -1210,6 +1494,86 @@ fn bass808(
         };
     }
 
+    // Rage's chromatic approach: the note *before* a target drops a semitone
+    // and glides up into it. Written over the finished line rather than during
+    // it, because an approach is a fact about a pair of notes and the pitch it
+    // approaches is only known once the next note exists.
+    //
+    // ⚠ Only a note with no slide of its own — a note already sliding somewhere
+    // has been given a gesture, and stacking a second on it would overwrite the
+    // model's own `slideIntervals` with a semitone.
+    if let Some(chance) = optional_number(block, "chromaticApproachProb", rng) {
+        let chance = chance.clamp(0.0, 1.0);
+        // ⛔⛔ **Backwards, and forwards was a real defect.** Each step reads the
+        // pitch of note `i` and rewrites note `i - 1`. Going forwards, note `i`
+        // is rewritten one step *later* — so where two adjacent notes both drew
+        // an approach, the first was left gliding to a pitch the second no
+        // longer played: up a semitone, then straight back down. Going
+        // backwards, the note being read is the one just written, so a run of
+        // approaches descends chromatically into its target and every glide
+        // lands on the note that actually sounds. `rage` is the only author, at
+        // 0.25, and with eight notes in four bars an adjacent pair came up on
+        // roughly a third of patterns.
+        for i in (1..notes.len()).rev() {
+            let target = notes[i].pitch;
+            if notes[i - 1].slide_to_pitch.is_some() || !rng.random_bool(chance) {
+                continue;
+            }
+            // Below, not above: an approach from underneath is what a leading
+            // tone is, and `register`'s floor is what stops it walking off the
+            // bottom of the 808's range.
+            let Some(from) = target.checked_sub(1).filter(|from| *from >= low) else {
+                continue;
+            };
+            notes[i - 1].pitch = from;
+            notes[i - 1].slide_to_pitch = Some(target);
+        }
+    }
+
+    // Drill's rising whoop: the phrase's last slide goes UP an octave instead of
+    // resolving wherever `slideIntervals` sent it.
+    //
+    // ⛔⛔ **It turns a slide the model already placed; it never adds one.** Both
+    // models that author it also author `slidesPer4Bars` — uk-drill `[2, 3]`,
+    // uk-underground `[2, 4]` — and a whoop written onto a note that was not
+    // sliding is a *fourth* slide in a four-bar phrase that asked for three.
+    // `drill_slides_two_to_three_times_every_four_bars` caught exactly that at
+    // seed 11, and its comment says why the ceiling is absolute: "three is what
+    // the model asks for and a fourth would be a different genre".
+    //
+    // ⚠ **Never inert, and that is what makes the octave the right target.** Both
+    // authors also carry `longDownGlideProb` — 0.35 and 0.3 — so an ordinary
+    // phrase-end slide may already be going down, and an octave up is audibly
+    // not any of `P5`, `m7`, `P8` or `M2` taken downward.
+    if let Some(chance) = optional_number(block, "upwardWhoopProb", rng) {
+        let chance = chance.clamp(0.0, 1.0);
+        let phrase = bar_ticks * 4;
+        let phrases = u32::from(ctx.bars).div_ceil(4).max(1);
+        let ceiling = high.max(root.saturating_add(12));
+        for phrase_index in 0..phrases {
+            let window = (phrase_index * phrase)..((phrase_index + 1) * phrase);
+            // ⚠ Drawn before the search, so a phrase with no slide in it costs
+            // the same rng position as one that has.
+            let whoops = rng.random_bool(chance);
+            let Some(note) = notes
+                .iter_mut()
+                .rfind(|note| window.contains(&note.start_tick) && note.slide_to_pitch.is_some())
+            else {
+                continue;
+            };
+            if !whoops {
+                continue;
+            }
+            note.slide_to_pitch =
+                theory::fold_into_register(i16::from(note.pitch) + 12, low, ceiling)
+                    .filter(|target| *target != note.pitch)
+                    // A fold that lands back on the note itself leaves the slide
+                    // the model placed rather than deleting it: the whoop failed
+                    // to be a gesture, and a note that was sliding still is.
+                    .or(note.slide_to_pitch);
+        }
+    }
+
     // Legato: each note runs to the next, and the last to the end of the
     // pattern. This is the pass that makes it an 808 rather than a bass drum
     // with a pitch.
@@ -1294,21 +1658,22 @@ impl Sustain {
 }
 
 /// What the 808 is doing musically.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
 pub enum Bass808Role {
     /// Doubles the roots under the kick.
+    #[serde(rename = "bassline")]
     Bassline,
     /// Carries its own line — the UK drill marker.
+    #[serde(rename = "counter_riff")]
     CounterRiff,
 }
 
 impl Bass808Role {
+    /// Parsed through serde so the names exist once — see
+    /// [`SnarePlacement::parse`] for what that closes.
     pub fn parse(text: &str) -> Option<Self> {
-        match text {
-            "bassline" => Some(Self::Bassline),
-            "counter_riff" => Some(Self::CounterRiff),
-            _ => None,
-        }
+        serde_json::from_value(Value::String(text.to_owned())).ok()
     }
 }
 
@@ -1506,6 +1871,37 @@ fn percs(
 /// [`Lane::OffSnare`]. Authored the same way the ghost snare is, with `pos` and
 /// `prob`, because it is the same kind of rule and a second vocabulary for
 /// "where does a snare-ish hit go" is one more thing to keep in agreement.
+/// A burst of snares bunched around the beat, from `clusterProb` /
+/// `clusterHits`.
+///
+/// ⛔⛔ **The cluster is CENTRED on the beat, not started on it.** The research
+/// calls jerk's marker *"snare CLUSTERS, 2–4 hits bunched **around** the
+/// expected backbeat"*, and a burst that begins on the beat is not that: it is
+/// the backbeat plus a tail, and every note of it arrives late. Centring keeps
+/// one note exactly where the un-clustered snare would have been — whatever the
+/// count — so the beat is still heard in the same place and the cluster reads
+/// as a smear around it rather than as a drag.
+///
+/// ⚠ **It calls [`rolls::stutter_cluster`]** rather than writing a third burst
+/// loop. Its 112 → 84 ramp is what makes a cluster one gesture instead of four
+/// snares: the hits after the first are softer, the way a hand bouncing off a
+/// drum is.
+fn snare_cluster(tick: u32, hits: (f64, f64), rng: &mut impl Rng) -> Vec<Note> {
+    // 2..=4 is what the dataset authors and what a snare can physically be
+    // played as. Below two there is no cluster; above four it is a roll, which
+    // is [`rolls`]' own vocabulary and a different device.
+    let lo = (hits.0.round() as i64).clamp(2, 4);
+    let hi = (hits.1.round() as i64).clamp(lo, 4);
+    let count = rng.random_range(lo..=hi) as usize;
+
+    // A 32nd: tight enough that the burst is one gesture and not four snares.
+    let subdivision = grid::SIXTEENTH / 2;
+    // The note that lands on the beat is index `count / 2`, so the window opens
+    // that many subdivisions early. `displace` keeps bar 0 off the negative.
+    let start = displace(tick, -((count as i64 / 2) * i64::from(subdivision)));
+    rolls::stutter_cluster(Lane::Snare, start, subdivision, count, rng)
+}
+
 fn off_snares(
     kit: &mut DrumKit,
     snare_block: Option<&Value>,
@@ -1536,6 +1932,28 @@ fn off_snares(
             None,
         );
     }
+}
+
+/// The 808's own onsets, when it is not riding the kick.
+///
+/// The 8th-note grid rather than the 16th: a sub moving on 16ths is a bassline,
+/// and a bassline is [`super::bass`]'s job. `count` is the number of notes the
+/// model's `lockTo808` already gave the line — see the call site. Positions are
+/// taken without replacement so the line never doubles a note on itself, and the
+/// result is sorted because everything downstream — the slide windows, the
+/// legato pass, the mute — reads it as a timeline.
+fn independent_onsets(ctx: &SessionContext, count: usize, rng: &mut impl Rng) -> Vec<u32> {
+    let eighth = (grid::ticks_per_beat(ctx) / 2).max(1);
+    let mut pool: Vec<u32> = (0..ctx.total_ticks().max(1))
+        .step_by(eighth as usize)
+        .collect();
+
+    let mut out: Vec<u32> = Vec::with_capacity(count.min(pool.len()));
+    for _ in 0..count.min(pool.len()) {
+        out.push(pool.remove(rng.random_range(0..pool.len())));
+    }
+    out.sort_unstable();
+    out
 }
 
 /// Where an 808 slide may go.
@@ -1595,7 +2013,18 @@ fn hats(
     hihat: Option<&Value>,
     ctx: &SessionContext,
     tiers: &VelocityTiers,
+    // Where the kick plays, for `mirrorsKick`. Empty for every model that does
+    // not author it, and read nowhere else.
+    kicks: &[u32],
     rng: &mut impl Rng,
+    // ⛔ **Everything below that the stream did not used to ask for.** A new key
+    // drawing from `rng` shifts the whole hat part for the model that authors
+    // it: two draws for `tripletBarAlternationProb` moved which position
+    // `openHat` landed on, that position ate a closed hit underneath it, and
+    // `drill_hats_sit_on_the_tresillo_the_model_authors` lost a 3-3-2 hit — for
+    // a key that, on a `tresillo` base, had no effect at all. See the kick's
+    // streams in [`generate`] for the same lesson learned the same way.
+    extras: &mut impl Rng,
 ) -> (Vec<Note>, Vec<Note>) {
     if hihat.is_none() {
         return (Vec::new(), Vec::new());
@@ -1623,6 +2052,30 @@ fn hats(
     // rather than on filling the gaps between hits.
     let continuous = flag(hihat, "continuous", true);
 
+    // ⛔ **The hat stops running its own subdivision and plays where the kick
+    // plays.** west-coast-club's hat is the kick's rhythm doubled an octave up
+    // in the kit, which is a different instruction from any density: no
+    // subdivision, however sparse, lands a hat on exactly the kick's onsets.
+    let mirrors_kick = flag(hihat, "mirrorsKick", false);
+
+    // Phonk's gated hats: the stream is CUT, not shortened. A hat "cut short
+    // rather than ringing" is a note length, and note length does not reach the
+    // sampler yet (TASK-053A) — so a gate that shortened notes would be one more
+    // authored key doing nothing audible. Silencing a beat of the stream is the
+    // same gesture and it is heard.
+    let gating = optional_number(hihat, "gatingProb", extras).map(|p| p.clamp(0.0, 1.0));
+
+    // Plugg's open-hat chains: an open hat that is a run rather than a single
+    // stab. The chain rides the 8th after the one it opened on.
+    let open_chains = flag(hihat, "openHatChains", false);
+
+    // uk-drill's alternating triplet bars. Drawn ONCE for the pattern, like the
+    // base itself: a stream that changes its mind every bar is a glitch, and
+    // what the key names is an *alternation* — the odd bars go triplet and the
+    // even ones do not.
+    let triplet_bars = optional_number(hihat, "tripletBarAlternationProb", extras)
+        .is_some_and(|prob| extras.random_bool(prob.clamp(0.0, 1.0)));
+
     let velocities = hihat.and_then(|h| h.get("velocities"));
     let mut closed: Vec<Note> = Vec::new();
     let mut open: Vec<Note> = Vec::new();
@@ -1630,6 +2083,18 @@ fn hats(
     let bar_ticks = ctx.ticks_per_bar();
     let beat = grid::ticks_per_beat(ctx);
     let onsets = hat_base_onsets(&base, &grouping, ctx);
+    // The subdivision an alternating bar runs at, and the stream it plays.
+    //
+    // ⚠ **A base that is not a note value — `"tresillo"` — still has a triplet.**
+    // The tresillo grouping is counted in 16ths, so its alternating bar is the
+    // 16th triplet, which is the drill hat everybody knows. Returning nothing
+    // there would leave the key authored, read, and doing nothing, which is the
+    // exact condition this whole pass exists to end.
+    let triplet_step = rolls::triplet_of(grid::note_value_ticks(&base).unwrap_or(grid::SIXTEENTH));
+    let triplet_onsets: Vec<u32> = match (triplet_bars, triplet_step) {
+        (true, Some(step)) => (0..bar_ticks).step_by(step as usize).collect(),
+        _ => Vec::new(),
+    };
     let open_hat = block(hihat, "openHat");
     let positions = strings(open_hat, "pos");
 
@@ -1641,17 +2106,45 @@ fn hats(
             .filter(|_| continuous || rng.random_bool(fill_density))
             .collect();
 
-        let mut ticks: Vec<u32> = onsets
-            .iter()
-            .copied()
-            .filter(|tick| beats_played.contains(&(tick / beat)))
-            .collect();
+        // ⚠ Odd bars only, and only when the alternation was drawn — that is
+        // what makes it an alternation rather than a triplet hat part.
+        // ⛔ **The gap-filling below moves with it.** A triplet bar back-filled
+        // at 16ths is triplets *and* straight 16ths at once, which is not an
+        // alternating bar — it is a mess with the marker buried in it.
+        let triplet_now =
+            triplet_step.filter(|_| !bar.is_multiple_of(2) && !triplet_onsets.is_empty());
+        let bar_onsets: &[u32] = if triplet_now.is_some() {
+            &triplet_onsets
+        } else {
+            &onsets
+        };
+        let fill_step = triplet_now.unwrap_or(grid::SIXTEENTH);
+
+        let mut ticks: Vec<u32> = if mirrors_kick {
+            // The kick's onsets in this bar, brought back to bar-relative ticks
+            // so everything below — the fill pass, the main/ghost split, the
+            // open hats — keeps working on the one coordinate it expects.
+            kicks
+                .iter()
+                .filter(|tick| (bar_start..bar_start + bar_ticks).contains(*tick))
+                .map(|tick| tick - bar_start)
+                .collect()
+        } else {
+            bar_onsets
+                .iter()
+                .copied()
+                .filter(|tick| beats_played.contains(&(tick / beat)))
+                .collect()
+        };
 
         // A continuous stream fills the gaps between its onsets; the extras are
         // the quiet 16ths that make it breathe.
-        if continuous {
-            for index in 0..grid::sixteenths_per_bar(ctx) {
-                let tick = index * grid::SIXTEENTH;
+        //
+        // ⚠ Not when the stream is the kick's: filling the gaps of a mirrored
+        // hat is exactly the subdivision `mirrorsKick` says not to play.
+        if continuous && !mirrors_kick {
+            for index in 0..bar_ticks / fill_step {
+                let tick = index * fill_step;
                 if !ticks.contains(&tick) && rng.random_bool(fill_density) {
                     ticks.push(tick);
                 }
@@ -1659,6 +2152,16 @@ fn hats(
         }
         ticks.sort_unstable();
         ticks.dedup();
+
+        // The gate: one beat of this bar goes silent. Drawn per bar, because a
+        // gate that fired once for the pattern would be a hole rather than a
+        // stutter.
+        if let Some(prob) = gating {
+            if extras.random_bool(prob) {
+                let gated = extras.random_range(0..u32::from(ctx.time_sig_num.max(1)));
+                ticks.retain(|tick| tick / beat != gated);
+            }
+        }
 
         for tick in ticks {
             let main = is_main_position(tick);
@@ -1692,15 +2195,24 @@ fn hats(
                 let Some(tick) = open_hat_tick(position, bar_start, ctx) else {
                     continue;
                 };
-                closed.retain(|n| n.start_tick != tick);
-                let vel = fractional_velocity(velocities, "main", rng)
-                    .unwrap_or_else(|| tiers.pick(Some(Articulation::Accent), rng));
-                open.push(note_at(
-                    Lane::OpenHat,
-                    tick,
-                    vel,
-                    Some(Articulation::Accent),
-                ));
+                // A chain is the open hat plus the 8th after it — plugg's
+                // "open hats in runs" rather than one stab. It stops at the
+                // bar's edge: a chain that ran into the next bar would open a
+                // hat the next bar never asked for.
+                let chain = if open_chains { 2 } else { 1 };
+                let eighth = beat / 2;
+                for step in 0..chain {
+                    let at = tick + step * eighth;
+                    if at >= bar_start + bar_ticks {
+                        break;
+                    }
+                    closed.retain(|n| n.start_tick != at);
+                    // ⚠ Drawn per note of the chain, so the run breathes
+                    // instead of being one velocity stamped twice.
+                    let vel = fractional_velocity(velocities, "main", rng)
+                        .unwrap_or_else(|| tiers.pick(Some(Articulation::Accent), rng));
+                    open.push(note_at(Lane::OpenHat, at, vel, Some(Articulation::Accent)));
+                }
             }
         }
     }
@@ -1743,6 +2255,31 @@ fn hats(
 /// Shift a tick by a signed displacement without falling off the start.
 fn displace(tick: u32, ticks: i64) -> u32 {
     (i64::from(tick) + ticks).max(0) as u32
+}
+
+/// The widest deliberate displacement a grammar may ask for, in milliseconds.
+///
+/// ⛔⛔ **A bound, because the alternative is the host process.** `read::pair`
+/// validates nothing and `sloppyOffsetMs` matches no probability suffix, so a
+/// hand-edited or imported model may state `[-1e308, 1e308]` and reach
+/// `Rng::random_range` — whose `UniformFloat` computes `high - low`, gets
+/// `inf`, and `unwrap()`s a `NonFinite` error. `release` is `panic = "abort"`.
+/// The same value at `[0, 1e30]` instead saturates the `as i64` cast and
+/// overflows `displace`, which panics under the workspace's dev/test
+/// `overflow-checks`.
+///
+/// ⚠ 250 ms is an eighth note at 120 BPM — past anything a producer would call
+/// a displacement rather than a different beat. The dataset's widest is 14.
+const MAX_OFFSET_MS: f64 = 250.0;
+
+/// A deliberate displacement in milliseconds, as whole ticks.
+///
+/// ⚠ Shared by every grammar-level nudge — `snare.offGridMs`,
+/// `snare.layerClapOffsetMs` and `kick.sloppyOffsetMs` — so the bound above is
+/// stated once rather than at each of them.
+fn offset_ticks(ms: f64, ctx: &SessionContext) -> i64 {
+    ctx.ms_to_ticks(ms.clamp(-MAX_OFFSET_MS, MAX_OFFSET_MS) as f32)
+        .round() as i64
 }
 
 #[cfg(test)]
@@ -1796,6 +2333,401 @@ mod tests {
         lane(lanes, want)
             .map(|l| l.notes.iter().map(|n| n.start_tick).collect())
             .unwrap_or_default()
+    }
+
+    // ── The authored-but-unread keys, wired 2026-08-18 ──────────────────────
+    //
+    // Each of these was a parameter real models carry that no code read. The
+    // gate that found them is `engine/tests/authored_keys.rs`; these are what
+    // says the reading is the one the research describes, rather than merely a
+    // mention of the key somewhere in the source — which is all that gate can
+    // see, and it says so itself.
+
+    /// Every start tick of one lane, sorted.
+    fn sorted(lanes: &[LaneTrack], want: Lane) -> Vec<u32> {
+        let mut out = starts(lanes, want);
+        out.sort_unstable();
+        out
+    }
+
+    #[test]
+    fn a_snare_cluster_surrounds_the_beat_instead_of_starting_on_it() {
+        // The research calls jerk's marker hits "bunched around the expected
+        // backbeat". A burst that begins on the beat would put every note of
+        // the cluster late and take the backbeat with it.
+        let m = model(json!({
+            "snare": { "placement": "backbeat_24", "clusterProb": 1.0, "clusterHits": [3, 3] },
+            "kick": { "anchors": ["1"], "densityPerBar": 1 },
+        }));
+        let c = ctx(1);
+        let beat = grid::ticks_per_beat(&c);
+        let snares = sorted(&generate(&m, &c, 3), Lane::Snare);
+
+        let thirty_second = grid::SIXTEENTH / 2;
+        for beat_tick in [beat, beat * 3] {
+            assert!(
+                snares.contains(&beat_tick),
+                "the backbeat itself is still played: {snares:?}"
+            );
+            assert!(snares.contains(&(beat_tick - thirty_second)), "{snares:?}");
+            assert!(snares.contains(&(beat_tick + thirty_second)), "{snares:?}");
+        }
+        assert_eq!(snares.len(), 6, "two clusters of three: {snares:?}");
+    }
+
+    #[test]
+    fn a_lane_that_states_its_own_velocity_range_does_not_use_the_tier() {
+        // `rnb-2000s` writes `kick.velocityRange: [0.7, 0.85]` — 89 to 108 — and
+        // the generic main tier is 76 to 89. Only one of those bands can be
+        // right, and the model's own is the specific claim.
+        let m = model(json!({
+            "kick": {
+                "anchors": ["1", "2", "3", "4"],
+                "densityPerBar": 4,
+                "velocityRange": [0.7, 0.85],
+            },
+        }));
+        let lanes = generate(&m, &ctx(2), 11);
+        let kicks = lane(&lanes, Lane::Kick).expect("the kick plays");
+        assert!(
+            kicks.notes.iter().all(|n| (89..=108).contains(&n.vel)),
+            "every kick sits in the authored band: {:?}",
+            kicks.notes.iter().map(|n| n.vel).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn the_sub_layer_doubles_the_kick_unless_it_is_told_to_separate() {
+        // Boom-bap's sub sits under the kick. `Lane::SubKick` had a GM voice and
+        // a slot in `LANE_ORDER` the whole time with nothing writing to it.
+        let m = model(json!({
+            "kick": { "anchors": ["1", "3"], "densityPerBar": 2, "subLayerVelocity": [0.5, 0.6] },
+        }));
+        let lanes = generate(&m, &ctx(1), 5);
+        assert_eq!(
+            sorted(&lanes, Lane::SubKick),
+            sorted(&lanes, Lane::Kick),
+            "with no `separateLayerProb` the layer is the kick's own rhythm"
+        );
+        let sub = lane(&lanes, Lane::SubKick).expect("the sub plays");
+        assert!(
+            sub.notes.iter().all(|n| (63..=77).contains(&n.vel)),
+            "and quieter than the kick over it: {:?}",
+            sub.notes.iter().map(|n| n.vel).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn the_high_tempo_full_time_switch_is_silent_at_a_slow_tempo() {
+        // `rage` authors `fullTimeAtHighTempoProb`. At 1.0 the draw is certain,
+        // so the only thing left to vary is the tempo — which is the whole
+        // claim the key makes.
+        let m = model(json!({
+            "snare": { "placement": "halftime_3", "fullTimeAtHighTempoProb": 1.0 },
+            "kick": { "anchors": ["1"], "densityPerBar": 1 },
+        }));
+        let beat = grid::ticks_per_beat(&ctx(1));
+
+        let slow = SessionContext {
+            bars: 1,
+            bpm: 120.0,
+            ..Default::default()
+        };
+        assert_eq!(
+            sorted(&generate(&m, &slow, 2), Lane::Snare),
+            vec![beat * 2],
+            "half-time: beat 3 alone"
+        );
+
+        let fast = SessionContext {
+            bars: 1,
+            bpm: 160.0,
+            ..Default::default()
+        };
+        assert_eq!(
+            sorted(&generate(&m, &fast, 2), Lane::Snare),
+            vec![beat, beat * 3],
+            "full time: the 2 and 4 backbeat"
+        );
+    }
+
+    #[test]
+    fn a_skipped_beat_never_takes_an_anchor() {
+        // The anchors are the positions the genre "always plays". A skip that
+        // can take beat 1 is not a sparser bar, it is a different genre.
+        let m = model(json!({
+            "kick": {
+                "anchors": ["1"],
+                "secondaryAnchor": "3",
+                "densityPerBar": 4,
+                "beatSkipProb": 1.0,
+            },
+        }));
+        let c = ctx(8);
+        let beat = grid::ticks_per_beat(&c);
+        let bar_ticks = c.ticks_per_bar();
+        let kicks = sorted(&generate(&m, &c, 7), Lane::Kick);
+        for bar in 0..8u32 {
+            let start = bar * bar_ticks;
+            assert!(kicks.contains(&start), "beat 1 of bar {bar}: {kicks:?}");
+            assert!(
+                kicks.contains(&(start + beat * 2)),
+                "beat 3 of bar {bar}: {kicks:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_walking_run_arrives_at_the_next_downbeat_without_landing_on_it() {
+        // Jerk's walking kick. The downbeat belongs to the next bar; doubling it
+        // is what makes a run sound like a stutter.
+        let m = model(json!({
+            "kick": { "anchors": ["1"], "densityPerBar": 1, "walkingRunProb": 1.0 },
+        }));
+        let c = ctx(2);
+        let bar_ticks = c.ticks_per_bar();
+        let kicks = sorted(&generate(&m, &c, 1), Lane::Kick);
+        for step in 1..=3u32 {
+            assert!(
+                kicks.contains(&(bar_ticks - step * grid::SIXTEENTH)),
+                "the run climbs into bar 2: {kicks:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_sloppy_kick_is_late_by_a_different_amount_each_time() {
+        // Not `offGridMs` under another name: that is ONE displacement the whole
+        // lane shares. This is the west-coast drag, drawn per hit.
+        let m = model(json!({
+            "kick": {
+                "anchors": ["1", "2", "3", "4"],
+                "densityPerBar": 4,
+                "sloppyOffsetMs": [5, 40],
+            },
+        }));
+        let c = ctx(4);
+        let beat = grid::ticks_per_beat(&c);
+        let kicks = sorted(&generate(&m, &c, 9), Lane::Kick);
+
+        let lateness: Vec<u32> = kicks.iter().map(|tick| tick % beat).collect();
+        assert!(
+            lateness.iter().all(|late| *late > 0),
+            "every hit drags: {kicks:?}"
+        );
+        assert!(
+            lateness
+                .iter()
+                .collect::<std::collections::BTreeSet<_>>()
+                .len()
+                > 1,
+            "and not all by the same amount, which is what `offGridMs` already does: {lateness:?}"
+        );
+    }
+
+    #[test]
+    fn a_mirrored_hat_plays_where_the_kick_plays() {
+        // west-coast-club's hat is the kick's rhythm, not a subdivision. No
+        // density, however sparse, lands a hat on exactly the kick's onsets.
+        let m = model(json!({
+            "kick": { "anchors": ["1", "2&", "4"], "densityPerBar": 3 },
+            "hihat": { "base": "16th", "mirrorsKick": true, "fillDensity": 0.9 },
+        }));
+        let lanes = generate(&m, &ctx(2), 4);
+        assert_eq!(
+            sorted(&lanes, Lane::ClosedHat),
+            sorted(&lanes, Lane::Kick),
+            "the hat stream is the kick's"
+        );
+    }
+
+    #[test]
+    fn a_gated_hat_loses_a_whole_beat_of_the_bar() {
+        // Phonk's gate cuts the stream. A hat "cut short rather than ringing" is
+        // a note length, and note length does not reach the sampler yet — so a
+        // gate that shortened notes would be one more key doing nothing audible.
+        let hihat = json!({ "base": "16th", "continuous": true, "fillDensity": 1.0 });
+        let mut gated = hihat.clone();
+        gated["gatingProb"] = json!(1.0);
+
+        let c = ctx(1);
+        let open = generate(&model(json!({ "hihat": hihat })), &c, 6);
+        let shut = generate(&model(json!({ "hihat": gated })), &c, 6);
+
+        let beat = grid::ticks_per_beat(&c);
+        let played = sorted(&shut, Lane::ClosedHat);
+        let silent: Vec<u32> = (0..u32::from(c.time_sig_num))
+            .filter(|b| !played.iter().any(|t| t / beat == *b))
+            .collect();
+        assert_eq!(silent.len(), 1, "exactly one beat goes: {silent:?}");
+        assert!(
+            sorted(&open, Lane::ClosedHat).len() > played.len(),
+            "and the ungated stream keeps it"
+        );
+    }
+
+    #[test]
+    fn an_open_hat_chain_is_a_run_rather_than_a_stab() {
+        let block = |chains: bool| {
+            json!({
+                "base": "8th",
+                "openHat": { "prob": 1.0, "perBar": 1, "pos": ["3"] },
+                "openHatChains": chains,
+            })
+        };
+        let c = ctx(1);
+        let eighth = grid::ticks_per_beat(&c) / 2;
+
+        let single = sorted(
+            &generate(&model(json!({ "hihat": block(false) })), &c, 8),
+            Lane::OpenHat,
+        );
+        let chained = sorted(
+            &generate(&model(json!({ "hihat": block(true) })), &c, 8),
+            Lane::OpenHat,
+        );
+        assert_eq!(single.len(), 1, "one stab: {single:?}");
+        assert_eq!(chained.len(), 2, "a run of two: {chained:?}");
+        assert_eq!(chained[1] - chained[0], eighth, "on the 8th after it");
+    }
+
+    #[test]
+    fn alternating_triplet_bars_leave_the_even_bars_alone() {
+        // uk-drill's alternation. The even bars keep their own 16ths; the odd
+        // ones run at the triplet of that, which lands on ticks the straight
+        // stream cannot reach.
+        let m = model(json!({
+            "hihat": {
+                "base": "16th",
+                "continuous": false,
+                "fillDensity": 1.0,
+                "tripletBarAlternationProb": 1.0,
+            },
+        }));
+        let c = ctx(2);
+        let bar_ticks = c.ticks_per_bar();
+        let hats = sorted(&generate(&m, &c, 12), Lane::ClosedHat);
+
+        assert!(
+            hats.iter()
+                .filter(|t| **t < bar_ticks)
+                .all(|t| t.is_multiple_of(grid::SIXTEENTH)),
+            "bar 1 is straight: {hats:?}"
+        );
+        let triplet = grid::SIXTEENTH * 2 / 3;
+        assert!(
+            hats.iter()
+                .any(|t| *t >= bar_ticks && !(t - bar_ticks).is_multiple_of(grid::SIXTEENTH)),
+            "bar 2 is not: {hats:?}"
+        );
+        assert!(
+            hats.iter()
+                .filter(|t| **t >= bar_ticks)
+                .all(|t| (t - bar_ticks).is_multiple_of(triplet)),
+            "and every one of its hits is on the triplet grid: {hats:?}"
+        );
+    }
+
+    #[test]
+    fn an_independent_808_is_not_a_subset_of_the_kick() {
+        // ⛔ The whole point. The 808 filters the kick's own onsets, so
+        // `lockTo808` can only ever make the sub SPARSER — it can never move it,
+        // and 15 models spell `melodicallyIndependent` asking for exactly that.
+        let drums = |independent: bool| {
+            json!({
+                "kick": {
+                    "anchors": ["1", "2", "3", "4"],
+                    "densityPerBar": 4,
+                    "lockTo808": 1.0,
+                },
+                "bass808": { "register": [24, 36], "melodicallyIndependent": independent },
+            })
+        };
+        let c = ctx(2);
+        let riding = generate(&model(drums(false)), &c, 21);
+        let free = generate(&model(drums(true)), &c, 21);
+
+        let kicks = sorted(&riding, Lane::Kick);
+        assert!(
+            sorted(&riding, Lane::Sub).iter().all(|t| kicks.contains(t)),
+            "riding the kick, it is a subset of it"
+        );
+        let independent = sorted(&free, Lane::Sub);
+        assert_eq!(independent.len(), kicks.len(), "same busyness");
+        assert!(
+            independent.iter().any(|t| !kicks.contains(t)),
+            "different placement: {independent:?} against {kicks:?}"
+        );
+    }
+
+    #[test]
+    fn a_chromatic_approach_arrives_from_a_semitone_below() {
+        let m = model(json!({
+            "kick": { "anchors": ["1", "2", "3", "4"], "densityPerBar": 4, "lockTo808": 1.0 },
+            "bass808": { "register": [30, 42], "slideProb": 0.0, "chromaticApproachProb": 1.0 },
+        }));
+        let lanes = generate(&m, &ctx(2), 33);
+        let sub = lane(&lanes, Lane::Sub).expect("the 808 plays");
+        let approaches: Vec<&Note> = sub
+            .notes
+            .iter()
+            .filter(|n| n.slide_to_pitch.is_some())
+            .collect();
+        assert!(!approaches.is_empty(), "something approaches");
+        for note in approaches {
+            let target = note.slide_to_pitch.expect("filtered on");
+            assert_eq!(target, note.pitch + 1, "a semitone below its target");
+        }
+    }
+
+    #[test]
+    fn the_whoop_turns_the_last_slide_upward_and_does_not_add_one() {
+        // ⛔ Both models that author the whoop also author `slidesPer4Bars`, so a
+        // whoop written onto a note that was not sliding is one slide more than
+        // the model asked for. Every slide here glides DOWN a semitone; the
+        // whoop is the one that does not.
+        let with = |whoop: f64| {
+            model(json!({
+                "kick": { "anchors": ["1", "3"], "densityPerBar": 2, "lockTo808": 1.0 },
+                "bass808": {
+                    "register": [24, 48],
+                    "role": "bassline",
+                    "slideProb": 1.0,
+                    "slidePositions": ["phrase_end", "bar_2", "bar_4"],
+                    "slideIntervals": ["m2"],
+                    "upwardWhoopProb": whoop,
+                },
+            }))
+        };
+        let c = ctx(4);
+        let sliding = |lanes: &[LaneTrack]| -> Vec<(u8, u8)> {
+            lane(lanes, Lane::Sub)
+                .map(|l| {
+                    l.notes
+                        .iter()
+                        .filter_map(|n| n.slide_to_pitch.map(|target| (n.pitch, target)))
+                        .collect()
+                })
+                .unwrap_or_default()
+        };
+
+        let plain = sliding(&generate(&with(0.0), &c, 44));
+        let whooped = sliding(&generate(&with(1.0), &c, 44));
+        assert!(!plain.is_empty(), "the model slides at all");
+        assert_eq!(plain.len(), whooped.len(), "the whoop adds no slide");
+        assert_eq!(
+            plain[..plain.len() - 1],
+            whooped[..whooped.len() - 1],
+            "and moves nothing but the phrase's last one"
+        );
+
+        let (from, to) = *whooped.last().expect("checked non-empty");
+        assert_eq!(to, from + 12, "which rises an octave");
+        assert_ne!(
+            *plain.last().expect("checked non-empty"),
+            (from, to),
+            "instead of going where `slideIntervals` was sending it"
+        );
     }
 
     // ── TASK-140: the percussion lanes ──────────────────────────────────────

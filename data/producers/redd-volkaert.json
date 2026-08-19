@@ -1,0 +1,350 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "redd-volkaert",
+  "type": "producer",
+  "name": "Redd Volkaert",
+  "aliases": [
+    "redd volkaert",
+    "volkaert",
+    "titan of the telecaster"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-shuffle"
+  ],
+  "era": "1997-present",
+  "genres": [
+    "country",
+    "country-shuffle",
+    "western swing",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-shuffle",
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-shuffle — Redd Volkaert",
+    "Wikipedia — Redd Volkaert (https://en.wikipedia.org/wiki/Redd_Volkaert)",
+    "Wikipedia — Western swing (https://en.wikipedia.org/wiki/Western_swing)",
+    "Premier Guitar — Brent Mason interview (https://www.premierguitar.com/artists/brent-mason-interview)"
+  ],
+  "notes": "The Telecaster idiom's western-swing-and-honky-tonk specialist — Merle Haggard's principal guitarist and the anchor of the Austin dancehall bench, with a twenty-year Continental Club Saturday residency. The entry is a guitar entry, and the research parameterises the instrument's function inside a shuffle into three separable jobs that this model authors as its melody and counter: \"(a) rhythm comping — damped, staccato chord chops on the backbeat, which reinforces the snare; (b) double-stop fills — sixths and thirds answering vocal phrases in 2-bar units; (c) solo — chicken-picked staccato attacks (hybrid picking, plectrum plus fingers) alternating with legato bends that imitate pedal steel\". So the melody is the densest in the section (5–11 notes a bar) with a third-weighted interval spread of 0.42 for the double-stops, staccato articulation, a riff-heavy contour and 2-bar phrases; the counter is the twin-Tele harmony, and its register offset is left inherited rather than pushed to an octave because the documented harmony is \"a third or sixth above\". The (a) job is the one drum consequence the entry states, and it is why the accent tier is high (108–127) while the snare's own ghost work is low at 0.20 — on this bandstand the guitar chop, not the drummer, carries the offbeat detail. ⚠ The rest of the drum block is INFERRED, and the entry says why: \"Drums: n/a as a player\". What is authored is the section's own documented grammar for the band he plays in — the fast Texas-dancehall setting of a quarter-note kick on all four beats with the lope on a ride — selected by his stated 100–195 tempo band and his stated idiom, not by any drum claim of his own. ⚠ Also INFERRED: bpm.mode 140 (the entry gives the band without a centre), swing.amount 0.60, every velocity tier, ghost probability and vel, the hat and ride densities, and the whole bassline block (his entry marks bass n/a too; what is authored is the documented small dancehall combo's walking upright). Harmony is his own: 6th and 9th double-stops, diminished passing figures and ii–V turnarounds over an I–IV–V / twelve-bar rhythm frame, which is extensions 0.3/0.5/0.2 in close voicing. The residency format — \"extended instrumental jamming over a fixed twelve-bar or 32-bar swing form\" — is the 12-bar sections and the long solo block. The research rates the entry medium-high and marks the three-function parameterisation as formalised from documented technique [LOW-CONF].",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 195,
+      "mode": 140
+    },
+    "keys": {
+      "values": [
+        "E",
+        "A",
+        "G",
+        "D",
+        "Bb",
+        "F"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_blues"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.6
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        127
+      ],
+      "main": [
+        74,
+        92
+      ],
+      "ghost": [
+        26,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.08,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.22,
+      "velocities": {
+        "main": [
+          0.44,
+          0.64
+        ],
+        "ghost": [
+          0.18,
+          0.32
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride"
+      ],
+      "densityPerBar": [
+        6,
+        9
+      ],
+      "gainOffsetDb": -3
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V",
+          "IV",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vii°",
+          "ii",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "VI",
+          "II",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 6,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.5,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        80
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        2,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      86
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "intervals": {
+      "step": 0.46,
+      "third": 0.42,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.28,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": [
+      0.04,
+      0.12
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "articulation": "staccato"
+  },
+  "countermelody": {
+    "densityRatio": [
+      0.5,
+      0.75
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.72,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2",
+      "m2",
+      "M6"
+    ],
+    "anticipationProb": 0.08
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "bridge",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        8,
+        12
+      ],
+      "verse": 12,
+      "chorus": 12,
+      "bridge": {
+        "values": [
+          12,
+          16,
+          32
+        ],
+        "weights": [
+          3,
+          3,
+          1
+        ]
+      },
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.3
+    }
+  }
+}

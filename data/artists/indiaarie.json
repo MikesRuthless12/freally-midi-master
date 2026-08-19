@@ -1,0 +1,342 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "indiaarie",
+  "type": "artist",
+  "name": "India.Arie",
+  "aliases": [
+    "india arie",
+    "indiaarie",
+    "india arie simpson"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2001-present",
+  "genres": [
+    "soul",
+    "neo-soul",
+    "folk"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — India.Arie",
+    "Wikipedia — India.Arie (https://en.wikipedia.org/wiki/India.Arie)",
+    "songdata.io — India.Arie (https://songdata.io/search?query=India.Arie)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "The folk-facing end of the lane, and the entry names the one parameter that separates her from the rest of it: \"major-mode is her default — G, F, D, C, B and A major dominate\", giving \"diatonic major harmony with add9 and sus voicings from a strummed guitar rather than jazz minor extensions\". So this is the only model in the batch whose triad weight is higher than its ninth weight, and `susSubstitutionProb` is raised for the sus shapes the research names. The three progression families are the three the entry writes out. The band is the sourced 54–106 straight on 2&4. Drums encode the stated absence: \"soft, brushed or programmed-quiet kit with the snare well back in the mix, tambourine or shaker carrying the 8ths, and frequent full drop-out of the kit for whole verses\" — hence the lowest kick density and hat fill density here, a non-continuous hat, quiet velocity tiers, and a percussion layer that is louder than the kit rather than quieter. Melody is \"mid-register, syllabic, low-melisma, hymn-like, and often doubled by the guitar line\", which is the stepwise interval spread, the high chord-tone bias and an `octave_echo` counter. Bass is \"root-and-fifth, short phrases, wide gaps\", so it mirrors the kick at a very high root probability with a low anticipation. ⚠ The INFERRED parameters are every drum number, the velocity tiers and all melody/bass numbers — \"soft\", \"well back\", \"short phrases\" and \"wide gaps\" are directions, not figures. ⚠ The research marks its 119–188 readings as doubled [LOW-CONF]; the folded band is what is encoded. ⚠ The id drops the period per the dataset's convention for punctuated names; \"india arie\" is carried as an alias.",
+  "session": {
+    "bpm": {
+      "min": 54,
+      "max": 106,
+      "mode": 84
+    },
+    "keys": {
+      "values": [
+        "G",
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "Am"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.68,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 7,
+        "tambourine": 9,
+        "shaker": 9
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        86,
+        104
+      ],
+      "main": [
+        58,
+        74
+      ],
+      "ghost": [
+        26,
+        38
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "syncopation": 0.18,
+      "tresilloBias": 0.02
+    },
+    "snare": {
+      "offGridMs": [
+        2,
+        7
+      ],
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.1,
+          0.24
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.16,
+      "velocities": {
+        "main": [
+          0.3,
+          0.52
+        ],
+        "ghost": [
+          0.1,
+          0.24
+        ]
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "conga"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "any",
+      "gainOffsetDb": -3
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.36,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.3
+  },
+  "melody": {
+    "register": [
+      59,
+      79
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.84,
+      "third": 0.13,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.16,
+      "descend": 0.38,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.03,
+    "halfStepDissonance": 0.03,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "acoustic_guitar"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "1"
+      ],
+      [
+        "1",
+        "3",
+        "5"
+      ]
+    ],
+    "anticipationProb": 0.18
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

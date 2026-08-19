@@ -1,0 +1,250 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "guy-chambers-and-steve-power",
+  "type": "producer",
+  "name": "Guy Chambers & Steve Power",
+  "aliases": [
+    "guy chambers and steve power",
+    "guy chambers",
+    "steve power"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1997-2002",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "funk",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Guy Chambers & Steve Power",
+    "Wikipedia — \"Rock DJ\" (https://en.wikipedia.org/wiki/Rock_DJ)",
+    "bpmdatabase — Robbie Williams (https://www.bpmdatabase.com/music/search/?artist=Robbie+Williams&title=)"
+  ],
+  "notes": "The UK entertainer-pop team — sample-fed funk-pop and orchestral Britpop ballads. Modelled on the straight uptempo band, 103–130 with the backbeat on 2&4; the 75–96 half-time ballad band is the other backbeat class and is named here rather than encoded. The foundation is stated as a sample: \"a sampled disco/hip-hop break… with live kit overdubs\", so the deltas are \"kick 1/3\", \"16th hat with an open hat on 4&\", and the anthem alternative — \"a marching 8th snare with huge crash patterns\" — which is the crash-led perc block plus a 16th snare-roll ladder on a tight schedule. The bass is the sharpest instrumental fact and it is where this model parts from the Robbie Williams artist entry that shares these records: \"**looped 16th disco bass** on the funk singles, root 8ths under the anthems\", so `followRootsProb` drops to 0.55 with a wide passing-tone set and a high anticipation. Harmony is I–V–vi–IV for the anthems, \"I–IV with a mixolydian ♭7 for the funk material\", and I–iii–IV–V with a suspended pre-chorus for the ballads — all three authored, with mixolydian carrying real weight. Chambers writes at the piano and arranges brass and strings while Power supplies the vocoder and the mix, and the melodies are \"crowd-singable — narrow, stepwise, ending on a held note\". ⚠ `confidence` is medium because the research rates it high-medium and says harmonic claims are partly inferred. ⚠ The **INFERRED** parameters are every drum probability and `bpm.mode` 116.",
+  "session": {
+    "bpm": {
+      "min": 103,
+      "max": 130,
+      "mode": 116
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "dorian"
+      ],
+      "weights": [
+        5,
+        4,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.83,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 5,
+        "closedHat": 6,
+        "perc": 7
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.34
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.56,
+      "openHat": {
+        "prob": 0.48,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.2
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "tambourine",
+        "perc"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "iii",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.56,
+      "seventh": 0.32,
+      "ninth": 0.12
+    },
+    "susSubstitutionProb": 0.28
+  },
+  "melody": {
+    "register": [
+      56,
+      78
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.28,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.64,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.55,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M6",
+      "M2"
+    ],
+    "anticipationProb": 0.46
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.88,
+        "beats": 4
+      },
+      "switchUpProb": 0.16
+    }
+  }
+}

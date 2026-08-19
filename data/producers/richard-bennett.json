@@ -1,0 +1,286 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "richard-bennett",
+  "type": "producer",
+  "name": "Richard Bennett",
+  "aliases": [
+    "richard bennett",
+    "bennett"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-train"
+  ],
+  "era": "1990-present",
+  "genres": [
+    "country-train",
+    "country",
+    "americana",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-train — Richard Bennett",
+    "Wikipedia — Richard Bennett (guitarist) (https://en.wikipedia.org/wiki/Richard_Bennett_(guitarist))",
+    "Wikipedia — Marty Stuart (https://en.wikipedia.org/wiki/Marty_Stuart)"
+  ],
+  "notes": "The guitarist-producer of the Americana/neotraditional wing — the board behind Marty Stuart's and Steve Earle's records. The section's own scope note says why this entry looks the way it does: \"in this archetype the producer role is largely occupied by instrumental specialists — the players whose parts are the train beat when there is no drum kit, and who also produce records. Each entry below is written as a parameter set for the part they contribute, because that is what the engine needs.\" His is the one entry here whose stated value is breadth rather than a fixed sound. The entry calls it \"breadth of idiom\" — the quoted phrase inside it, \"encyclopedic knowledge of all kinds of roots and rock music,\" is Knopfler's, and the entry's own reading of it follows: \"applied as period-accurate groove choice: rockabilly, Bakersfield, hillbilly-rock and folk-rock kits are all distinct presets he selects between rather than a single house sound\". That is encoded as range rather than as `modes` — the parent genre already supplies three moods and authoring modes would delete them — so the drum block sits mid-scale with a `kick` range of [2,3] on anchors 1 and 3 and a mid `velocityTiers` spread, and the humanize block is the loosest of the stick-kit producers here (`quantizeStrength` 0.82, 6–7 ms jitter) because \"period-authentic reverb and slapback rather than modern ambience\" means a hand-played kit rather than a gridded one. The melody block is his signature and the entry is specific about it: \"the electric-guitar intro as the record's identity ... Model a 4- or 8-bar composed electric intro figure, not a vamp.\" So `structure` is riff_loop with `phraseBars` weighted to 4 and 8, and the arrangement gives the intro a 4–8 bar span rather than the 2-bar cold opens its neighbours use. Harmony follows the stated production roster: \"I–IV–V and I–V–vi–IV with modal ♭VII borrows and, on the Earle material, minor-mode and drone-based writing\", hence the minor i–♭VII–IV family and a natural-minor scale weight. ⚠ INFERRED: `bpm.mode` 130 inside the stated 70–175 band, the velocity tiers, the −2 ms offset, `percs` contents and every countermelody and bassline number. ⚠ The entry rates itself medium with \"groove specifics inferred from the roster [LOW-CONF]\", and that flag applies to the whole drum block above; the sourced half is the roster, the era and the intro-figure detail.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 175,
+      "mode": 130
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 6,
+        "closedHat": 6,
+        "perc": 7
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        96,
+        116
+      ],
+      "main": [
+        70,
+        86
+      ],
+      "ghost": [
+        34,
+        52
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ]
+    },
+    "snare": {
+      "offGridMs": -2
+    },
+    "hihat": {
+      "base": "4th",
+      "fillDensity": 0.105,
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.07
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "rim",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "bVII",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.74,
+      "seventh": 0.24,
+      "ninth": 0.02
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.22,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.34,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.74,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "register": [
+      28,
+      43
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M6"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.14,
+        "beats": 1
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

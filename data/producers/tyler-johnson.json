@@ -1,0 +1,352 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tyler-johnson",
+  "type": "producer",
+  "name": "Tyler Johnson",
+  "aliases": [
+    "tyler johnson",
+    "tylerjohnson",
+    "tyler johnson producer",
+    "tj producer"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2014-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "live band pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "pop-2000s",
+    "funk",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Tyler Johnson",
+    "Wikipedia — As It Was (https://en.wikipedia.org/wiki/As_It_Was_(Harry_Styles_song))",
+    "Wikipedia — Flowers (https://en.wikipedia.org/wiki/Flowers_(Miley_Cyrus_song))",
+    "Wikipedia — Kid Harpoon (https://en.wikipedia.org/wiki/Kid_Harpoon)"
+  ],
+  "notes": "The co-producer of the same room-tracked axis, and the model is deliberately close to it because the research says they share the method: \"same room-tracked kit philosophy as his co-producer — a played backbeat with natural ambience, plus tambourine and hand percussion\". No difference is invented to make the two look distinct; what differs is what the entry itself gives him rather than the axis. First, the palette is keyboard-led rather than bass-led: \"vintage keyboard palette (Rhodes, Wurlitzer, Mellotron-class textures) plus single-colour percussion instruments such as tubular bells used as identity timbres\", so the counter is `bell_echo` first and the perc lanes carry `triangle` and `woodblock` for those single-colour instruments. Second, the harmony is static by his own account: \"his records lean on a repeating keyboard or guitar figure to define the key rather than on progression movement\", so `harmonicRhythm` is vamp-dominant with two-chord families and the longest `chordDurationBeats` window on this axis — where his co-producer moves once a bar, this model holds. Third, \"4-bar loops with a picked or arpeggiated figure over the top\" is the `arp` counter style and the `staccato` articulation. The bass follows the entry exactly: \"no 808. Played electric bass and occasional analogue synth bass on 8ths\", which is a moderate `followRootsProb` on 8ths rather than the melodic chord-tone line the co-producer plays. The documented working pace — \"a near-final arrangement inside three or four days\" — is the short section lengths and the low `switchUpProb`. ⚠ `confidence` is medium and the research says why: \"his role, working pace and instrumentation on specific records are documented; harmonic parameters inferred\", and its own [LOW-CONF] mark on the key-defining-figure claim is repeated here. Every drum probability, the humanize numbers, `bpm.mode` 110 (the midpoint of the stated 90—130 band) and the `lydian` weight in `session.scales` are INFERRED — the entry says only \"diatonic majors with 7th/9th colour\" and names no mode, so lydian is an inferred bright colour at weight 1. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry's harmony line is \"his records lean on a repeating keyboard or guitar figure to define the key rather than on progression movement\", over \"4-bar loops with a picked or arpeggiated figure over the top\", and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\") — so a `vamp`-dominant weighting rendered a **one**-chord bed the research nowhere describes. A two-chord family over a 4-bar loop is `2_bars_per_chord`, which now carries it, with `vamp` as the minority. \"Rather than on progression movement\" is why `1_per_bar` is not authored.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 130,
+      "mode": 110
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "lydian"
+      ],
+      "weights": [
+        6,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.23,
+      "timingJitterMs": {
+        "kick": 9,
+        "snare": 10,
+        "closedHat": 12,
+        "perc": 13,
+        "triangle": 12
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.18,
+      "tresilloBias": 0.04,
+      "offbeat8thShare": 0.22
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "transient": "soft",
+      "reverb": "large",
+      "stack": [
+        "snare",
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        5,
+        12
+      ],
+      "ghost": {
+        "prob": 0.28,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.28,
+      "velocities": {
+        "main": [
+          0.46,
+          0.86
+        ],
+        "ghost": [
+          0.18,
+          0.4
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "triangle",
+        "woodblock",
+        "tambourine",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "any",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.42,
+      "seventh": 0.4,
+      "ninth": 0.18
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        53,
+        80
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      32
+    ]
+  },
+  "melody": {
+    "register": [
+      58,
+      82
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.52,
+      "descend": 0.28,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": [
+      0.03,
+      0.1
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "articulation": "staccato",
+    "endVariation": true,
+    "timbreHint": "wurlitzer"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.45,
+      0.68
+    ],
+    "styles": {
+      "values": [
+        "bell_echo",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.72,
+    "rhythm": "offbeat_8ths",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.3,
+    "cellShapes": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.35,
+        "beats": 2
+      },
+      "switchUpProb": 0.04
+    }
+  }
+}

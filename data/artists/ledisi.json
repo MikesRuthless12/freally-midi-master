@@ -1,0 +1,334 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ledisi",
+  "type": "artist",
+  "name": "Ledisi",
+  "aliases": [
+    "ledisi",
+    "ledisi anibade young",
+    "gospel jazz belter"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2007-present",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul",
+    "gospel"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Ledisi",
+    "Wikipedia — Ledisi (https://en.wikipedia.org/wiki/Ledisi)",
+    "songdata.io — Ledisi (https://songdata.io/search?query=Ledisi)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "The lane's most technically virtuosic voice, and the entry makes vocal athleticism the load-bearing parameter: \"wide range crossing the break, long melismatic runs placed at phrase ends, sustained belted climax notes, and improvised riffing over the outro — so model very high note-density in the final third of the song and low density at the start\". A single model cannot ramp density by section, so the range is authored wide (4–10) with `endVariation` and a raised octave jump carrying the runs, and the arrangement gives the ad-lib vamp its own long outro. The band is the catalogue's own 75–106 and the keys are the named F minor and G minor with D♭, A♭ and G major on the up-tempos. Drums are the stated live kit: \"snare crisp on 2&4 with ghost strokes on the surrounding 16ths, ride-led on the slow material, hats in swung 16ths on the mid-tempos, and a full stop-time break before the last chorus\" — hence the high ghost probability across six positions, the ride lane, the 16th-weighted hat base and `fillBeforeSection`. Harmony is gospel-jazz \"ii–V–I with tritone subs, minor-line-cliché descents, diminished passing chords into the IV\", so both ii–V families are authored and `susOrDimProb` is raised. Bass is \"walking, gospel-style thumb motion and chromatic approach into every chord change; the bass is a countermelodic voice, not a pad\". ⚠ The INFERRED parameters are all drum probabilities and velocities and all melody numbers; the research marks its harmonic detail as idiom inference. ⚠ The 119–190 readings are doubled [LOW-CONF] and the folded band is encoded.",
+  "session": {
+    "bpm": {
+      "min": 75,
+      "max": 106,
+      "mode": 84
+    },
+    "keys": {
+      "values": [
+        "Fm",
+        "Gm",
+        "Db",
+        "Ab",
+        "G"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.6,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 9,
+        "closedHat": 7,
+        "tambourine": 8
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "syncopation": 0.46,
+      "tresilloBias": 0.09
+    },
+    "snare": {
+      "offGridMs": [
+        3,
+        9
+      ],
+      "ghost": {
+        "prob": 0.58,
+        "pos": [
+          "1a",
+          "2e",
+          "2a",
+          "3a",
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.44
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.5,
+          0.8
+        ],
+        "ghost": [
+          0.16,
+          0.38
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.26,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "tambourine",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.08,
+      "seventh": 0.46,
+      "ninth": 0.46
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "susOrDimProb": 0.24
+  },
+  "melody": {
+    "register": [
+      55,
+      86
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.18,
+      "descend": 0.36,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.5,
+    "endVariation": true,
+    "octaveJumpProb": 0.2,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.32,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.52
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        24
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 2
+      },
+      "switchUpProb": 0.24
+    }
+  }
+}

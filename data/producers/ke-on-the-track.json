@@ -83,18 +83,15 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        1,
+        2,
         4
       ],
       "anchors": [
         "1"
       ],
       "secondaryAnchor": "3&",
-      "syncopation": 0.4,
-      "tresilloBias": 0.29,
-      "offbeat8thShare": 0.43,
-      "andOf4EveryOtherBar": 0.35,
-      "lockTo808": 1
+      "syncopation": 0.42,
+      "tresilloBias": 0.32
     },
     "snare": {
       "placement": "halftime_3",
@@ -187,19 +184,18 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "32nd"
+        "8t"
       ],
       "grouping": [
-        "strong_weak_weak_weak"
+        "even"
       ],
       "velocityRampRange": [
-        77,
-        127
+        70,
+        120
       ],
-      "rampJitter": 3,
-      "descendProb": 0.4,
-      "gapProb": 0.09,
-      "pitchWalk": 3
+      "rampJitter": 6,
+      "descendProb": 0.44,
+      "gapProb": 0.12
     }
   },
   "chords": {

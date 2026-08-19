@@ -4,7 +4,10 @@ import { invoke } from '../lib/ipc';
 import { isPlugin } from '../lib/ipc-plugin';
 import { loadRoster } from '../lib/roster';
 import type {
+  Complexity,
   DatasetProblem,
+  Generated,
+  Lane,
   Part,
   Pattern,
   RosterEntry,
@@ -16,12 +19,15 @@ import type {
 // ⚠ Leaf helpers over `Pattern` — meter-aware bar arithmetic, defined once so the
 // roll, the grid and the bar switch cannot disagree about how long a clip is.
 import { barTicks, patternTicks } from '../components/PianoRoll/notes';
+import { reassignLane } from '../components/DrumGrid/cells';
 // ⚠ A leaf module that imports nothing but a type — see its own header for why
 // that matters. `PAD_LANES` is what TASK-058H's muting is a statement about.
 import { PAD_LANES } from './lanes';
 import { useHistory, type Snapshot } from './history';
 import { entryFor, useVariations, type Variation } from './variations';
+import { readStored, writeStored } from './storage';
 import { useUi, type GeneratorTab } from './ui';
+import { useEditing } from './editing';
 
 /**
  * The one loop the product is about: pick someone, generate, hear it, and have
@@ -112,6 +118,7 @@ export const SAVED_FIELDS = [
   'bars',
   'pins',
   'autoSync',
+  'complexity',
   'mood',
   'base',
   'audioEnabled',
@@ -122,6 +129,35 @@ export const SAVED_FIELDS = [
   'edited',
   'editedParts',
 ] as const;
+
+/**
+ * Where the Simple/Complex knob was left, across reloads.
+ *
+ * ⛔⛔ **NOT in `SAVED_FIELDS`, and that is the whole reason this is written by
+ * hand.** That list is read by three things — the project save, the undo
+ * snapshot, and `send()`, which builds the **IPC payload** from it. A field
+ * added there reaches the Rust bridge, and `lean` is a UI memory the engine has
+ * no field for: it would be an unknown key on every generate request.
+ *
+ * ⚠ It is also not part of the record. `complexity` is what a project was made
+ * at and is saved with it; this is only which side the disabled knob shows while
+ * As Written holds it, so it belongs beside the pad layout in `localStorage`
+ * rather than in the file.
+ *
+ * ⚠ Without it, reopening on As Written forgot the side and handed back Simple —
+ * the one gap left when the switch shipped.
+ */
+const LEAN_KEY = 'freally.lean';
+
+function storedLean(): Exclude<Complexity, 'authored'> {
+  // ⚠ Anything that is not 'complex' reads back as 'simple' — the same rule
+  // `cleanPads` follows for a stored value it does not recognise.
+  return readStored(
+    LEAN_KEY,
+    (value): value is 'complex' => value === 'complex',
+    'simple' as const,
+  );
+}
 
 /**
  * The session values a user may pin, in the shape the engine's
@@ -493,6 +529,36 @@ type SessionState = {
    * point of modes. Pinning holds it to one. `pattern.mood` is what it landed
    * on, the same way the seed box echoes the seed it used.
    */
+  /**
+   * How busy a reading of the style to generate (TASK-125).
+   *
+   * ⛔ **It scales WITHIN what the model authored and never overrides it.** The
+   * roadmap's rule: *"a rage vamp made busy is no longer rage, so the switch
+   * scales within each model's authored ranges rather than overriding them"* —
+   * so it only leans a choice the model already offered, and a model that
+   * authors one value is unmoved at every setting.
+   *
+   * ⚠ **'authored' is the default and is what every project written before this
+   * existed means**, so a saved seed keeps rebuilding the beat the producer
+   * heard. Same compatibility rule as `autoSync`.
+   */
+  complexity: Complexity;
+  /**
+   * Which way the Simple/Complex switch is set while **As Written** holds it.
+   *
+   * ⛔ **Not saved, and not part of the record.** `complexity` is what the
+   * engine is asked for; this is only where the switch's knob sits while it is
+   * disabled, so turning As Written back off returns the producer to the side
+   * they were on rather than snapping to Simple. A session that reopens on
+   * `authored` has no way of knowing which side that was — nobody chose one —
+   * and Simple is the honest answer there.
+   *
+   * ⚠ **Only read while `complexity` is `authored`.** When it is not, the
+   * switch reads `complexity` itself, so an undo that restores `complex`
+   * without going through `setComplexity` cannot leave the knob disagreeing
+   * with the value that will be generated.
+   */
+  lean: Exclude<Complexity, 'authored'>;
   mood: string | null;
   /**
    * The genre to generate this artist **in**, or `null` for their own
@@ -642,6 +708,20 @@ type SessionState = {
   setPin: <K extends keyof SessionPins>(field: K, value: SessionPins[K]) => void;
   setAutoSync: (on: boolean) => void;
   /** Pin the mood, or hand it back to the seed with `null`. */
+  /** Ask for a plainer or busier reading of the style (TASK-125). */
+  setComplexity: (complexity: Complexity) => void;
+  /**
+   * Point a lane at another drum **everywhere it is named** (2026-08-17).
+   *
+   * ⛔⛔ **One action because it was two call sites and they disagreed.** The
+   * pad picker and the grid's row picker each hand-wrote "and the other side
+   * follows": one did pad-then-clip and touched a single pad, the other
+   * clip-then-pads and looped every pad, and neither checked whether the other
+   * write had been refused. A review found three defects in the gap between the
+   * copies. This owns the clip, every pad holding the lane, and the lane-keyed
+   * view state, so a future rule is written once.
+   */
+  reassignLaneEverywhere: (from: Lane, to: Lane) => void;
   setMood: (mood: string | null) => void;
   /**
    * Pin the genre to generate in, or `null` for the artist's own (TASK-158C).
@@ -894,6 +974,19 @@ function withLocks(next: Pattern, previous: Pattern | undefined, locked: string[
  * in one place, and each setter keeps only what is actually different about it,
  * which is *when it persists*.
  */
+/**
+ * A lane-keyed set with one lane renamed, or the same array when it is absent.
+ *
+ * ⚠ Sorted and reference-stable for the reason `toggledLanes` is: these three
+ * sets are compared by reference to decide whether anything was recorded.
+ */
+function withLaneRenamed(current: string[], from: string, to: string): string[] {
+  if (!current.includes(from)) return current;
+  const next = current.filter((held) => held !== from);
+  if (!next.includes(to)) next.push(to);
+  return next.sort();
+}
+
 function toggledLanes(current: string[], lane: string, on: boolean): string[] | null {
   if (current.includes(lane) === on) return null;
   return on ? [...current, lane].sort() : current.filter((held) => held !== lane);
@@ -918,6 +1011,7 @@ function snapshotOf(state: SessionState): Snapshot {
     bars,
     pins,
     autoSync,
+    complexity,
     mood,
     base,
     audioEnabled,
@@ -969,6 +1063,7 @@ function snapshotOf(state: SessionState): Snapshot {
     bars,
     pins,
     autoSync,
+    complexity,
     mood,
     base,
     audioEnabled,
@@ -1323,6 +1418,13 @@ export type SavedSession = {
    */
   autoSync?: boolean;
   /**
+   * How busy a reading the producer asked for (TASK-125).
+   *
+   * ⚠ Absent is the model as authored — every project written before the switch
+   * existed, which must keep generating exactly what it did.
+   */
+  complexity?: Complexity;
+  /**
    * The pinned mood, absent for "Any" (TASK-040V).
    *
    * ⛔ Only a pin is stored. "Any" means the mood is picked from the seed, so
@@ -1622,6 +1724,9 @@ function put(
     // Absent means on, matching the plugin's `auto_sync_default`: a project
     // written before the toggle existed must keep following its DAW.
     autoSync: saved.autoSync ?? true,
+    // Absent means the model as authored, which is what every project written
+    // before the switch existed asked for.
+    complexity: saved.complexity ?? 'authored',
     mood: saved.mood ?? null,
     // Absent is the artist's own genre — every project written before this
     // existed, which must keep generating exactly what it did.
@@ -1729,6 +1834,8 @@ export const useSession = create<SessionState>((set, get) => ({
   pins: NO_PINS,
   hostTempo: null,
   autoSync: true,
+  complexity: 'authored',
+  lean: storedLean(),
   mood: null,
   base: null,
   audioEnabled: true,
@@ -1990,6 +2097,48 @@ export const useSession = create<SessionState>((set, get) => ({
     persist();
   },
 
+  setComplexity(complexity) {
+    // Saved like the mood and for the same reason: it is part of how a record
+    // was made. ⚠ The chips are NOT re-read — unlike a mood, this changes no
+    // session value the chips draw. It leans choices inside the generators, and
+    // the tempo, key and swing a producer is looking at stay exactly as they
+    // were.
+    // ⛔⛔ **Going to `authored` CAPTURES the side it is leaving.** Writing only
+    // `{ complexity }` here was a real defect, found by review: `apply()` and
+    // `applySnapshot` restore `complexity` straight into the store without
+    // passing through this setter, so a project saved on Complex reopens with
+    // `lean` still at its initial `simple`. The knob reads correctly — it prefers
+    // `complexity` whenever that names a side — but the moment As Written went
+    // on, the disabled knob jumped to Simple and turning it off again generated
+    // *Simple* for a session the producer had left on Complex.
+    //
+    // ⚠ Reading `state.complexity` rather than the argument: it is the side being
+    // left, and it is only a side worth remembering when it is not itself
+    // `authored`.
+    // ⚠ Written through on every side the producer picks, so a reload opens on
+    // the knob they left rather than on Simple — see [`LEAN_KEY`].
+    //
+    // ⛔ **Including the side CAPTURED on the way to `authored`**, which the
+    // first cut missed: it only wrote on the non-authored branch, so opening a
+    // project saved at Complex (which bypasses this setter) and clicking As
+    // Written captured 'complex' into state and stored nothing — a reload then
+    // read 'simple' back and generated Simple for a session left on Complex.
+    // That is the exact gap `LEAN_KEY` was added to close.
+    set((state) => {
+      const held =
+        complexity === 'authored'
+          ? state.complexity === 'authored'
+            ? state.lean
+            : state.complexity
+          : complexity;
+      writeStored(LEAN_KEY, held);
+      return complexity === 'authored'
+        ? { complexity, lean: held }
+        : { complexity, lean: complexity };
+    });
+    persist();
+  },
+
   setMood(mood) {
     // Saved like auto-sync and for the same reason: it is part of how a song
     // was made, not a transient view setting.
@@ -2043,6 +2192,42 @@ export const useSession = create<SessionState>((set, get) => ({
     // `setLaneMuted` makes, and it bites harder here: a solo that arrives half a beat late
     // leaves every *other* lane audible after the row has visibly dimmed, so
     // the control looks like it did nothing at all.
+    persistNow();
+  },
+
+  reassignLaneEverywhere(from, to) {
+    if (from === to) return;
+
+    // ⛔⛔ **Refused as a whole, or not at all.** The two pickers used to write
+    // their halves independently, and a review found three defects living in the
+    // gap: the pads were moved past a refusal the store had already made while
+    // the clip was renamed anyway, a sibling pad on the same lane was left
+    // behind, and neither carried the mute. Asking the pad store whether the
+    // move takes — rather than re-deriving its `PAD_LIMIT` rule here — is what
+    // makes a half-applied write unreachable.
+    if (!useUi.getState().reassignPadLane(get().selectedId, from, to)) return;
+
+    // ⚠ **A pad may point at a lane the beat does not have**, and that is not an
+    // error — it is a kit layout waiting for a generation. The pad still moves;
+    // there is simply nothing in the clip to rename. `reassignLane` answers both
+    // that and the case where the target lane is already in the beat, where
+    // renaming would merge two lanes' hits and lose part of it.
+    const drums = get().patterns.drums;
+    const next = drums ? reassignLane(drums, from, to) : undefined;
+    if (next === undefined || next === drums) return;
+
+    get().editPattern(next);
+    // ⚠ Each store that keys by lane migrates its own — the roll's open-lane
+    // windows live in `editing.ts` and were being dropped on a rename.
+    useEditing.getState().renameLane(from, to);
+    // ⛔ **The mute, the solo and the lock are keyed by lane**, so a rename that
+    // left them behind would start a silenced lane sounding under its new name
+    // and re-mute whatever later took the old one.
+    set((state) => ({
+      mutedLanes: withLaneRenamed(state.mutedLanes, from, to),
+      soloedLanes: withLaneRenamed(state.soloedLanes, from, to),
+      lockedLanes: withLaneRenamed(state.lockedLanes, from, to),
+    }));
     persistNow();
   },
 
@@ -2159,13 +2344,14 @@ export const useSession = create<SessionState>((set, get) => ({
       pins,
       mood,
       base,
+      complexity,
       patterns,
     } = get();
     if (!selectedId || generating) return;
 
     set({ generating: true, error: null });
     try {
-      const pattern = await invoke<Pattern>('generate_pattern', {
+      const generated = await invoke<Generated>('generate_pattern', {
         request: {
           styleId: selectedId,
           // ⛔ **The genre to generate IN** (TASK-158C). `null` is the artist
@@ -2223,8 +2409,88 @@ export const useSession = create<SessionState>((set, get) => ({
           // Null is "Any", which the engine answers by picking from the seed
           // rather than by generating without a mode (TASK-040V).
           mood,
+          // TASK-125: the producer's Simple/Complex answer, carried like the
+          // mood. Absent is the model as authored.
+          complexity,
         },
       });
+      // ⛔ **The parts this one was written against, generated behind it**
+      // (TASK-129). See `UPSTREAM`: this fills a tab the producer has never
+      // pressed Generate on, so that the counter they just made has a melody
+      // they can hear it against.
+      //
+      // ⛔⛔ **`record` in BOTH seed fields, and that is the whole correctness of
+      // it.** `parts.rs` writes the counter against `melody::generate(model,
+      // ctx, song, …)` — the *record's* lead, not this take's — and resolves the
+      // harmony at the song seed for every part. A fill at a fresh take seed
+      // would put a different melody on screen from the one the counter answers,
+      // which is the readout-that-lies failure this task exists to close, dressed
+      // as the fix for it. Sent as `seed` **and** `songSeed` so `Seeds { song,
+      // part }` are the same number and the engine reproduces its own dependency
+      // exactly.
+      //
+      // ⚠ **The one case the melody on screen is not byte-identical to the lead
+      // the counter answered** is a novelty redraw: `novelty::screen` runs on a
+      // Melody *request* and does not run on the counter's internal lead, so a
+      // lead that matches a known hook comes back replaced. That is the better of
+      // the two answers — a known hook is exactly what the guard exists to keep
+      // off the screen — and both takes belong to the same record either way.
+      //
+      // ⚠ **Absent, not empty.** A present pattern with no notes is a real
+      // answer from a style that authors no separate part, and refilling it would
+      // argue with the model every time. A switched-off part is not filled
+      // either: `partsOff` is a statement about the record (TASK-058H).
+      //
+      // ⚠ **Not during a recall**, for `withLocks`' reason below — a recall
+      // reproduces a take, and adding parts that take never had returns a
+      // session that never existed under the label of one that did.
+      // ⛔⛔ **The engine hands these back now** (TASK-166). This used to be a
+      // loop of extra `generate_pattern` calls driven by `UPSTREAM`, a
+      // hand-maintained TypeScript copy of `parts.rs`' dependency graph with no
+      // type or test tying the two together. `parts::render` already built the
+      // harmony and the song's lead to write this take against, so one Counter
+      // press cost 3 chord generations and 3 synchronous round trips where 1 of
+      // each was needed — and `editor.rs` serves them on the webview thread, so
+      // each one blocked the hosted DAW's window.
+      //
+      // ▶ It also closes the divergence the old loop admitted to in its own
+      // comment: a novelty redraw meant the melody it re-requested was not
+      // byte-identical to the lead the counter actually answered. What is filled
+      // now IS what was used.
+      //
+      // ⚠ **A recall fills nothing**, for the reason the note above gives — a
+      // recall reproduces a take, and adding parts that take never had returns a
+      // session that never existed under the label of one that did. The engine
+      // still sends them; the page declines them.
+      // ⚠ **One `get()`, because nothing awaits between these now.** The loop
+      // this replaced re-read the store each iteration because each one awaited
+      // a request; there are no requests left to await.
+      const fills: PatternsByPart = {};
+      if (!recalling) {
+        const held = get();
+        for (const built of generated.upstream) {
+          if (held.patterns[built.part] !== undefined || held.partsOff.includes(built.part)) {
+            continue;
+          }
+          fills[built.part] = built;
+        }
+      }
+      // ⚠ Derived from what was actually kept rather than from the whole reply:
+      // insertion order IS `parts.rs`' order, which is the order a producer
+      // watches the tabs fill.
+      const deps = Object.keys(fills) as Part[];
+      const pattern = generated.pattern;
+
+      // ⛔ **The artist may have changed while those were in flight**, the same
+      // way `generateAll` guards its loop: `select` clears the slots and swaps
+      // `selectedId`, and writing this artist's clips under the next one's name
+      // is what that function calls the most convincing wrong thing the app could
+      // show. One `await` needed no guard; several do.
+      if (get().selectedId !== selectedId) {
+        set({ generating: false });
+        return;
+      }
+
       // Show the seed that was actually used, so the chip can be copied even
       // when the user never typed one (US-004).
       //
@@ -2280,16 +2546,62 @@ export const useSession = create<SessionState>((set, get) => ({
         // with no message. Identity is the test — `withLocks` returns `next`
         // unchanged when no lock landed — so the flag follows what actually
         // happened rather than what was asked for.
-        const editedParts =
+        let editedParts =
           held === pattern
             ? withoutEdit(state.editedParts, part)
             : withEdit(state.editedParts, part);
+
+        // ⛔ **The fills land in the SAME `set` as the part that caused them**,
+        // and that is correctness rather than tidiness: the `patterns` subscriber
+        // re-arms the audio thread on every write and the history subscriber
+        // records every write as its own undo entry, so a producer who pressed
+        // Generate once would otherwise press `Ctrl`+`Z` three times to get back.
+        // `generateAll` accumulates for the same reason and says so.
+        //
+        // ⚠ **Re-checked against the state the updater was handed**, not against
+        // the read that decided to ask: an import or a drilled-in clip can land
+        // in a slot while a request is in flight, and overwriting it here would
+        // throw away the producer's own material for a part they never asked to
+        // generate.
+        //
+        // ⚠ **No `withLocks`**, and that is not an omission — it returns `next`
+        // untouched when there is no previous clip, and an absent slot is the
+        // condition these were requested under. A fill is a first take; there is
+        // nothing to hold.
+        const filled: PatternsByPart = {};
+        for (const dep of deps) {
+          const clip = fills[dep];
+          if (clip === undefined || state.patterns[dep] !== undefined) continue;
+          filled[dep] = clip;
+          editedParts = withoutEdit(editedParts, dep);
+        }
         // ⛔ **The variation history is appended here, inside the updater, for
         // the reason the locks are: this is where the generation *lands*.**
         // Recording it outside would let a second Generate that resolved first
         // write its entry second, so the log would disagree with the order the
         // producer pressed things in — which is the one thing a history is for.
         if (!recalling) {
+          // ⚠ **The fills first, in dependency order, then the part that was
+          // asked for.** Each is a real take of its own part and the nav is per
+          // part, so each gets its own entry — `generateAll` records five for one
+          // press for the same reason. Recording them after the counter would put
+          // the melody's entry at a later timestamp than the line written against
+          // it.
+          //
+          // ⚠ `filled` was built from `deps` just above, so its insertion order
+          // *is* the dependency order — walking `UPSTREAM` again to rediscover
+          // what this object already holds was asking the same question twice.
+          for (const clip of Object.values(filled)) {
+            useVariations
+              .getState()
+              .record(
+                entryFor(
+                  clip,
+                  { mood: state.mood, base: state.base, pins: state.pins },
+                  Date.now(),
+                ),
+              );
+          }
           useVariations
             .getState()
             .record(
@@ -2301,7 +2613,7 @@ export const useSession = create<SessionState>((set, get) => ({
             );
         }
         return {
-          patterns: { ...state.patterns, [part]: held },
+          patterns: { ...state.patterns, ...filled, [part]: held },
           seed: pattern.seed,
           // ⚠ Held so the *next* part joins this record rather than starting
           // its own. Nothing shows it and nothing asks the producer about it —
@@ -2318,7 +2630,7 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   async generateAll() {
-    const { selectedId, bars, generating, pins, mood, base, seedPinned } = get();
+    const { selectedId, bars, generating, pins, mood, base, seedPinned, complexity } = get();
     if (!selectedId || generating) return;
 
     set({ generating: true, error: null });
@@ -2357,7 +2669,10 @@ export const useSession = create<SessionState>((set, get) => ({
 
     for (const part of GENERATED_PARTS) {
       try {
-        const pattern = await invoke<Pattern>('generate_pattern', {
+        // ⚠ Generate-all walks every part itself, so it takes the clip and
+        // ignores the upstream the reply carries — those parts are already in
+        // this loop, and filling them here would write each one twice.
+        const { pattern } = await invoke<Generated>('generate_pattern', {
           request: {
             styleId: selectedId,
             // The same pin as the single-Generate path — see there.
@@ -2384,6 +2699,9 @@ export const useSession = create<SessionState>((set, get) => ({
             }),
             session: pins,
             mood,
+            // TASK-125: carried like the mood, so Generate-all answers the switch
+            // exactly as a single Generate does.
+            complexity,
           },
         });
 

@@ -1,0 +1,342 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "afrojack",
+  "type": "producer",
+  "name": "Afrojack",
+  "aliases": [
+    "afrojack",
+    "nick van de wall",
+    "wall recordings"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "2007-present",
+  "genres": [
+    "dance-pop",
+    "dutch-house",
+    "big-room",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "house",
+    "techno",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Afrojack",
+    "Wikipedia — Afrojack (https://en.wikipedia.org/wiki/Afrojack)",
+    "Dutch house (https://en.wikipedia.org/wiki/Dutch_house)",
+    "Electro house (https://en.wikipedia.org/wiki/Electro_house)"
+  ],
+  "notes": "Dutch-house and big-room, and the low-end architect behind much of the 2011-2015 EDM-pop boom. The entry names exactly what distinguishes his productions from the Swedish progressive-house school, and it is percussion: \"Dutch-house grammar — complex rhythms made from Latin-influenced drum kits — with tribal toms and congas layered over the four-square kick\". So this model carries a tom/tomLow/conga/timbale bed at 4-8 hits a bar at -2 dB, where Guetta, Garrix and Hardwell all run 0-2 riser lanes. The second Dutch-house convention is the low end: \"a lower emphasis on the bassline with the energy carried by the lead; where a bass is prominent it is a distorted sawtooth locked to the kick\", which is a kick mirror at 0.96 roots with a single passing tone — the least melodic bass in the producer block. And the third is the lead: \"a squeaky, high-pitched lead synth — a detuned saw or square pushed into the top octaves — as the drop's hook\", encoded as the highest melody register in this section, 79-103. Harmony is a two- or four-chord minor vamp because \"the Dutch-house idiom puts the identity in the lead timbre rather than the harmony\" `[LOW-CONF]`, a mark repeated here. ⚠ The research says the drum, lead and bass grammar come from the Dutch-house convention page; every velocity, density and probability above is INFERRED. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry's harmony line is \"minor-mode two- or four-chord vamps; the Dutch-house idiom puts the identity in the lead timbre rather than the harmony\", and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\") — so weighting `vamp` at the top rendered a **one**-chord bed the research nowhere describes. The chord motion the entry states is now carried by `1_per_bar` (the pair over a 2-bar cell) and `2_bars_per_chord` (the pair over a 4-bar cell), with `vamp` kept as the minority for the held reading. A four-chord vamp needs four slots, which only `1_per_bar` gives. ⚠ The split between those two rates is **INFERRED** — the entry names the device, not its rate.",
+  "session": {
+    "bpm": {
+      "min": 125,
+      "max": 135,
+      "mode": 130
+    },
+    "keys": {
+      "values": [
+        "Am",
+        "Gm",
+        "Em",
+        "Cm",
+        "Dm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.96,
+      "velocityVar": 0.13,
+      "timingJitterMs": {
+        "kick": 1,
+        "clap": 3,
+        "closedHat": 2,
+        "conga": 5,
+        "cowbell": 4
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        116,
+        127
+      ],
+      "main": [
+        88,
+        102
+      ],
+      "ghost": [
+        32,
+        48
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.06,
+      "offbeat8thShare": 0.09
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        3,
+        8
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2a",
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.26,
+          0.46
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.48,
+      "openHat": {
+        "prob": 0.62,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.28
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tom",
+        "tomLow",
+        "conga",
+        "timbale"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "placement": "any",
+      "gainOffsetDb": -2
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": true,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.84,
+      "seventh": 0.14,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      79,
+      103
+    ],
+    "densityPerBar": [
+      5,
+      10
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.28,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.66,
+      "descend": 0.2,
+      "arch": 0.14
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.06,
+    "articulation": "staccato",
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "squeaky_saw"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P8"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 16,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 16,
+      "bridge": 8,
+      "outro": 16
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "prechorus",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

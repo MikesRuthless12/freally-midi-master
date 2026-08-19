@@ -156,19 +156,18 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16t",
         "8t"
       ],
       "grouping": [
-        "strong_weak_weak_weak"
+        "even"
       ],
       "velocityRampRange": [
-        73,
-        127
+        68,
+        124
       ],
-      "rampJitter": 23,
-      "descendProb": 0.34,
-      "gapProb": 0.2
+      "rampJitter": 25,
+      "descendProb": 0.36,
+      "gapProb": 0.16
     },
     "bass808": {
       "register": [

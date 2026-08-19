@@ -1,0 +1,298 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rex-rideout",
+  "type": "producer",
+  "name": "Rex Rideout",
+  "aliases": [
+    "rex rideout",
+    "rideout",
+    "adult rnb keys",
+    "smooth jazz producer"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1999-2015",
+  "genres": [
+    "producer",
+    "rnb",
+    "neo-soul",
+    "jazz"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "funk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Rex Rideout",
+    "Wikipedia — Rex Rideout (https://en.wikipedia.org/wiki/Rex_Rideout)",
+    "Wikipedia — Angie Stone (https://en.wikipedia.org/wiki/Angie_Stone)",
+    "Wikipedia — Ledisi (https://en.wikipedia.org/wiki/Ledisi)"
+  ],
+  "notes": "The smooth-jazz-trained keyboardist-producer of the lane's adult-R&B wing. `confidence` is **low** — the role and the credits are sourced, the parametric detail is adult-R&B-idiom inference. The drums encode a subordination the entry states directly: \"soft programmed or live-feel kit with the snare mixed low on 2&4, swung 16th hats, brushes on the ballads, and a continuous shaker; **the kit stays out of the way of the keys and the sax**.\" So the velocity tiers are soft, the hat velocities top out at 0.46, the ghost velocities are low, and the shaker is the busiest lane at 3–6 hits a bar. Harmony is \"jazz-major and gospel-minor with real ii–V–I turnarounds, tritone substitutions, and modulation for the final chorus; he is a keyboard player, so voicings are **pianistic (rootless upper structures)** rather than pad-like\" — both turnaround families are the entry's own, `topVoiceStepwise` is off because a rootless upper structure does not move by step, and the ninth weight is high for the rootless colour. The countermelody instrument is named twice in the entry — \"**soprano/alto sax as the countermelody instrument**\" — which is the answering counter at +12 and the sax solo section in the arrangement. Bass is \"round with slides between chord tones in a smooth-jazz register; no 808\", which is why `glideProb` is 0.26 (the second-highest bass glide in this section) over a register that stops at 44. ⚠ Every drum number and every melody figure here is INFERRED. ⚠ His ii–V families are shared with the other jazz-voiced models in this section because the research gives them the same turnaround; he is separated by the soft kit, the low tempo band and the sax counter rather than by an invented harmonic difference.",
+  "session": {
+    "bpm": {
+      "min": 62,
+      "max": 96,
+      "mode": 80
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "dorian",
+        "lydian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.72,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 6,
+        "shaker": 9,
+        "tambourine": 8
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        82,
+        98
+      ],
+      "main": [
+        54,
+        70
+      ],
+      "ghost": [
+        22,
+        32
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.3,
+      "tresilloBias": 0.06
+    },
+    "snare": {
+      "offGridMs": [
+        2,
+        8
+      ],
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.1,
+          0.26
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.34,
+      "velocities": {
+        "main": [
+          0.26,
+          0.46
+        ],
+        "ghost": [
+          0.08,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -6
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "i"
+        ],
+        "weight": 4
+      }
+    ],
+    "extensions": {
+      "triad": 0.06,
+      "seventh": 0.5,
+      "ninth": 0.44
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    },
+    "susOrDimProb": 0.22,
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      82
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "long_arc",
+    "articulation": "legato",
+    "intervals": {
+      "step": 0.8,
+      "third": 0.17,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.16,
+      "descend": 0.4,
+      "arch": 0.44
+    },
+    "chordToneBias": 0.62,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "smooth_jazz_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.6,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.26,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2",
+      "M6"
+    ],
+    "anticipationProb": 0.32
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        24
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.16
+    }
+  }
+}

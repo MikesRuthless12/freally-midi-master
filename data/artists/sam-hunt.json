@@ -1,0 +1,335 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sam-hunt",
+  "type": "artist",
+  "name": "Sam Hunt",
+  "aliases": [
+    "sam hunt",
+    "samhunt",
+    "samuel hunt"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2014-2021",
+  "genres": [
+    "country-pop",
+    "country",
+    "rnb country"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "trap-soul",
+    "rnb-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Sam Hunt",
+    "Wikipedia — Body Like a Back Road (https://en.wikipedia.org/wiki/Body_Like_a_Back_Road)",
+    "Wikipedia — Montevallo (https://en.wikipedia.org/wiki/Montevallo_(album))",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Sam+Hunt)"
+  ],
+  "notes": "The R&B/hip-hop-native end of country — spoken-sung verses, programmed beds, \"busy electronic arrangements and … fleet-footed rhythms.\" The tempo and key are documented outright rather than cross-folded: the signature single is \"in the key of F major with a tempo of 96–100 beats per minute,\" so the band centres at 98 with the slow cuts reaching down to 65. The drum grammar is the entry's list: \"a snap/clap on the backbeat, 16th hats with occasional 32nd rolls, a short sampled kick on 1 and the 'and-of-3,' finger-snaps and vocal-percussion layers; live drums are credited alongside 'programming' on the album, so model a hybrid where programming is the skeleton and live cymbals/toms are overdubs\" — that is a tight quantize with a real snap lane and 32nd rolls at the boundaries. The 808 takes `counter_riff` because both layers are named: \"sub-bass is structural — long, tuned, root-locked with occasional slides; the electric bass, where present, plays a syncopated R&B figure above the sub.\" Harmony is deliberately inert and the entry says so: \"I–V–vi–IV rendered as a two-bar loop rather than a four-bar progression, with sustained pads over a static bass — the harmony is deliberately less eventful than the rhythm,\" hence the `2_bars_per_chord` and `vamp` weighting over one dominant family. Melody is \"talk-singing at conversational syllable density in verses (spoken rhythm, minimal pitch movement), then a sung chorus with a short repeated hook cell; register mid-baritone; melisma absent.\" ⚠ Song length is a documented parameter — \"the signature single runs 2:40\" — so the arrangement sections are the shortest in this section. ⚠ The INFERRED parameters are the 808 register, the snap density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 65,
+      "max": 104,
+      "mode": 98
+    },
+    "keys": {
+      "values": [
+        "F",
+        "G",
+        "Ab"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "mixolydian"
+      ],
+      "weights": [
+        7,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.97,
+      "velocityVar": 0.08,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 1,
+        "snap": 2,
+        "closedHat": 2
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.35,
+      "offbeat8thShare": 0.52
+    },
+    "snare": {
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        2
+      ],
+      "ghost": {
+        "prob": 0.07,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.16,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.43,
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "16"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_downbeat"
+        ],
+        "freqPerBar": 0.34,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "shaker",
+        "perc",
+        "ride"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "gainOffsetDb": -3,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "register": [
+        24,
+        38
+      ],
+      "slideProb": 0.3,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "M2",
+          "P4"
+        ],
+        "weights": [
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_2"
+      ],
+      "distortion": "none"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 7
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.32,
+      "ninth": 0.08
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      50,
+      74
+    ],
+    "densityPerBar": [
+      4,
+      11
+    ],
+    "straightEighthsProb": 0.22,
+    "intervals": {
+      "step": 0.86,
+      "third": 0.12,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.32,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.01,
+    "twoBarCellRepeat": 0.6,
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.56,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      46
+    ],
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.48
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": [
+        8,
+        12
+      ],
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.45,
+        "beats": 4
+      },
+      "switchUpProb": 0.26
+    }
+  }
+}

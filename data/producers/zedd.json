@@ -1,0 +1,410 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "zedd",
+  "type": "producer",
+  "name": "Zedd",
+  "aliases": [
+    "zedd",
+    "anton zaslavski",
+    "complextro zedd"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "2011-present",
+  "genres": [
+    "dance-pop",
+    "complextro",
+    "electro-house",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "pop-2020s",
+    "house",
+    "future-bass"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Zedd",
+    "Wikipedia — Zedd (https://en.wikipedia.org/wiki/Zedd)",
+    "Electro house (https://en.wikipedia.org/wiki/Electro_house)",
+    "Wikipedia — The Monsters & Strangerz (https://en.wikipedia.org/wiki/The_Monsters_%26_Strangerz)"
+  ],
+  "notes": "Classically-trained complextro turned pop hitmaker, and the research names the training as \"the defining parameter\" — piano from age four, drums from twelve, both parents musicians — \"which shows as genuine voice-leading, secondary dominants and modulating breakdowns inside an EDM frame, rather than the lane's static four-chord vamp\". So this is the only model in the progressive/electro block with `topVoiceStepwise` on, a stepwise-led open voicing, five progression families and a `1_per_bar` harmonic rhythm carrying the weight: the chords move. The drums carry the other half: \"complextro grammar — a four-square kick under glitchy, intricate rhythmic programming, with percussion and bass cut into 16th and 32nd fragments that alternate rather than sustain; he came from deathcore drumming, which shows in the fill density\". That is the highest hat fill density and roll frequency in this section, a 64th in the roll vocabulary, and a four-lane perc bed at 4-8 hits a bar. The bass is \"sawtooth-and-distortion chopped into interlocking 16th fragments\", authored as an independent riff at 0.6 roots with two cell shapes. Loops are 4 or 8 bars. ⚠ The research calls the drum and bass grammar a reading of the complextro description; that mark is repeated here, and all velocities and densities are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 126,
+      "max": 130,
+      "mode": 128
+    },
+    "keys": {
+      "values": [
+        "Am",
+        "C",
+        "Em",
+        "F",
+        "Bm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "harmonic_minor",
+        "lydian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.99,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 0,
+        "clap": 2,
+        "closedHat": 1,
+        "openHat": 1,
+        "perc": 2
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        116,
+        127
+      ],
+      "main": [
+        88,
+        104
+      ],
+      "ghost": [
+        32,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.14,
+      "offbeat8thShare": 0.18
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "ghost": {
+        "prob": 0.36,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.28,
+          0.5
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.75,
+      "velocities": {
+        "main": [
+          0.7,
+          1
+        ],
+        "ghost": [
+          0.34,
+          0.58
+        ]
+      },
+      "openHat": {
+        "prob": 0.55,
+        "pos": [
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32",
+            "64"
+          ],
+          "weights": [
+            3,
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare",
+          "bar_2"
+        ],
+        "freqPerBar": 0.5
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "perc2",
+        "snap",
+        "impact"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "placement": "any",
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8,
+      "snareRollLadder": true,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "iii"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I",
+          "vi"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "IV",
+          "V",
+          "iii",
+          "vi"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.44,
+      "seventh": 0.4,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        88
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.18
+  },
+  "melody": {
+    "register": [
+      70,
+      94
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.28,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.24,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.78,
+    "halfStepDissonance": 0.04,
+    "octaveJumpProb": [
+      0.08,
+      0.18
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "pluck_lead"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.75,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.6,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "P8"
+    ],
+    "anticipationProb": 0.36,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "1",
+        "b7"
+      ],
+      [
+        "1",
+        "b3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "bridge",
+          "prechorus",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.65,
+        "beats": 2
+      },
+      "switchUpProb": 0.18
+    }
+  }
+}

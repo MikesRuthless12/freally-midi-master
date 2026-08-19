@@ -1,0 +1,384 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kygo",
+  "type": "producer",
+  "name": "Kygo",
+  "aliases": [
+    "kygo",
+    "kyrre gorvell dahll",
+    "tropical house kygo"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "dance-pop",
+    "tropical-house",
+    "deep-house",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "house",
+    "pop-2020s",
+    "afrobeats"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Kygo",
+    "Wikipedia — Kygo (https://en.wikipedia.org/wiki/Kygo)",
+    "Tropical house (https://en.wikipedia.org/wiki/Tropical_house)",
+    "Splice — tips for producing tropical house (https://splice.com/blog/tips-to-for-producing-tropical-house/)"
+  ],
+  "notes": "The producer who defined tropical house as a pop format, and the only entry in this section besides Darude whose research rates itself `high` — the tempo band, lead palette, pentatonic habit, structural device, background and remix method are all documented, which is why this is one of the section's two flagships. The tempo is the documented one and it is the lane's lowest: 100-120, \"slower than average electronic music\". The kit is the entry's: \"deep-house four-on-the-floor with a soft-shouldered kick, clap on 2&4, offbeat shakers and 16th percussion loops; steel percussion and bongos in place of a hat bed\", which inverts the parent's balance — the hat fill density drops to 0.15 and the perc bed rises to 5-8 hits a bar across five lanes at only -2 dB, because the percussion *is* the hat. \"There are hardly any big drops — the dynamic range is deliberately compressed\", so the snare-roll ladder is off, the velocity tiers are the softest in this section and the drop-out probability is low. Harmony is \"major and modal-major four-chord loops with maj7/add9 colour\" and \"melodies favour the pentatonic scale (documented for the idiom) which is why his hooks are so singable and so interval-narrow\" — hence the pentatonic scale weighting, the 0.80 step share and the near-zero octave jump. The documented structural device is the arrangement: \"following the vocal hook with an instrumental break restating the same melody\", which is why every structure here places a bridge immediately after a hook. The bass is \"rounded, soft sub with a syncopated deep-house motion; the low end never distorts\". The two hand-percussion lanes the entry names, shaker and bongo, are the two that carry timing jitter, so the loose feel sits on the documented voices. ⚠ The INFERRED parameters are the rest of the perc lane set (conga, woodblock and tambourine are idiom-typical rather than named — the entry names only shakers, \"steel percussion and bongos\" and \"16th percussion loops\"), the velocity tiers, the perc densities, the ghost placements and the registers — the entry gives a palette, a scale habit and a dynamic-range direction rather than numbers.",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 120,
+      "mode": 112
+    },
+    "keys": {
+      "values": [
+        "C",
+        "G",
+        "D",
+        "F",
+        "Am",
+        "Em"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 2,
+        "clap": 3,
+        "closedHat": 4,
+        "openHat": 4,
+        "shaker": 6,
+        "bongo": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        92,
+        106
+      ],
+      "main": [
+        68,
+        82
+      ],
+      "ghost": [
+        28,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.02,
+      "offbeat8thShare": 0.04
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        3,
+        8
+      ],
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.15,
+      "velocities": {
+        "main": [
+          0.5,
+          0.72
+        ],
+        "ghost": [
+          0.2,
+          0.38
+        ]
+      },
+      "openHat": {
+        "prob": 0.5,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.06
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "bongo",
+        "conga",
+        "woodblock",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        5,
+        8
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -2
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "vi",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V",
+          "vi"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "iii",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.4,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        55,
+        86
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    },
+    "susSubstitutionProb": 0.18
+  },
+  "melody": {
+    "register": [
+      69,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.8,
+      "third": 0.18,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.24,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.9,
+    "halfStepDissonance": 0,
+    "octaveJumpProb": 0.02,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "marimba_pluck"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad",
+        "bell_echo"
+      ],
+      "weights": [
+        3,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "rhythm": "offbeat_8ths",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.32
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 16,
+      "bridge": 16,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "verse",
+          "hook",
+          "bridge",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "bridge",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.3,
+        "beats": 2
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

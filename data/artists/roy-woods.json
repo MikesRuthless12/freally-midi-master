@@ -1,0 +1,352 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "roy-woods",
+  "type": "artist",
+  "name": "Roy Woods",
+  "aliases": [
+    "roy woods",
+    "denzel spencer",
+    "ovo sound"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap-soul"
+  ],
+  "era": "2015-2021",
+  "genres": [
+    "trap-soul",
+    "rnb",
+    "toronto"
+  ],
+  "relatedGenres": [
+    "trap-soul",
+    "cloud-rap",
+    "trap",
+    "rnb-2000s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 trap-soul — Roy Woods",
+    "Wikipedia — Roy Woods (https://en.wikipedia.org/wiki/Roy_Woods)",
+    "Wikipedia — Alternative R&B (https://en.wikipedia.org/wiki/Alternative_R%26B)",
+    "Wikipedia — Trap music (https://en.wikipedia.org/wiki/Trap_music)"
+  ],
+  "notes": "The atmosphere-first end of the lane. The harmony claim is unusually strong and it is the entry's: \"minor-mode single-sonority vamps — often one m9 or m11 chord for the whole track, with the bass note the only moving element. No cadences.\" So `progressionFamilies` is a single-chord vamp against one two-chord pair, `harmonicRhythm` is weighted onto `vamp`, and `chordDurationBeats` is long. The 808 is \"mixed as the loudest element; the 808 is the arrangement's floor and rarely rests\", which is `lockTo808` at the top of its range and the widest `slidesPer4Bars` in the batch at slow portamento. \"Sparse hats with occasional 32nd rolls, and long stretches with the hats muted entirely\" is a low `fillDensity` with `continuous` off and a 32nd-only roll vocabulary; \"everything is drenched in a dark plate reverb and low-passed\" is `lowPassed` on the sub and a low hat velocity band. The melody is \"soft, breathy, half-rapped mid-tenor… very low note-density, short repeated phrases\". ⚠ `confidence` is **low** because the research rates the entry medium-low and says so plainly: \"lane position and label context sourced; parametric detail is lane inference\". ⚠ Accordingly **every** number in the drums, melody, chords and 808 blocks is INFERRED from adjectives; the only researched facts here are the era, the read tempo band, the single-sonority harmony, the clap on beat 3 and the sustained-808 low end. ⚠ `session.bpm.mode` is **INFERRED**: the number is not stated in the entry, and it is an authored centre of gravity inside the band the entry does state. ⚠ **`session.keys` is INFERRED.** The entry's Keys line describes the harmonic grammar but names no key centre, so these values and their weights are an authored choice — no key in this set is stated in the research. ⚠ **The countermelody reached 813/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.28 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. Second, `countermelody.densityRatio` became a range, [0.26, 0.45], rather than a flat 0.26. That parameter decides how many notes the part has at all, and at 0.26 it was two or three; a part that short has almost no shapes to be distinct in. The low end is kept because it is the thin reading the entry's texture implies, and it is now the bottom of a band rather than the only answer — so how much of the lead the pad answers varies take to take. ⚠ Every value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"detuned bell and pluck riffs, filtered pads, and reversed-sample textures. Melody is soft, breathy, half-rapped mid-tenor with heavy pitch correction, very low note-density, short repeated phrases, and a wide double/ad-lib layer that is often louder than the lead.\", and every claim in it still holds after the change. ⚠ **And the style pool was opened.** `generators::counter` can play five answer shapes and this block asked for one. `bell_echo` is added because the entry names it — \"detuned bell and pluck riffs, filtered pads, and reversed-sample textures — and a wide double/ad-lib layer that is often louder than the lead\" — and the block carried only the filtered pad. The detuned bell is named first in that list and this model's own `melody.timbreHint` is already `detuned_bell`, so the layer was authored everywhere except in the part that plays it; `bell_echo` is the engine's struck, short, quieter answer. ⚠ The weights are INFERRED; the layer they weight is not. ⚠ **It then reached 967/1000 once the engine stopped pinning where a pad enters (2026-08-17), and two more things moved — both named in the entry’s own Melody/chords line.** First `arp`: the line reads \"detuned bell and **pluck** riffs, filtered pads, and reversed-sample textures\", and the block played the pad and the bell but not the pluck. Chord tones walked on the grid is what `generators::counter` writes for `arp`, and that is the pluck riff. Second, `densityRatio` went from [0.26, 0.45] to [0.45, 0.9]. That number is a ratio **of the lead’s own note count**, and this lead is \"very low note-density\" at two to four notes a bar — so a ratio under a half left the answering layer at two or three notes across four bars, which is not a riff at all and is not the \"wide double/ad-lib layer that is often louder than the lead\" the same sentence describes. Measured 967 → 986 distinct per 1,000. ⚠ The weights and the band are INFERRED; the bell, the pluck and the wide answering layer are the entry’s own words. ⚠ **The harmony reached 280/1000 distinct voicings against a floor of 500 (2026-08-17, harmony variety floor) — the only model on the roster that missed it.** `chords.harmonicRhythm` gained `syncopated_cell`. `chordDurationBeats: [8, 16]` was **dead here**: `generators::chords::layout` reads it under `syncopated_cell` alone, and this block authored only `vamp` and `2_bars_per_chord` — so the loop length the model already carried never applied, and five sevenths of generations were one chord event held across the whole four-bar clip, with nothing free inside it but the key, the extension roll and a single voicing (a five-note m9 in this register admits exactly one). **The sonority does not move.** `progressionFamilies` weights the single-chord family `[\"i\"]` 6 against 2, so over three quarters of generations every cell is the same chord re-voiced, and at 8–16 beats a cell re-strikes at most once inside a four-bar clip — which leaves the entry's own Keys line intact word for word: \"minor-mode single-sonority vamps — often one m9 or m11 chord for the whole track, with the bass note the only moving element. No cadences.\" What varies between cells is the inversion, which moves the pad's own bottom voice and nothing else. ⚠ The weight of 6 is INFERRED, as every number in this block already is: the entry says how often the chord *changes* — it does not — and says nothing at all about how often the pad is struck. The same reading was already taken on `jhene-aiko`, whose entry calls its harmony \"the most static in this section\".",
+  "session": {
+    "bpm": {
+      "min": 120,
+      "max": 150,
+      "mode": 134
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Fm",
+        "Cm",
+        "Gm",
+        "Bbm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.12,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 5,
+        "clap": 5,
+        "closedHat": 3,
+        "bass808": 2
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.18,
+      "tresilloBias": 0.16,
+      "lockTo808": 0.96
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.26
+        ]
+      },
+      "offGridMs": [
+        4,
+        9
+      ],
+      "lowPassedClap": true
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.14,
+      "velocities": {
+        "main": [
+          0.36,
+          0.52
+        ],
+        "ghost": [
+          0.16,
+          0.28
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.18,
+        "velocityRamp": true,
+        "burstOnly": true
+      },
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "reverse",
+        "rim"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ],
+      "placement": "any",
+      "gainOffsetDb": -11
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.44,
+      "portamentoMs": [
+        90,
+        150
+      ],
+      "slidesPer4Bars": [
+        1,
+        2
+      ],
+      "slideIntervals": {
+        "values": [
+          "m3",
+          "P4",
+          "M2"
+        ],
+        "weights": [
+          3,
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_4"
+      ],
+      "register": [
+        22,
+        35
+      ],
+      "distortion": "none",
+      "lowPassed": true
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 32
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.04,
+      "seventh": 0.4,
+      "ninth": 0.56
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        72
+      ],
+      "lowPassed": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "syncopated_cell"
+      ],
+      "weights": [
+        5,
+        2,
+        6
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      74
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      4
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.42,
+      "arch": 0.16
+    },
+    "chordToneBias": 0.8,
+    "emptyBarBias": 0.1,
+    "twoBarCellRepeat": true,
+    "octaveJumpProb": 0.02,
+    "articulation": "legato",
+    "timbreHint": "detuned_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.45,
+      0.9
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "bell_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2,
+        2
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": [
+        8,
+        16
+      ],
+      "hook": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.3,
+        "beats": 2
+      },
+      "switchUpProb": 0.04
+    }
+  }
+}

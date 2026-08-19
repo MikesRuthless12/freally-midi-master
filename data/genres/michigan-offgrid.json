@@ -1,0 +1,623 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "michigan-offgrid",
+  "type": "genre",
+  "name": "Michigan Off-Grid",
+  "aliases": [
+    "michigan rap",
+    "flint rap",
+    "ypsi",
+    "rio da yung og type",
+    "babytron type beat",
+    "veeze type",
+    "michigan offgrid",
+    "off grid rap"
+  ],
+  "tier": "standard",
+  "extends": [
+    "_defaults"
+  ],
+  "era": "2015–present",
+  "genres": [
+    "rap",
+    "midwest",
+    "underground"
+  ],
+  "relatedGenres": [
+    "detroit-bounce",
+    "boom-bap",
+    "trap",
+    "dark-trap",
+    "phonk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-underground vol.5, scene-taxonomy addendum item 3 — `michigan-offgrid` (Rio Da Yung OG, Veeze, BabyTron; parent of Volume 4's `detroit-bounce`): BPM 92–115, straight, backbeat on 2&4, and four rules",
+    "style-research-extended-underground vol.5 — Assignment note 2: the archetype is written as the PARENT of `detroit-bounce`; Rio Da Yung OG, Veeze and BabyTron are claimed there",
+    "style-research-extended-4 vol.4 header — the live tempo discrepancy: ten Tee Grizzley readings split into a 92–104 straight cluster and a 67–83 halved cluster (134–150 half-time, snare on 3); carry BOTH as named modes",
+    "style-research-extended-4 vol.4 detroit-bounce — reconciliation note against UNDERGROUND.md"
+  ],
+  "notes": "The Michigan lane's four rules, and the archetype volume 5 wrote as the parent of `detroit-bounce`. ⛔ **Rule 1 — the 808 does not slide. It plays discrete note figures**, which inverts drill's and trap's defining bass behaviour, so `bass808.slideProb` is **0** rather than merely low. `detroit-bounce` carries 0.04, which is the same idea stated softly; here it is the rule. ⛔ **Rule 2 — the hats are sparse: no 16th carpet, no triplet rolls.** `hihat.base` is eighths, `continuous` is false, `fillDensity` is 0.38 and `rolls.freqPerBar` is 0.05 with the vocabulary held to `\"16\"` — a triplet roll would be the one gesture the research names as absent. ⛔ **Rule 3 — the melodic figure is deliberately off the grid against a syncopated kick.** The kick carries `grammarVariants` (two-bar figures, the same device `detroit-bounce` uses) and the melody is the loosest part of the model. ⛔ **Rule 4 — nothing here is quantised tight.** The research says *\"the vocal is not quantised — stutters and takes' imperfections are retained by intent, so a humanise stage is required rather than optional\"*: `quantizeStrength` is 0.66, the loosest on the roster **except `jerk`**, whose 0.55 is its own signature and stays the floor. ⛔⛔ **BOTH TEMPO BANDS SHIP AS NAMED MODES, AND RECONCILING THEM WOULD BE THE ERROR.** Volume 5 specifies 92–115 straight with the backbeat on 2 and 4. Volume 4 measured ten Tee Grizzley readings and found a clean **92–104 straight** cluster *and* a **67–83 halved** cluster — 134–150 half-time with the snare on 3. Neither is wrong: Flint-independent material skews slow and straight, Detroit major-label skews fast and half-time. The roadmap's instruction is verbatim — *\"Author both as named modes; do not reconcile by picking one number\"* — so `flint` is the straight band and `detroit-halftime` is the halved one, and the invariant test asserts that the two modes really do land in different bands with different backbeats. ⚠ **`detroit-bounce` is NOT re-parented onto this, deliberately.** The research asks that it inherit rather than restate, and it currently extends `_defaults`; changing a shipped model's `extends` changes what every saved seed in every project reproduces, which is a decision with a migration attached rather than a tidy-up. Recorded for the next session. ⚠ **No chorus is a structural rule this engine cannot hold.** *\"Verses run continuously, so section lengths are long and irregular\"* — `arrangement.sectionBars` gives the long verse and a hook that is short enough to read as an interruption, which is as close as a section table gets. ⚠ **INFERRED, hence `medium`.** Sourced: both tempo bands, the backbeat placements, all four rules and the roster. Inferred: every velocity tier, every register, the key and scale lists, the `intervals`/`contour` split, the harmony (the research names none for this lane) and the mode names.",
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 24,
+      "hook": 8,
+      "bridge": 4,
+      "outro": 4
+    }
+  },
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 115,
+      "mode": 102
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Fm",
+        "Cm",
+        "Gm",
+        "Dm",
+        "Bbm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "minor_pentatonic",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.66,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 6,
+        "clap": 7,
+        "closedHat": 8,
+        "openHat": 8,
+        "perc": 8,
+        "bass808": 5
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "anchors": [
+        "1"
+      ],
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.6,
+      "tresilloBias": 0.3,
+      "offbeat8thShare": 0.4,
+      "lockTo808": 0.5,
+      "grammarVariants": [
+        [
+          [
+            "1",
+            "2a",
+            "3&"
+          ],
+          [
+            "1",
+            "3",
+            "4a"
+          ]
+        ],
+        [
+          [
+            "1",
+            "1a",
+            "3"
+          ],
+          [
+            "1",
+            "2&",
+            "3a"
+          ]
+        ],
+        [
+          [
+            "1",
+            "2&",
+            "3",
+            "4a"
+          ],
+          [
+            "1",
+            "3&"
+          ]
+        ],
+        [
+          [
+            "1",
+            "3",
+            "3a"
+          ],
+          [
+            "1",
+            "2a",
+            "4&"
+          ]
+        ],
+        [
+          [
+            "1",
+            "1e",
+            "2a",
+            "3"
+          ],
+          [
+            "1",
+            "3&",
+            "4a"
+          ]
+        ],
+        [
+          [
+            "1",
+            "2a",
+            "3&",
+            "4a"
+          ],
+          [
+            "1",
+            "2&",
+            "3"
+          ]
+        ]
+      ]
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": false,
+      "transient": "medium",
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "1e",
+          "2a",
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.22,
+          0.44
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.38,
+      "velocities": {
+        "main": [
+          0.68,
+          0.92
+        ],
+        "ghost": [
+          0.22,
+          0.45
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.05,
+        "velocityRamp": false
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "perc",
+        "tom",
+        "shaker"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "any",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false,
+      "lane": "snare"
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "8th"
+      ],
+      "velocityRampRange": [
+        50,
+        102
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak"
+      ],
+      "buildAndStopProb": 0.4,
+      "rampJitter": 18,
+      "descendProb": 0.34,
+      "gapProb": 0.46,
+      "pitchWalk": 2
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "staccato",
+      "monoCutSelf": true,
+      "slideProb": 0,
+      "slideIntervals": {
+        "values": [
+          "P8"
+        ],
+        "weights": [
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        26,
+        43
+      ],
+      "distortion": "none"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.74,
+      "seventh": 0.22,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        76
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ],
+    "susSubstitutionProb": 0.04
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.52,
+      "third": 0.28,
+      "leap": 0.2
+    },
+    "contour": {
+      "riff": 0.52,
+      "descend": 0.34,
+      "arch": 0.14
+    },
+    "chordToneBias": 0.54,
+    "halfStepDissonance": 0.12,
+    "endVariation": true,
+    "octaveJumpProb": 0.14,
+    "straightEighthsProb": 0.16,
+    "emptyBarBias": 0.16,
+    "timbreHint": "detuned_piano"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.35,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.8,
+    "rhythm": "independent_riff",
+    "register": [
+      31,
+      48
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.18
+  },
+  "kit": {
+    "preview": "boom-bap-default"
+  },
+  "modes": [
+    {
+      "name": "flint",
+      "weight": 4,
+      "session": {
+        "bpm": {
+          "min": 92,
+          "max": 104,
+          "mode": 98
+        },
+        "halfTime": false,
+        "humanize": {
+          "quantizeStrength": 0.62,
+          "velocityVar": 0.26
+        }
+      },
+      "drums": {
+        "hihat": {
+          "fillDensity": 0.32
+        },
+        "kick": {
+          "syncopation": 0.66
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          2,
+          5
+        ],
+        "emptyBarBias": 0.2
+      }
+    },
+    {
+      "name": "detroit-halftime",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 134,
+          "max": 150,
+          "mode": 142
+        },
+        "halfTime": true,
+        "humanize": {
+          "quantizeStrength": 0.74
+        }
+      },
+      "drums": {
+        "snare": {
+          "placement": "halftime_3",
+          "layered": true,
+          "ghost": {
+            "prob": 0.24,
+            "pos": [
+              "2a",
+              "4e"
+            ]
+          }
+        },
+        "hihat": {
+          "base": {
+            "values": [
+              "8th",
+              "16th"
+            ],
+            "weights": [
+              3,
+              2
+            ]
+          },
+          "fillDensity": 0.46
+        },
+        "kick": {
+          "densityPerBar": [
+            3,
+            5
+          ],
+          "tresilloBias": 0.38
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          3,
+          7
+        ],
+        "register": [
+          62,
+          86
+        ]
+      }
+    },
+    {
+      "name": "gutter",
+      "weight": 2,
+      "session": {
+        "scales": {
+          "values": [
+            "phrygian",
+            "harmonic_minor",
+            "natural_minor"
+          ],
+          "weights": [
+            4,
+            3,
+            2
+          ]
+        }
+      },
+      "drums": {
+        "percs": {
+          "densityPerBar": [
+            1,
+            3
+          ],
+          "gainOffsetDb": -5
+        },
+        "snare": {
+          "ghost": {
+            "prob": 0.4
+          }
+        }
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.86,
+          "seventh": 0.13,
+          "ninth": 0.01
+        },
+        "progressionFamilies": [
+          {
+            "roman": [
+              "i"
+            ],
+            "weight": 5
+          },
+          {
+            "roman": [
+              "i",
+              "bII"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "i",
+              "VI"
+            ],
+            "weight": 2
+          }
+        ]
+      },
+      "melody": {
+        "halfStepDissonance": 0.2,
+        "chordToneBias": 0.46,
+        "contour": {
+          "riff": 0.44,
+          "descend": 0.42,
+          "arch": 0.14
+        }
+      }
+    }
+  ]
+}

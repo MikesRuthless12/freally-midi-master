@@ -39,7 +39,7 @@
     "style-research ch.1 Cross-genre engine constants (MPC swing scale)",
     "style-research ch.2 Cross-genre generator constants (post-2000 chart topline density)"
   ],
-  "notes": "Liquid's two-step at a pop tempo, mixed down rather than up: no break edits, no aggressive fills, the whole kit sitting politely under a vocal. The shuffle is the UK garage one — 57% on the 16ths against liquid's near-straight 53 — the ghost snares are wide open in velocity rather than sitting at a fixed level, and the hats carry ten milliseconds of jitter so the top line never quite lands on the grid. Harmonically it is the lushest of the DnB family, because it is the one carrying a topline: four-chord loops of sevenths and ninths, with a sine/Reese sub tracing the roots underneath rather than holding them — the drone is a mood here, not the default.",
+  "notes": "Liquid's two-step at a pop tempo, mixed down rather than up: no break edits, no aggressive fills, the whole kit sitting politely under a vocal. The shuffle is the UK garage one — 57% on the 16ths against liquid's near-straight 53 — the ghost snares are wide open in velocity rather than sitting at a fixed level, and the hats carry ten milliseconds of jitter so the top line never quite lands on the grid. Harmonically it is the lushest of the DnB family, because it is the one carrying a topline: four-chord loops of sevenths and ninths, with a sine/Reese sub tracing the roots underneath rather than holding them — the drone is a mood here, not the default. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit has no 808 — `bass808` is `null` here or in the parent it inherits — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so in this file it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead here. Where it was NOT dead was in the artists and producers who extend this kit and author an 808 of their own: they inherited the zero, `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, and their sub lane was silent at every seed — `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\" for 35 of them. Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: this kit's own statement about the 808 is the `bass808: null` beside it, and that is untouched.",
   "arrangement": {
     "structures": [
       {
@@ -167,8 +167,7 @@
       ],
       "secondaryAnchor": "3&",
       "syncopation": 0.42,
-      "tresilloBias": 0.18,
-      "lockTo808": 0
+      "tresilloBias": 0.18
     },
     "snare": {
       "placement": "backbeat_24",

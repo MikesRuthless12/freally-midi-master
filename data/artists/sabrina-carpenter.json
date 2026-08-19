@@ -1,0 +1,364 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sabrina-carpenter",
+  "type": "artist",
+  "name": "Sabrina Carpenter",
+  "aliases": [
+    "sabrina carpenter",
+    "sabrina annlynn carpenter",
+    "sabrinacarpenter",
+    "carpenter"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2015-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "disco-pop",
+    "funk"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "funk",
+    "dance-pop",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Sabrina Carpenter",
+    "Wikipedia — Sabrina Carpenter (https://en.wikipedia.org/wiki/Sabrina_Carpenter)",
+    "Wikipedia — Espresso (https://en.wikipedia.org/wiki/Espresso_(song))",
+    "Wikipedia — Julian Bunetta (https://en.wikipedia.org/wiki/Julian_Bunetta)"
+  ],
+  "notes": "Post-disco funk-pop with a conversational, close-mic'd delivery. The documented production method is loop-first — \"the main guitar riff and drums on Espresso are Splice sample-pack loops, then Bunetta plays live bass, drums, guitar, keys and percussion over them\" — so the model is a sampled grid with played layers on top: `quantizeStrength` stays high but `velocityVar` and the perc jitter are live-player numbers. \"A four-square backbeat with a real-kit feel, tambourine on offbeats, and no trap hat vocabulary\" is authored literally: kick on 1 and 3 with a low syncopation, `tambourine` at `offbeat` placement, and `rolls.freqPerBar` 0 — the absence of the roll vocabulary is a real delta against a parent whose rolls run at 0.2. The bass is the second hook: \"played funk/disco electric bass on syncopated 16ths, walking between chord tones, sitting loud in the mix\", which is `independent_riff` at 0.34 with walking cell shapes, and there is deliberately no `drums.bass808` block. Harmony is \"two- or four-chord vamps with 7ths\" over \"dominant-7th and major-6th colour over a static tonic\", so the families are short, `harmonicRhythm` leans `vamp`, and `triad` drops. Melody encodes \"short, punchline-shaped phrases with speech rhythm and a small interval span, ending on a spoken aside\" as a 1—2 bar phrase, a tight `motifPitchCount` and `endVariation`; \"backing vocals are close unison stacks rather than wide harmony\" is the low counter density. ⚠ The INFERRED parameters are every drum probability, the humanize numbers, the scale weighting and the register bands; the research states the method and the palette but gives no numbers, and its key/BPM band is marked genre-derived. `bpm.mode` 105 is the midpoint of the stated 100—110 core. ⚠ The entry's [LOW-CONF] mark on the vocal-placement claim is repeated here as the reason the melody register is a reading rather than a measurement.",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 110,
+      "mode": 105
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        6,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.19,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "tambourine": 8,
+        "perc": 8,
+        "closedHat": 5
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.16,
+      "tresilloBias": 0.02,
+      "offbeat8thShare": 0.1
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap",
+        "snare"
+      ],
+      "layerClapOffsetMs": [
+        3,
+        7
+      ],
+      "transient": "hard",
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.42,
+      "velocities": {
+        "main": [
+          0.55,
+          0.85
+        ],
+        "ghost": [
+          0.22,
+          0.45
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.34,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "conga"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.44,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        79
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        4,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      58,
+      79
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.56,
+      "descend": 0.3,
+      "arch": 0.14
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": [
+      0.02,
+      0.08
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "endVariation": true,
+    "articulation": "staccato",
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.28,
+      0.45
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.34,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "M2",
+      "m3",
+      "M3",
+      "P4",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.5,
+    "cellShapes": [
+      [
+        "1",
+        "3",
+        "5",
+        "6"
+      ],
+      [
+        "1",
+        "5",
+        "b7",
+        "5"
+      ],
+      [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 4,
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.65,
+        "beats": 4
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

@@ -1,0 +1,276 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kane-brown",
+  "type": "artist",
+  "name": "Kane Brown",
+  "aliases": [
+    "kane brown",
+    "kanebrown",
+    "cane brown"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2016-2021",
+  "genres": [
+    "country-pop",
+    "country",
+    "country rap"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "trap-soul",
+    "trap",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Kane Brown",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Kane+Brown)",
+    "Wikipedia — Country rap (https://en.wikipedia.org/wiki/Country_rap)",
+    "Wikipedia — Country pop (https://en.wikipedia.org/wiki/Country_pop)"
+  ],
+  "notes": "R&B-baritone country — trap-adjacent programming under a smooth low voice. This is one of only two models in this section where the 808 takes the `bassline` role rather than `counter_riff`, and the entry is the reason: \"a true 808-style sub is the low end — long, tuned, occasionally sliding into the chorus downbeat; no electric bass on the most programmed cuts.\" The low end is therefore the 808 and the `bassline` block describes that same line rather than a second instrument, exactly as the trap and trap-soul genre models do. Drums are \"trap-derived detail — clap/snap backbeat, 16th hats with 32nd-note rolls into section boundaries, short sampled kick on 1 and 'and-of-3,' and full drop-outs. Live cymbals and toms as overdubs only; several singles have no acoustic kit at all.\" Harmony is \"I–V–vi–IV as a two-bar loop with sustained pads; the R&B cuts use i7–IV7 static vamps\" — the sevenths live in `extensions` and the vamp in the harmonic rhythm, because the numeral parser reads degrees only. Melody is \"smooth low baritone with R&B phrasing — behind-the-beat entries, pentatonic runs, falsetto answers to his own lines,\" which is the low register with a real octave-jump share for the falsetto answer. ⚠ Confidence is medium (research: medium-high); the per-track readings are [LOW-CONF], and the entry notes a snare-on-3 half-time reading is equally valid on the trap-leaning cuts — the folded 2&4 spine is encoded, per the section's stated convention. ⚠ The INFERRED parameters are the 808 slide probability, the perc density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 111,
+      "mode": 84
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "minor_pentatonic",
+        "major_pentatonic"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.97,
+      "velocityVar": 0.08,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 1,
+        "snap": 1,
+        "closedHat": 2,
+        "bass808": 2
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.37,
+      "offbeat8thShare": 0.55,
+      "lockTo808": 0.8
+    },
+    "snare": {
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        2
+      ],
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.14,
+          0.26
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.48,
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "16"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_downbeat"
+        ],
+        "freqPerBar": 0.38,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "perc",
+        "ride"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -4,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "register": [
+        22,
+        36
+      ],
+      "slideProb": 0.35,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "M2",
+          "P4"
+        ],
+        "weights": [
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_4"
+      ],
+      "distortion": "none"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.44,
+      "seventh": 0.44,
+      "ninth": 0.12
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      47,
+      74
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "straightEighthsProb": 0.24,
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.36,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.7,
+    "octaveJumpProb": [
+      0.12,
+      0.24
+    ],
+    "timbreHint": "nylon_pluck_loop"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      22,
+      36
+    ],
+    "glideProb": 0.3,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.16
+  }
+}

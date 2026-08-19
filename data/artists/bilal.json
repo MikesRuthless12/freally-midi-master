@@ -1,0 +1,307 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "bilal",
+  "type": "artist",
+  "name": "Bilal",
+  "aliases": [
+    "bilal",
+    "bilal oliver",
+    "soul sista"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2001-present",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul",
+    "jazz"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "boom-bap",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Bilal",
+    "Wikipedia — Bilal (American singer) (https://en.wikipedia.org/wiki/Bilal_(American_singer))",
+    "songdata.io — Bilal (https://songdata.io/search?query=Bilal)",
+    "Wikipedia — Robert Glasper (https://en.wikipedia.org/wiki/Robert_Glasper)"
+  ],
+  "notes": "The lane's avant-garde, and the entry is explicit that the ordinary rules stop applying: the kit is \"Chris Dave / Questlove-school displaced\" with \"snare frequently *not* on 2&4 in the strict sense but a 32nd either side of it, hats crushed or absent, and full metric ambiguity on the experimental tracks\". So this model carries the widest snare displacement and the lowest quantize strength in the batch, a hat that is neither continuous nor loud, and a ghost probability that fills the whole 16th grid. The band is the catalogue's own 79–113. Harmony is authored without families on purpose: the entry names \"modal ambiguity: altered dominants, maj7#11, unresolved suspensions, and reharmonisation on repeats\", which is the near-zero triad weight, the highest ninth weight in this batch, a large `susSubstitutionProb` and syncopated-cell harmonic rhythm. Melody is the stated parameter — \"improvised, non-repeating top lines, scat syllables, falsetto-to-scream range crossing, and a refusal to sing the same phrase twice. Note-density is very high and unquantised\" — hence the two-and-a-half-octave register, density 6–12, `endVariation`, the raised octave-jump and half-step numbers, and a low chord-tone bias. Bass is the named upright or fretless with real solo content, so it climbs to 50 and the chord voicing starts at 52. ⚠ The INFERRED parameters are all drum values (the research marks the drum detail as inferred from his named drummers), the scale weighting for \"modal ambiguity\", and every melody number. ⚠ The Dr. Dre-era 808/sub the entry mentions on the debut is deliberately **not** authored: a `drums.bass808` block would silence the played-bass generator, and the catalogue's default low end is upright or fretless.",
+  "session": {
+    "bpm": {
+      "min": 79,
+      "max": 113,
+      "mode": 92
+    },
+    "keys": {
+      "values": [
+        "Fm",
+        "Bbm",
+        "Db",
+        "F#"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "lydian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.38,
+      "velocityVar": 0.32,
+      "timingJitterMs": {
+        "kick": 10,
+        "snare": 20,
+        "closedHat": 14,
+        "rim": 16,
+        "perc": 14
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "syncopation": 0.6,
+      "tresilloBias": 0.1
+    },
+    "snare": {
+      "offGridMs": [
+        12,
+        26
+      ],
+      "ghost": {
+        "prob": 0.66,
+        "pos": [
+          "1e",
+          "1a",
+          "2e",
+          "2a",
+          "3e",
+          "3a",
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.12,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          2,
+          3
+        ]
+      },
+      "continuous": false,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.24,
+          0.5
+        ],
+        "ghost": [
+          0.08,
+          0.24
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "3a"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "perc",
+        "ride"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -8
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.02,
+      "seventh": 0.4,
+      "ninth": 0.58
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        84
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "syncopated_cell",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.4,
+    "chordDurationBeats": [
+      2,
+      10
+    ]
+  },
+  "melody": {
+    "register": [
+      50,
+      88
+    ],
+    "densityPerBar": [
+      6,
+      12
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.26,
+      "leap": 0.14
+    },
+    "contour": {
+      "riff": 0.12,
+      "descend": 0.4,
+      "arch": 0.48
+    },
+    "chordToneBias": 0.34,
+    "halfStepDissonance": 0.2,
+    "endVariation": true,
+    "octaveJumpProb": 0.3,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "electric_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.26,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      50
+    ],
+    "glideProb": 0.14,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3",
+      "M3",
+      "TT"
+    ],
+    "anticipationProb": 0.55
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        12
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": [
+        4,
+        12
+      ],
+      "outro": [
+        4,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.5
+    }
+  }
+}

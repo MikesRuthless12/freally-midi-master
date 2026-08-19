@@ -1,0 +1,261 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "wayne-rodrigues-and-danielle-brisebois",
+  "type": "producer",
+  "name": "Wayne Rodrigues & Danielle Brisebois",
+  "aliases": [
+    "wayne rodrigues and danielle brisebois",
+    "wayne rodrigues",
+    "danielle brisebois"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2004-2008",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "pop-2020s",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Wayne Rodrigues & Danielle Brisebois",
+    "Wikipedia — \"Unwritten\" (https://en.wikipedia.org/wiki/Unwritten_(song))"
+  ],
+  "notes": "The Venice Beach pair behind mid-2000s modal uplift pop: 100–115 straight, backbeat on 2&4. The harmonic signature is stated as the defining fact of their productions and is **modal rather than functional** — F Mixolydian, \"looping I–♭VII–IV with **no dominant chord anywhere**\" — so mixolydian outweighs major in the scales, the I–bVII–IV loop dominates, and no authored family contains a V. Three drum deltas are quoted: \"kick 1 and the '&' of 3\", \"16th hat with an open hat **before** the backbeat\" (the open hat on \"1&\" and \"3&\"), and \"tambourine from chorus 1\"; the fourth stated fact, \"a total drum drop-out before the last chorus\", is `dropOutBeats` at 0.95. What separates this model from the artist entry that shares the flagship is the low end and the palette: \"rounded synth bass on roots with an 8th pulse, **reinforced by a B3 organ pedal in the low mid**\", which is `boom_chick` at 0.94 with the register reaching lower than a plain pop bass, plus **turntables** in the perc block. The gospel choir \"answering the lead in block harmony\" is the sustained-pad counter at a real ratio, and the lead is \"syllable-dense and near-spoken in the verse and wide and sustained in the chorus\". ⚠ `confidence` is medium because the research rates it high-medium and marks the tempo **[LOW-CONF]**; `bpm.mode` 106 is this author's centre of the stated band. ⚠ Every drum probability here is **INFERRED**. ⚠ **`bassline.rhythm` is `boom_chick`, not `reese_sustain`** — the research names the figure outright: *“rounded synth bass on roots with an 8th pulse, reinforced by a B3 organ pedal in the low mid”*. A held `reese_sustain` writes one note per chord and says the opposite of what the entry describes.",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 115,
+      "mode": 106
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "mixolydian",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        6,
+        2,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        100,
+        116
+      ],
+      "main": [
+        74,
+        90
+      ],
+      "ghost": [
+        28,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.32
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      },
+      "layerClapOffsetMs": [
+        1,
+        4
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.5,
+      "openHat": {
+        "prob": 0.44,
+        "pos": [
+          "1&",
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.08
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "perc",
+        "snap"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "bVII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.54,
+      "seventh": 0.32,
+      "ninth": 0.14
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      82
+    ],
+    "densityPerBar": [
+      4,
+      11
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.38,
+      "descend": 0.26,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.1,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.62,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "boom_chick",
+    "register": [
+      26,
+      45
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "m7",
+      "P5"
+    ],
+    "anticipationProb": 0.24
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.95,
+        "beats": 8
+      },
+      "switchUpProb": 0.07
+    }
+  }
+}

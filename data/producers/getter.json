@@ -53,23 +53,20 @@
     "kick": {
       "densityPerBar": [
         2,
-        5
+        4
       ],
       "anchors": [
         "1"
       ],
       "secondaryAnchor": "2&",
-      "syncopation": 0.4,
-      "lockTo808": 0.9,
-      "tresilloBias": 0.34,
-      "avoidPreSnareGap": "8th",
-      "andOf4EveryOtherBar": true
+      "syncopation": 0.38,
+      "lockTo808": 0.9
     },
     "snare": {
       "placement": "halftime_3",
       "lowPassedClap": false,
       "ghost": {
-        "prob": 0.12,
+        "prob": 0.14,
         "pos": [
           "4e"
         ],
@@ -77,17 +74,7 @@
           0.2,
           0.38
         ]
-      },
-      "layerClapOffsetMs": [
-        3,
-        7
-      ],
-      "offGridMs": 0,
-      "detuneSemis": [
-        -2,
-        -1
-      ],
-      "fullTimeVariantProb": 0.1
+      }
     },
     "hihat": {
       "base": "16th",
@@ -130,21 +117,10 @@
         "even"
       ],
       "velocityRampRange": [
-        65,
-        105
+        60,
+        108
       ],
-      "rampJitter": 14,
-      "descendProb": 0.23,
-      "gapProb": 0.39,
-      "pitchWalk": 5,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25
+      "rampJitter": 13
     },
     "bass808": {
       "role": "counter_riff",

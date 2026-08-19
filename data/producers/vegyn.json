@@ -1,0 +1,359 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "vegyn",
+  "type": "producer",
+  "name": "Vegyn (Joe Thornalley)",
+  "aliases": [
+    "vegyn",
+    "joe thornalley",
+    "plz make it ruins"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap-soul"
+  ],
+  "era": "2016-present",
+  "genres": [
+    "trap-soul",
+    "electronic",
+    "producer"
+  ],
+  "relatedGenres": [
+    "trap-soul",
+    "lofi-hiphop",
+    "boom-bap",
+    "cloud-rap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 trap-soul — Vegyn (Joe Thornalley)",
+    "Wikipedia — Vegyn (https://en.wikipedia.org/wiki/Vegyn)",
+    "Wikipedia — Blonde (Frank Ocean album) (https://en.wikipedia.org/wiki/Blonde_(Frank_Ocean_album))",
+    "Wikipedia — Travis Scott (https://en.wikipedia.org/wiki/Travis_Scott)"
+  ],
+  "notes": "\"**He taught himself boom-bap programming**, and that is the audible base — a sampled kick and snare with the backbeat on 2&4, swung 16ths, and lo-fi/bit-crushed timbres — which he then dismantles.\" So the swing sits at the classic MPC value rather than the lane's, the snare is `backbeat_24` with heavy ghosting, and the whole kit is deliberately thin: his credited contributions are \"a co-produced track and **a drum part on another**, i.e. he is brought in specifically for percussion and texture. Model crushed, off-grid, deliberately thin drums rather than a full trap kit.\" Crushed and off-grid is the low `quantizeStrength` with a large `snare.offGridMs`; thin is a low perc density and a hat carpet well under the lane's. The 808 stays, but not as a bassline voice in the lane's sense: \"a distorted or bit-reduced sub used as a texture as much as a pitch; **no long sliding 808**\" — hence `sustain` `staccato`, `distortion` `heavy` and a `slideProb` near the floor. Harmony is \"inherited rather than written\" — a filtered pad or chopped fragment over a 2-to-4-bar cell with no cadence. ⚠ `confidence` is **low**, mirroring the entry's medium-low: \"his specific track credits and boom-bap foundation are sourced; the rest is inference\". ⚠ Every number here is **INFERRED**, including `bpm.mode`. ⚠ **`session.keys` is INFERRED.** The entry's Keys line describes the harmonic grammar but names no key centre, so these values and their weights are an authored choice — no key in this set is stated in the research. ⚠ **The countermelody reached 979/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.16 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. ⚠ The value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"chopped and pitched samples, granular textures, and heavily-processed synths; his own releases and label compilations are electronic rather than R&B, so model an instrumental, hookless variant alongside the vocal work. Also credited on major rap albums.\", and every claim in it still holds after the change. ⚠ **`drums.kick.lockTo808` override removed (2026-08-17, 808 gate)**, so this kick inherits `trap-soul`'s 0.8. `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"vegyn seed 11: no 808 at all\": the engine reads the number as the share of the kick's onsets the sub plays and rolls it per onset, so 0.4 against a kick of two or three hits a bar extinguishes the whole lane on roughly a third of four-bar patterns. The entry says the opposite in as many words — \"**The 808 stays**, but not as a bassline voice in the lane's sense: a distorted or bit-reduced sub used as a texture as much as a pitch; no long sliding 808\" — and every claim in that sentence is carried by the parameters that are NOT touched here: `sustain: staccato`, `distortion: heavy`, `clipping: true` and a `slideProb` of 0.06 at the floor. The entry gives no line about how often the sub sounds, so the override is dropped rather than re-tuned and the lane's own value stands.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 140,
+      "mode": 90
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Gm",
+        "Cm",
+        "Dm",
+        "Am"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.58
+    },
+    "humanize": {
+      "quantizeStrength": 0.52,
+      "velocityVar": 0.3,
+      "timingJitterMs": {
+        "kick": 10,
+        "snare": 14,
+        "closedHat": 9,
+        "perc": 12
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        96,
+        112
+      ],
+      "main": [
+        60,
+        76
+      ],
+      "ghost": [
+        24,
+        38
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.44,
+      "tresilloBias": 0.1
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.48,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.34
+        ]
+      },
+      "offGridMs": [
+        9,
+        17
+      ],
+      "transient": 0.35
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.24,
+      "velocities": {
+        "main": [
+          0.32,
+          0.54
+        ],
+        "ghost": [
+          0.12,
+          0.26
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_2"
+        ],
+        "freqPerBar": 0.08
+      },
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "rim",
+        "reverse"
+      ],
+      "densityPerBar": [
+        0,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -9
+    },
+    "bass808": {
+      "sustain": "staccato",
+      "slideProb": 0.06,
+      "slidesPer4Bars": [
+        0,
+        1
+      ],
+      "slideIntervals": {
+        "values": [
+          "P4"
+        ],
+        "weights": [
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        22,
+        38
+      ],
+      "distortion": "heavy",
+      "clipping": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 32
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.18,
+      "seventh": 0.44,
+      "ninth": 0.38
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        47,
+        79
+      ],
+      "adjacentSecondProb": 0.46,
+      "lowPassed": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      60,
+      86
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.22,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.36,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.6,
+    "halfStepDissonance": 0.14,
+    "emptyBarBias": 0.1,
+    "twoBarCellRepeat": true,
+    "octaveJumpProb": 0.12,
+    "timbreHint": "granular_pad"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "arp",
+        "bell_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": [
+        4,
+        8
+      ],
+      "hook": [
+        4,
+        8
+      ],
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "verse",
+          "hook",
+          "verse",
+          "hook"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.52
+    }
+  }
+}

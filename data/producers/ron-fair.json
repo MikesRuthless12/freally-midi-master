@@ -1,0 +1,371 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ron-fair",
+  "type": "producer",
+  "name": "Ron Fair",
+  "aliases": [
+    "ron fair",
+    "fair arranger",
+    "a and m interscope"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1990-2010",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "producer",
+    "orchestral pop"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "pop-2000s",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Ron Fair",
+    "Wikipedia — Ron Fair (https://en.wikipedia.org/wiki/Ron_Fair)",
+    "Wikipedia — Be Without You (https://en.wikipedia.org/wiki/Be_Without_You)",
+    "NARIP — Ron Fair bio (https://www.narip.com/ron-fair)"
+  ],
+  "notes": "An A&R-producer-arranger, and the lane's string-and-vocal-arrangement specialist, 1990–2010. The research is candid that his tempo \"follows the record he is dressing (55–105) — he is an arranger over other people's beds as often as a track producer\", so that band is used as written with the mode at 73 and `halfTime` true, because his one fully-sourced record is a 73 BPM D-minor ballad with the backbeat on 3. The drum deltas therefore encode what he *adds* rather than what he programs: \"he generally does not program — on 'Be Without You' the drum bed is Cox's; Fair adds live percussion and the arrangement layer around it\", marked `[LOW-CONF]`. So the kick, snare and hat are the sparse Cox-school bed the entry attributes to that record — one or two kicks, a clap on beat 3, a 0.13 hat lane — while the percussion is the delta: five lanes (tambourine, shaker, conga, triangle, snap) at three to seven hits a bar and −4 dB, the densest percussion of any ballad model in this section, with `quantizeStrength` at 0.6 and `velocityVar` 0.26 because it is played. The identifying parameter is the countermelody, and the research says so outright: \"**string and vocal arrangements are the parameter**… expect a string section entering at the bridge, unison-to-divisi writing, and a stacked background choir on the out-chorus\". So `countermelody.densityRatio` is 0.68 — the highest in this section — with three styles alive, and the chord voicing spans thirty-six semitones for the divisi. \"His structural signature is the **orchestral lift** — verse and first chorus kept dry, strings and choir introduced at bridge/final chorus\" is the arrangement. The bass \"adds double bass / low strings under an existing 808 or synth-bass part, doubling roots an octave down\", also `[LOW-CONF]`, so the register floor is MIDI 22 — the lowest here — at a 0.96 root follow. ⚠ Every velocity and density number is INFERRED, and this model is the section's clearest case of encoding an arranger's layer rather than a programmer's grid. ⚠ `session.keys` is INFERRED: the entry's Keys line gives \"whatever the track dictates\" and enumerates no tonic, so the values here and their weights are this author's reading of that line.",
+  "session": {
+    "bpm": {
+      "min": 55,
+      "max": 105,
+      "mode": 73
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Dm",
+        "Fm",
+        "C",
+        "Bb"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.6,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 6,
+        "tambourine": 12,
+        "conga": 12,
+        "triangle": 11,
+        "shaker": 11
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.09,
+      "tresilloBias": 0.02,
+      "andOf4EveryOtherBar": 0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        0,
+        3
+      ],
+      "ghost": {
+        "prob": 0.04,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.08,
+          0.16
+        ]
+      },
+      "offGridMs": [
+        1,
+        5
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.13,
+      "velocities": {
+        "main": [
+          0.24,
+          0.38
+        ],
+        "ghost": [
+          0.1,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.03,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.02
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "conga",
+        "triangle",
+        "snap"
+      ],
+      "densityPerBar": [
+        3,
+        7
+      ],
+      "placement": "any",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.16,
+      "seventh": 0.48,
+      "ninth": 0.36
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        44,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      9
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.08,
+      "descend": 0.36,
+      "arch": 0.56
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.68,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "independent_riff",
+    "register": [
+      22,
+      42
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.08,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 6
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.55,
+        "beats": 4
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

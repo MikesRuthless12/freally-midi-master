@@ -1,0 +1,287 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "per-magnusson-and-david-kreuger",
+  "type": "producer",
+  "name": "Per Magnusson & David Kreuger",
+  "aliases": [
+    "per magnusson and david kreuger",
+    "per magnusson",
+    "david kreuger",
+    "a side productions"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1998-2007",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "country-pop",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Per Magnusson & David Kreuger",
+    "Wikipedia — Per Magnusson (https://en.wikipedia.org/wiki/Per_Magnusson)",
+    "songdata.io — Westlife catalogue (https://songdata.io/search?query=Westlife)"
+  ],
+  "notes": "The Cheiron ballad unit — the UK/Irish boy-band and talent-show specialists. The research pairs 73–96 with a half-time feel and the backbeat on 3, so `halfTime` is true and the snare is `halftime_3`; the 105–130 uptempo band is the straight-time wing and is named here rather than encoded. Four flat-side major tonics are given (A-flat, B-flat, C, F) so `keys` is authored, over I–V–vi–IV and vi–IV–I–V. Their trademark is a modulation and, crucially, how it is announced: \"the **final-chorus semitone/whole-tone modulation**… is almost always announced by a whole-bar tom-and-crash fill\". A key change is outside the generator's reach, but the announcement is not — the tom and crash lanes lead the percs and the big-fill schedule is set to 16 bars so the whole-bar figure reads as an event. Three more drum facts are quoted: \"kick 1 and 3\", \"8th shaker\", and \"tambourine from chorus 2\", with the whole kit \"low in the mix\", which is the soft velocity tier. \"A full drum drop-out for the bridge's last two bars\" is `dropOutBeats` at 0.9 over 8 beats. The melodies are external toplines \"voiced for group unison in the verse, harmony in the chorus\", and \"note density very low\" — 2–5 with a legato articulation and a low counter ratio. ⚠ `confidence` is medium because the research rates it high-medium and says the drum specifics are inferred from the records. ⚠ The **INFERRED** parameters are every drum probability and `bpm.mode` 84. ⚠ **`bassline.rhythm` is `boom_chick`, not `reese_sustain`** — the research names the figure outright: *“synth bass or played bass on roots, whole/half notes in verses moving to 8ths from chorus 2; the piano's left hand doubles it”*. A held `reese_sustain` writes one note per chord and says the opposite of what the entry describes.",
+  "session": {
+    "bpm": {
+      "min": 73,
+      "max": 96,
+      "mode": 84
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Ab",
+        "Bb",
+        "C",
+        "F"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        3
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        88,
+        104
+      ],
+      "main": [
+        62,
+        78
+      ],
+      "ghost": [
+        26,
+        38
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.12
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.07,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.26
+        ]
+      },
+      "layerClapOffsetMs": [
+        1,
+        4
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.24,
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.04
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tom",
+        "crash",
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.36,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        82
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      83
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.18,
+      "descend": 0.3,
+      "arch": 0.52
+    },
+    "chordToneBias": 0.86,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.36,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "boom_chick",
+    "register": [
+      30,
+      48
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 8
+      },
+      "switchUpProb": 0.04
+    }
+  }
+}

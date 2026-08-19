@@ -1,0 +1,362 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "112",
+  "type": "artist",
+  "name": "112",
+  "aliases": [
+    "112",
+    "one twelve",
+    "slim 112",
+    "bad boy quartet"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1996-2003",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "hip hop soul"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "boom-bap",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — 112",
+    "songdata — 112 (https://songdata.io/search?query=112)",
+    "Wikipedia — Stevie J (https://en.wikipedia.org/wiki/Stevie_J)",
+    "YouKnowIGotSoul — Bob Robinson of Tim & Bob on his discography (https://youknowigotsoul.com/bob-robinson-of-tim-bob-talks-discography-including-boyz-ii-men-112-and-monica)"
+  ],
+  "notes": "Bad Boy vocal quartet across Stevie J / Hitmen productions and Tim & Bob ballads, 1996–2003. The research gives \"78–102 straight; ballads 64–88\" with five sourced key/tempo pairs, so the straight band 78–102 is the base with the mode at 98 and `halfTime` false. The three drum deltas are quoted: \"kick on 1 and the 16th before 3\" moves the secondary anchor to `2a`; \"clap on 2&4 for the uptempos\" is a clap stack; \"16th hats with a shuffled feel on the Hitmen cuts\" is why `swing.amount` sits at 0.58 with a continuous 16th lane rather than the parent's heavier 0.62. Harmony is \"two-chord minor-9th vamps and IV–V turnarounds\", encoded as two-chord minor families plus a IV–V family, with the ninth share raised well above the parent's; the major keys the entry names are why the major families carry real weight. \"Guitar lick countermelody\" is the counter at +12 with `answer_lick` leading; \"phrases end with a group unison hit\" is `endVariation` off and a moderate density. The low end is \"plucked synth bass with short portamento into the root\" and on one record \"the bass and kick are effectively one voice\" — hence `mirror_kick` with a real `glideProb`, and no `bass808` block. ⚠ The INFERRED parameters are all velocity and density numbers, the swing figure and the melody register; the research gives instrumentation and tempo, not a kit.",
+  "session": {
+    "bpm": {
+      "min": 78,
+      "max": 102,
+      "mode": 98
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Ab",
+        "Em",
+        "Db",
+        "F#",
+        "Fm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        3,
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.58
+    },
+    "humanize": {
+      "quantizeStrength": 0.74,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 6,
+        "clap": 6,
+        "closedHat": 7
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.38,
+      "tresilloBias": 0.1,
+      "andOf4EveryOtherBar": 0.3
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        1,
+        5
+      ],
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "2e",
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.34
+        ]
+      },
+      "offGridMs": [
+        1,
+        5
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.48,
+      "velocities": {
+        "main": [
+          0.6,
+          0.82
+        ],
+        "ghost": [
+          0.26,
+          0.44
+        ]
+      },
+      "openHat": {
+        "prob": 0.32,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.16
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.18,
+      "seventh": 0.46,
+      "ninth": 0.36
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      12
+    ]
+  },
+  "melody": {
+    "register": [
+      60,
+      83
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.22,
+      "descend": 0.4,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": 0.05,
+    "endVariation": false,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "rhythm": "mirror_kick",
+    "register": [
+      29,
+      45
+    ],
+    "glideProb": 0.22,
+    "passingTones": [
+      "P5",
+      "P8",
+      "m7"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 16,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.16
+    }
+  }
+}

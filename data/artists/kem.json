@@ -1,0 +1,289 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kem",
+  "type": "artist",
+  "name": "Kem",
+  "aliases": [
+    "kem",
+    "kim owens",
+    "detroit quiet storm"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2002-2020",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul",
+    "jazz"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "funk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Kem",
+    "Wikipedia — Kem (singer) (https://en.wikipedia.org/wiki/Kem_(singer))",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "Detroit's quiet-storm-jazz end of the lane, \"working almost entirely below 90 BPM\" — the entry's 62–92 band is the narrowest and slowest of the modern models here. `confidence` is **low**: the research rates it medium-low and says only the self-production and the lane position are sourced, with \"tempo/harmonic detail inference\". The drum instruction is a mix instruction — \"soft, brushed or programmed-quiet kit with a swung 16th hat, snare mixed low on 2&4, and a continuous shaker; the drum layer is deliberately unobtrusive so the keyboard and sax carry the record\" — so the velocity tiers are soft, the kick is 2–3 a bar at low syncopation, the hat is continuous but quiet, and the shaker is the busiest lane in the kit. Harmony is \"maj7/maj9 tonics, ii–V–I turnarounds, and modal interchange on the bridge; flat keys dominate\". Melody is \"soft high-tenor at very low volume and low note-density, phrases long and legato, almost no melisma\", which is the legato articulation, density 2–5, the long-arc structure and a very high chord-tone bias. The countermelody instrument is named — \"soprano/alto sax as the countermelody instrument\" — so the counter answers at +12. Bass is \"round fretless-sounding electric bass with slides between chord tones, long notes, and a smooth-jazz register (E1–G2)\", which is why the register stops at 43 and `glideProb` is the highest of any bass in this batch. ⚠ Every drum and melody number here is INFERRED, and so is the second progression family: the entry names \"modal interchange on the bridge\", and the borrowed I–iv is this author's reading of that phrase rather than a numeral it wrote.",
+  "session": {
+    "bpm": {
+      "min": 62,
+      "max": 92,
+      "mode": 76
+    },
+    "scales": {
+      "values": [
+        "major",
+        "lydian",
+        "dorian",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        2,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 5,
+        "shaker": 8
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        76,
+        92
+      ],
+      "main": [
+        48,
+        64
+      ],
+      "ghost": [
+        20,
+        30
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "syncopation": 0.22,
+      "tresilloBias": 0.04
+    },
+    "snare": {
+      "offGridMs": [
+        1,
+        6
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.1,
+          0.24
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.24,
+          0.44
+        ],
+        "ghost": [
+          0.08,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -6
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "iv"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.08,
+      "seventh": 0.54,
+      "ninth": 0.38
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      81
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "structure": "long_arc",
+    "articulation": "legato",
+    "intervals": {
+      "step": 0.86,
+      "third": 0.12,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.12,
+      "descend": 0.42,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.03,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "soft_keys"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.62,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0.3,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        24
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.1
+    }
+  }
+}

@@ -95,53 +95,22 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        54,
-        101
+        49,
+        107
       ],
-      "rampJitter": 8,
+      "rampJitter": 7,
       "descendProb": 0.29,
       "gapProb": 0.36
-    },
-    "kick": {
-      "densityPerBar": [
-        2,
-        5
-      ],
-      "anchors": [
-        "1"
-      ],
-      "secondaryAnchor": "2&",
-      "syncopation": 0.54,
-      "tresilloBias": 0.27,
-      "offbeat8thShare": 0.37,
-      "lockTo808": 0
-    },
-    "snare": {
-      "placement": "backbeat_24",
-      "rimshotLayer": true,
-      "ghost": {
-        "prob": 0.31,
-        "pos": [
-          "2e",
-          "3a",
-          "4e"
-        ],
-        "vel": [
-          0.25,
-          0.45
-        ]
-      },
-      "offGridMs": 0
     }
   },
   "melody": {
     "register": [
-      65,
-      89
+      64,
+      88
     ],
     "densityPerBar": [
       3,
-      8
+      7
     ],
     "phraseBars": {
       "values": [
@@ -150,36 +119,25 @@
       ],
       "weights": [
         3,
-        4
+        3
       ]
     },
     "intervals": {
-      "step": 0.6,
-      "third": 0.27,
-      "leap": 0.12
+      "step": 0.55,
+      "third": 0.3,
+      "leap": 0.15
     },
-    "chordToneBias": 0.69,
+    "chordToneBias": 0.7,
     "halfStepDissonance": 0.1,
     "octaveJumpProb": [
       0.08,
       0.16
     ],
-    "timbreHint": "clean_guitar",
-    "structure": "riff_loop",
-    "motifPitchCount": [
-      3,
-      5
-    ],
-    "contour": {
-      "riff": 0.6,
-      "descend": 0.22,
-      "arch": 0.17
-    },
-    "endVariation": true
+    "timbreHint": "clean_guitar"
   },
   "countermelody": {
-    "registerOffset": -24,
-    "densityRatio": 0.69,
+    "registerOffset": -12,
+    "densityRatio": 0.65,
     "styles": {
       "values": [
         "answer_lick",
@@ -187,10 +145,9 @@
       ],
       "weights": [
         3,
-        4
+        3
       ]
-    },
-    "fillGapsOnly": true
+    }
   },
   "bassline": {
     "rhythm": "independent_riff",
@@ -246,88 +203,5 @@
       },
       "switchUpProb": 0.1
     }
-  },
-  "chords": {
-    "progressionFamilies": [
-      {
-        "roman": [
-          "i",
-          "iv"
-        ],
-        "weight": 5
-      },
-      {
-        "roman": [
-          "iv",
-          "i"
-        ],
-        "weight": 3
-      },
-      {
-        "roman": [
-          "i",
-          "VII",
-          "VI",
-          "v"
-        ],
-        "weight": 3
-      },
-      {
-        "roman": [
-          "i",
-          "VI",
-          "VII"
-        ],
-        "weight": 2
-      },
-      {
-        "roman": [
-          "i",
-          "III",
-          "iv"
-        ],
-        "weight": 2
-      },
-      {
-        "roman": [
-          "i",
-          "v"
-        ],
-        "weight": 2
-      },
-      {
-        "roman": [
-          "i"
-        ],
-        "weight": 2
-      }
-    ],
-    "maxChords": 4,
-    "extensions": {
-      "triad": 0.42,
-      "seventh": 0.44,
-      "ninth": 0.14
-    },
-    "voicing": {
-      "style": "open",
-      "register": [
-        48,
-        76
-      ],
-      "topVoiceStepwise": true
-    },
-    "harmonicRhythm": {
-      "values": [
-        "1_per_bar",
-        "2_bars_per_chord",
-        "vamp"
-      ],
-      "weights": [
-        3,
-        3,
-        4
-      ]
-    },
-    "susSubstitutionProb": 0
   }
 }

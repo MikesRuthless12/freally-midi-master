@@ -1,0 +1,273 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dj-jazzy-jeff",
+  "type": "producer",
+  "name": "DJ Jazzy Jeff / A Touch of Jazz",
+  "aliases": [
+    "dj jazzy jeff",
+    "jeffrey townes",
+    "a touch of jazz",
+    "touch of jazz house"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1994-2008",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul",
+    "rap"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "boom-bap",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — DJ Jazzy Jeff / A Touch of Jazz",
+    "Wikipedia — A Touch of Jazz (https://en.wikipedia.org/wiki/A_Touch_of_Jazz)",
+    "Wikipedia — DJ Jazzy Jeff (https://en.wikipedia.org/wiki/DJ_Jazzy_Jeff)",
+    "Wikipedia — Carvin & Ivan (https://en.wikipedia.org/wiki/Carvin_%26_Ivan)"
+  ],
+  "notes": "The Philadelphia **production house** that supplied Jill Scott, Musiq Soulchild, Jaguar Wright and Raheem DeVaughn their board — Carvin & Ivan, Dre & Vidal and Keith Pelzer are all its graduates, and the entry says to \"model this as a **house preset** that the individual producer entries specialise\". The window is 1994–2008 per Gate 2; the 1986–89 Fresh Prince era is excluded by the entry itself. The drums are the house grammar: \"a programmed kick/snare base with the backbeat hard on 2&4, a **live hat or ride played over the top**, swung 16ths, ghost snares, and a continuous congas/shaker layer\". The programmed-under-live split is the jitter map — kick 3 ms and snare 4 against a closed hat at 11 — and the ride sits in the percussion lanes with the congas and shaker at 4–7 hits a bar. \"Turntable scratches are used as a percussion voice and as a transition device (the house's founder is a battle DJ)\", which is the extra `perc` lane and the instrumental break in the arrangement. Harmony is \"**jazz harmony over a hip-hop grid** — extension-rich 4-to-8-bar cycles from a played keyboard, with cadences and bridges, so it sits harmonically closer to jazz than to radio R&B of the same years\": a triad weight of 0.08, chord durations of 2–8 beats and a harmonic rhythm that moves. Bass is \"played electric bass with walking, chromatic-approach motion; no sustained 808\". The whole-song production habit — \"not beat placements\" — is the full arrangement with a prechorus and a bridge. ⚠ The INFERRED parameters are every drum number and all melody figures; the research documents the house's role and its graduates and marks the parametric detail as inference from the catalogue. ⚠ Its three graduate models in this section share this grammar by design; they specialise it at their own numbers rather than restating it.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 104,
+      "mode": 88
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.74,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "closedHat": 11,
+        "conga": 10,
+        "perc": 11
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.48,
+      "tresilloBias": 0.14
+    },
+    "snare": {
+      "offGridMs": [
+        1,
+        6
+      ],
+      "ghost": {
+        "prob": 0.42,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.58,
+      "velocities": {
+        "main": [
+          0.4,
+          0.7
+        ],
+        "ghost": [
+          0.14,
+          0.34
+        ]
+      },
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "shaker",
+        "ride",
+        "perc",
+        "rim"
+      ],
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "gainOffsetDb": -5
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.08,
+      "seventh": 0.5,
+      "ninth": 0.42
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        47,
+        81
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      81
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.22,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.36,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.58,
+    "octaveJumpProb": 0.09,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "rhodes_and_strings"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.42,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3",
+      "M3"
+    ],
+    "anticipationProb": 0.44
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.26
+    }
+  }
+}

@@ -1,0 +1,348 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "benson-boone",
+  "type": "artist",
+  "name": "Benson Boone",
+  "aliases": [
+    "benson boone",
+    "bensonboone",
+    "boone",
+    "benson james boone"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2021-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "power ballad",
+    "piano pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "pop-2000s",
+    "dance-pop",
+    "country-pop"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Benson Boone",
+    "Wikipedia — Benson Boone (https://en.wikipedia.org/wiki/Benson_Boone)"
+  ],
+  "notes": "Piano-driven power-ballad pop with a falsetto ceiling. ⚠ `confidence` is low, and the research is the reason: it rates the entry medium-low and says outright that \"instruments and genre are documented; the register/tempo/harmony detail is inferred from the lane and marked accordingly\". Everything below the instrument list is therefore a reading, and only three claims here are researched facts. First, the terracing: \"verses drumless or kick-only; chorus enters with a big reverbed backbeat, layered claps and tom cascades\", which is `kick.densityPerBar` 0—4 with `fourOnFloorInChorus`, a large-reverb snare under a doubled clap stack, `tom` fills and the snare-roll ladder off. Second, the tracking: \"he plays drums, guitar and piano on his own recordings, so the kit feel is played rather than gridded\", which is a loose humanize block rather than a quantised one. Third, the low end: \"no 808. Sustained synth or electric bass on roots doubling the kick; sub swell as the chorus trigger\", so no `bass808` block is authored and the bassline is a near-static kick mirror. Harmony is \"piano and keyboards as the primary chordal instruments with close triads and a pedal-tone left hand; 4-bar loops\" with \"a plagal chorus cadence\", so the IV—I family leads and `voicing.style` is close with a high `triad` share. Melody encodes \"ascend by 3rds through the verse and pre-chorus and resolve on a sustained high note\" as a third-weighted interval spread over an arch contour with the highest `octaveJumpProb` in this batch for the documented falsetto leap; \"harmony is octave-doubled rather than in thirds\" is the `octave_echo` counter. ⚠ The INFERRED parameters are every drum probability, the humanize numbers, the melody register, the harmonic weights and `bpm.mode` 100 (the midpoint of the stated 90—110 ballad core), and the entry's own [LOW-CONF] mark on the tenor-ceiling claim is repeated here.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 150,
+      "mode": 100
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        4,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.21,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 8,
+        "clap": 9,
+        "tom": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        0,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.14,
+      "tresilloBias": 0.02,
+      "offbeat8thShare": 0.1,
+      "fourOnFloorInChorus": true
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "reverb": "large",
+      "transient": "medium",
+      "stack": [
+        "clap",
+        "snare"
+      ],
+      "layerClapOffsetMs": [
+        4,
+        11
+      ],
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.16,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.12,
+      "velocities": {
+        "main": [
+          0.42,
+          0.74
+        ],
+        "ghost": [
+          0.16,
+          0.32
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tom",
+        "tomHigh",
+        "crash"
+      ],
+      "densityPerBar": [
+        0,
+        4
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "IV",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.24,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        78
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.56,
+      "third": 0.32,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.14,
+      "descend": 0.22,
+      "arch": 0.64
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": [
+      0.2,
+      0.36
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        4,
+        2
+      ]
+    },
+    "articulation": "legato",
+    "endVariation": true,
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.35,
+      0.6
+    ],
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.14,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.95,
+        "beats": 4
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

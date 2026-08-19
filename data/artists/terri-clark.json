@@ -1,0 +1,243 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "terri-clark",
+  "type": "artist",
+  "name": "Terri Clark",
+  "aliases": [
+    "terri clark",
+    "terriclark",
+    "terry clark"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1995-2004",
+  "genres": [
+    "country-pop",
+    "country",
+    "neotraditional country"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-train",
+    "country-shuffle"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Terri Clark",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Terri+Clark)"
+  ],
+  "notes": "Uptempo neotraditional with a female lead — the entry notes \"the catalogue skews *fast* for the era — midtempo 90–119, uptempo 125–156, few ballads,\" so the band starts at 74 but centres at 128, well above the genre's 100. Drums are the stated default: \"a two-beat with quarter kick and a hard backbeat, hat opening on 4,\" which is quarter-note kick anchors with `openHat.pos` on beat 4 at high probability. The bass is quoted and is the record's forward lean: \"staccato quarters or two-beat root-fifth; no sustain,\" hence `followRootsProb` near the ceiling and anticipation near zero. Harmony is \"I–IV–V with V7 and a I–I7–IV blues turn on the uptempo cuts\" — the sevenths live in `extensions` and the blues turn in the major_blues scale weight, because the numeral parser reads degrees only. Melody is \"rhythmically dense and syllabic (lyric-forward), narrow range, with the hook landing on the downbeat of the chorus.\" The form has no bridge on most cuts — \"the solo does that job\" — which is why the arrangement is not authored here and the section grammar is left to the genre. ⚠ Boundary flag from the research: the fastest cuts are train-beat material and that groove belongs to `country-train`. ⚠ Confidence is medium and the research says why: \"tempo distribution documented; harmony and palette generalised from the lane [LOW-CONF].\" ⚠ The INFERRED parameters are the velocity tiers, the hat fill density and the countermelody ratio.",
+  "session": {
+    "bpm": {
+      "min": 74,
+      "max": 156,
+      "mode": 128
+    },
+    "keys": {
+      "values": [
+        "G",
+        "A",
+        "D",
+        "E"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_blues",
+        "major_pentatonic"
+      ],
+      "weights": [
+        6,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.89,
+      "velocityVar": 0.14
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        106,
+        124
+      ],
+      "main": [
+        84,
+        98
+      ],
+      "ghost": [
+        32,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.1,
+      "offbeat8thShare": 0.07
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.2,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.24,
+      "openHat": {
+        "prob": 0.5,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "ride",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.76,
+      "seventh": 0.22,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      78
+    ],
+    "densityPerBar": [
+      5,
+      9
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.32,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": 0.03,
+    "timbreHint": "tele_double_stops"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.58,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5",
+      "M3"
+    ],
+    "anticipationProb": 0.04
+  }
+}

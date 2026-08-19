@@ -1,0 +1,378 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "joel-little",
+  "type": "producer",
+  "name": "Joel Little",
+  "aliases": [
+    "joel little",
+    "joellittle",
+    "little producer",
+    "golden age studio"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2012-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "minimal pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "lofi-hiphop",
+    "pop-2000s",
+    "trap-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Joel Little",
+    "Wikipedia — Joel Little (https://en.wikipedia.org/wiki/Joel_Little)",
+    "Wikipedia — Royals (https://en.wikipedia.org/wiki/Royals_(song))",
+    "Wikipedia — Lorde (https://en.wikipedia.org/wiki/Lorde)"
+  ],
+  "notes": "Minimal-percussion pop producer working from a single Auckland room. The research gives the backbeat as a coin flip — \"the minimal mode's backbeat lands on 3 (half-time feel) as often as on 2&4\" — and a single `placement` field cannot hold both, so `halfTime` is true at `halftime_3` and the 50/50 is recorded here rather than averaged into a wrong number. The drum block is a subtraction claim: \"the identity is subtraction — finger snaps, one deep kick and a hip-hop-derived backbeat, no hat bed, and whole verses running on snaps alone. Lo-fi by choice, with the whole record cut in a week.\" So the kick density is a flat 1, the snare stack is `snap` alone, `hihat.continuous` is false at `fillDensity` 0.03 — the lowest authored in this section — with the roll vocabulary off, and the `snap` perc lane runs at high density with a forward gain, because whole verses are made of it. His axis overlaps his best-known artist by design, and the difference authored is the one his own entry gives: the pop-punk background. \"He came from pop-punk, so cadences remain functional underneath\" is why a V-bearing family sits in the set where the artist model has none, and `chordToneBias` is higher. Mode is the same documented Mixolydian — \"the record that defined him is notated G major functioning as D Mixolydian — so major-with-flat-7 and three-chord loops with the flat-7 as the colour chord\" — which is `maxChords` 3 and the mixolydian weighting. No `bass808` block: \"sub-bass and round synth bass on roots, mixed loud so that bass-plus-vocal-stack is a complete arrangement\", which is a near-static root line and, on the other side, a counter at high density because \"countermelody is a stacked vocal, not an instrument\". His documented method is structural: \"building song structures out of the artist's lyrics rather than imposing a form\", so the arrangement carries short intros, no solo slot and an abrupt reduction to one voice. ⚠ `confidence` is medium against a high-medium rating because every drum probability, the humanize numbers, `bpm.mode` 100 (the research gives 85—130 with no centre, so the mode is that band's midpoint) and `session.keys` beyond G and D are INFERRED — the entry documents only \"the record that defined him is notated G major functioning as D Mixolydian\", so C and A are inferred neighbours and are not in the research. ⛔ **The bass was authored `reese_sustain` and the research does not say the bass is held.** It says *\"sub-bass and round synth bass on roots, mixed loud so that bass-plus-vocal-stack is a complete arrangement\"* — loud and round, not sustained — so the honest rhythm is the one that follows *\"one deep kick\"*, which is `mirror_kick`. On `reese_sustain` this model reached **334 distinct basslines in 1,000 seeds** against a floor of 500, because that rhythm emits one note per chord (TASK-162). The `b7` in `cellShapes` is the sourced half: the keys line is *\"major-with-flat-7 and three-chord loops with the flat-7 as the colour chord\"*. ⚠ **INFERRED:** `followRootsProb` 0.90 and `anticipationProb` 0.20 are lane-conventional rates, not sourced ones.",
+  "session": {
+    "bpm": {
+      "min": 85,
+      "max": 130,
+      "mode": 100
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "G",
+        "D",
+        "C",
+        "A"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        4,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.15,
+      "timingJitterMs": {
+        "snap": 5,
+        "kick": 4,
+        "clap": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        102,
+        120
+      ],
+      "main": [
+        62,
+        76
+      ],
+      "ghost": [
+        28,
+        38
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        1
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.18,
+      "tresilloBias": 0.06,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "snap"
+      ],
+      "transient": "medium",
+      "reverb": "short",
+      "layerClapOffsetMs": [
+        5,
+        12
+      ],
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.03,
+      "velocities": {
+        "main": [
+          0.36,
+          0.58
+        ],
+        "ghost": [
+          0.12,
+          0.26
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "rim",
+        "woodblock"
+      ],
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "placement": "any",
+      "gainOffsetDb": -2
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "VII",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "v",
+          "IV",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.28,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        51,
+        76
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      79
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.52,
+      "descend": 0.3,
+      "arch": 0.18
+    },
+    "chordToneBias": 0.82,
+    "colorTones": [
+      7
+    ],
+    "octaveJumpProb": [
+      0.03,
+      0.1
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "stacked_vocal_pad"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.6,
+      0.85
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.2,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "b7"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 4,
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 4
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

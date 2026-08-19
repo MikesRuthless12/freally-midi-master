@@ -1,0 +1,265 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "britney-spears",
+  "type": "artist",
+  "name": "Britney Spears",
+  "aliases": [
+    "britney spears",
+    "britneyspears",
+    "britney jean spears"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1998-2004",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "teen pop"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "rnb-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Britney Spears",
+    "Wikipedia — \"…Baby One More Time\" (https://en.wikipedia.org/wiki/...Baby_One_More_Time_(song))",
+    "Wikipedia — \"Toxic\" (https://en.wikipedia.org/wiki/Toxic_(song))"
+  ],
+  "notes": "The reference voice of the Cheiron teen-pop lane, encoded across its whole documented span: 84–100 for the Stockholm singles and 110–143 for the Bloodshy club-facing material, all straight with the backbeat on 2&4, so `halfTime` stays false. The research names two minor tonics (C minor at 93, G minor at 143) and states the modal borrowing directly — the pre-chorus sits in the fourth mode of G harmonic minor, a raised 4th over a minor tonic — so `scales` carries `harmonic_minor` alongside the natural minor rather than a made-up mode name. Drums follow the entry sentence by sentence: kick on 1 and the \"&\" of 2/3 (hence the second anchor on \"3&\"), hats \"8ths opening to 16ths into the chorus\" which is why the 8th outweighs the 16th here where the parent weights them the other way, and claps layered on the backbeat from the chorus, which is the `layerClapOffsetMs` widening. The bass is \"root-on-the-kick, 8th-note pumping, almost no portamento; the sub follows the chord root, never counterlines\" — `mirror_kick` at 0.97 with `glideProb` 0.02. ⚠ The **INFERRED** parameters are the drum probabilities and densities: the entry gives placements and words, not numbers, so `syncopation` 0.44, `ghost.prob` 0.12, `fillDensity` 0.58 and the perc densities are this author's reading of \"programmed kit\" plus a reversed-crash lift. ⚠ `bpm.mode` 93 is the one tempo the research states outright. ⚠ `keys` is left inherited: the entry names only two tonics and every shipped model carries three or more, so the documented C minor / G minor pair lives in this note instead of pinning the model to two roots.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 143,
+      "mode": 93
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "major"
+      ],
+      "weights": [
+        5,
+        2,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "3&"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.44,
+      "tresilloBias": 0.14
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      },
+      "layerClapOffsetMs": [
+        2,
+        6
+      ]
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "fillDensity": 0.58,
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.2
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "reverse",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        64,
+        116
+      ],
+      "gapProb": 0.22,
+      "descendProb": 0.18
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.62,
+      "seventh": 0.28,
+      "ninth": 0.1
+    }
+  },
+  "melody": {
+    "register": [
+      51,
+      72
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.66,
+      "third": 0.24,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.28,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "wah_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.97,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 4
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

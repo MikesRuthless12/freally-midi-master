@@ -1,0 +1,280 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sugababes",
+  "type": "artist",
+  "name": "Sugababes",
+  "aliases": [
+    "sugababes",
+    "suga babes"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2001-2008",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "electropop"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "uk-garage",
+    "house"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Sugababes",
+    "songdata.io — Sugababes catalogue (https://songdata.io/search?query=Sugababes)",
+    "Wikipedia — Richard X (https://en.wikipedia.org/wiki/Richard_X)"
+  ],
+  "notes": "UK girl group with bootleg/synth-pop DNA: 82–127 straight, backbeat on 2&4, and the research says the mid-tempos have \"a 16th-hat 'walking' feel rather than a club pulse\", which is why the hat is pinned to 16ths at a high fill density while the kick stays off the floor. Three drum facts are authored — \"hard gated snare on 2&4\" (a high accent tier), \"kick on 1 and 3&\" (anchor 1, second anchor \"3&\"), and \"occasional 808-style cowbell/tom\" plus stacked handclaps, which is the cowbell/tom/snap perc block. Three minor tonics are named (F-sharp minor, B minor, D-flat minor) so `keys` is authored. The defining claim is harmonic: \"the electro singles sit on a two-chord ostinato with a bassline doing the harmonic work\", and \"analogue-style square/saw bass playing a riff, not a root — the riff *is* the hook\", so `followRootsProb` falls to 0.35, the bass runs `independent_riff` with authored cell shapes, and the chord block leans on `vamp` with `maxChords` at 3. ⚠ `confidence` is medium because the research rates it high-medium. ⚠ The **INFERRED** parameters are all drum probabilities, `bpm.mode` 104 and the bass cell shapes — the research says \"riff\", not which degrees.",
+  "session": {
+    "bpm": {
+      "min": 82,
+      "max": 127,
+      "mode": 104
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "F#m",
+        "Bm",
+        "Dbm",
+        "Am"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        126
+      ],
+      "main": [
+        78,
+        94
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.22,
+          0.36
+        ]
+      },
+      "layerClapOffsetMs": [
+        0,
+        2
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.68,
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.24
+      }
+    },
+    "percs": {
+      "lanes": [
+        "cowbell",
+        "tom",
+        "snap"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.64,
+      "seventh": 0.26,
+      "ninth": 0.1
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      74
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.46,
+      "descend": 0.32,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.66,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.68,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.35,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.08,
+    "passingTones": [
+      "m7",
+      "P5"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "b7",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "b3",
+        "4"
+      ]
+    ],
+    "anticipationProb": 0.35
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    }
+  }
+}

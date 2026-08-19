@@ -1,0 +1,282 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "aaron-tippin",
+  "type": "artist",
+  "name": "Aaron Tippin",
+  "aliases": [
+    "aaron tippin",
+    "tippin"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-train"
+  ],
+  "era": "1990-2002",
+  "genres": [
+    "country-train",
+    "country",
+    "honky-tonk",
+    "neotraditional"
+  ],
+  "relatedGenres": [
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-train — Aaron Tippin",
+    "https://www.bpmdatabase.com/music/search/?artist=Aaron+Tippin",
+    "Wikipedia — Neotraditional country (https://en.wikipedia.org/wiki/Neotraditional_country)"
+  ],
+  "notes": "Working-man honky-tonk over \"the driest, most Telecaster-and-steel-forward band on 90s radio\". `bpm` takes the entry's 51–159 span with `mode` at 140 (\"What This Country Needs\"), inside the stated 116–159 uptempo group. The single loudest claim in the entry is a mix instruction and it drives the whole drum block: an \"unusually dry, small, un-reverbed kit even by neotraditional standards — the record's space is given to steel and voice instead\". That is the quietest stick kit in this batch (`velocityTiers` accent 92–110), a single `percs` lane at −11 dB, and an open hat held down to 0.12. The rest follows the stated grammar: \"straight 8th snare stream with sticks, two-beat kick ... hat closed on quarters\", i.e. `swing.grid` 8th at 0.50, `kick.densityPerBar` 2 on anchors 1 and 3 (a strict two-beat, no chorus quarters stated), and `hihat.base` \"4th\". The vocal parameter is stated as an instruction too — \"the twang itself functioning as the ornament (no melisma). Model very short note values and a percussive vocal attack\" — so `articulation` is staccato with a 6–10 density and a high `chordToneBias`. The steel is the co-lead with \"long sustained bends answering every vocal line\", which is a countermelody at +12, `densityRatio` 0.6 and a sustain_pad share. Harmony is the stated I–IV–V with V7 and I–I7–IV plus twelve-bar frames on the barroom cuts, authored as the I–IV–I–V–IV–I skeleton at `maxChords` 6. ⚠ INFERRED: velocity tiers, the −2 ms snare offset, `percs` contents and all melody, countermelody and bassline numbers. ⚠ Tempo readings [LOW-CONF] as a class; the entry states \"harmony generalised [LOW-CONF]\". ⚠ **`bassline.rhythm` is `boom_chick` rather than the `mirror_kick` this model overrode its lane with** — the research names the figure outright: *“live bass, root–five two-beat, staccato, no sustain; walking pickup into the chorus only”*. `boom_chick` is the engine's name for exactly that root–five two-beat, and `country-train`, this model's own lane, already authors it.",
+  "session": {
+    "bpm": {
+      "min": 51,
+      "max": 159,
+      "mode": 140
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_blues"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.12,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 4,
+        "closedHat": 4,
+        "perc": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        92,
+        110
+      ],
+      "main": [
+        68,
+        82
+      ],
+      "ghost": [
+        26,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": 2,
+      "anchors": [
+        "1",
+        "3"
+      ]
+    },
+    "snare": {
+      "offGridMs": -2
+    },
+    "hihat": {
+      "base": "4th",
+      "fillDensity": 0.07,
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.05
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ],
+      "gainOffsetDb": -11
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V",
+          "IV",
+          "I"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 6,
+    "extensions": {
+      "triad": 0.74,
+      "seventh": 0.24,
+      "ninth": 0.02
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      76
+    ],
+    "densityPerBar": [
+      6,
+      10
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.3,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.82,
+    "articulation": "staccato",
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "pedal_steel_and_tele"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "boom_chick",
+    "register": [
+      28,
+      41
+    ],
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.06
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.1,
+        "beats": 1
+      },
+      "switchUpProb": 0.04
+    }
+  }
+}

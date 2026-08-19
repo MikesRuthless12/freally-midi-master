@@ -1,0 +1,239 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "leona-lewis",
+  "type": "artist",
+  "name": "Leona Lewis",
+  "aliases": [
+    "leona lewis",
+    "leonalewis"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2006-2009",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "rnb"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "rnb-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Leona Lewis",
+    "Wikipedia — \"Bleeding Love\" (https://en.wikipedia.org/wiki/Bleeding_Love)",
+    "Wikipedia — Per Magnusson (https://en.wikipedia.org/wiki/Per_Magnusson)"
+  ],
+  "notes": "UK talent-show diva pop — American ballad craft over a mid-tempo R&B pulse: 68–104 straight with the backbeat on 2&4 and the signature single at 104. Harmony is \"F major and other flat-side majors\", so `keys` stays inherited and the documented tonic is recorded here rather than authored. The harmonic claim is a negative one and it shapes the whole model: \"a 4-chord loop (I–V–vi–IV) with the same cycle in every section, the lift coming from arrangement density rather than harmony\". So one family dominates, the harmonic rhythm is flat, and the arrangement carries the dynamic — `dropOutBeats` at 0.92 for the stated \"bar of drums-out before the final chorus\". Three drum deltas are quoted: \"kick 1 and the '&' of 3\", \"snare 2&4 with a clap stack from the chorus\", and \"16th hat plus a shaker\". The bass is \"synth bass on roots in 8ths, ducking under the kick; piano left hand doubles it on the ballads\" — `mirror_kick` at 0.94. The melody is given as a shape: \"verse melody low and restrained, chorus jumping a 6th to a sustained belt\", which is a wide register with a real octave-jump probability and an arch-heavy contour, and the \"ad-lib layer only after the last chorus\" is why the counter ratio stays modest. ⚠ `confidence` is medium because the research rates it high-medium. ⚠ The **INFERRED** parameters are all drum probabilities and `bpm.mode` 96.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 104,
+      "mode": 96
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.22
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      },
+      "layerClapOffsetMs": [
+        1,
+        5
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.48,
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.1
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "snap"
+      ],
+      "densityPerBar": [
+        3,
+        5
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 7
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.48,
+      "seventh": 0.38,
+      "ninth": 0.14
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      56,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.2,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.28,
+      "arch": 0.52
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.22,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "mirror_kick",
+    "register": [
+      29,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.18
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.92,
+        "beats": 4
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

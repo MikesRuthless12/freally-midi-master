@@ -75,19 +75,13 @@
     "kick": {
       "densityPerBar": [
         1,
-        3
+        2
       ],
       "anchors": [
         "1"
       ],
       "secondaryAnchor": "3&",
-      "syncopation": 0.04,
-      "tresilloBias": 0.12,
-      "subLayerVelocity": [
-        0.5,
-        0.6
-      ],
-      "lockTo808": 0
+      "syncopation": 0.08
     },
     "snare": {
       "rimshotLayer": false,
@@ -100,9 +94,7 @@
           0.1,
           0.22
         ]
-      },
-      "placement": "backbeat_24",
-      "offGridMs": 0
+      }
     },
     "hihat": {
       "base": "8th",
@@ -166,9 +158,9 @@
       ],
       "velocityRampRange": [
         57,
-        110
+        111
       ],
-      "rampJitter": 7,
+      "rampJitter": 6,
       "gapProb": 0.48,
       "descendProb": 0.32
     }
@@ -183,18 +175,18 @@
       5
     ],
     "intervals": {
-      "step": 0.58,
-      "third": 0.15,
-      "leap": 0.15
+      "step": 0.62,
+      "third": 0.2,
+      "leap": 0.18
     },
     "contour": {
-      "riff": 0.56,
-      "descend": 0.27,
-      "arch": 0.05
+      "riff": 0.6,
+      "descend": 0.32,
+      "arch": 0.08
     },
-    "chordToneBias": 0.52,
+    "chordToneBias": 0.58,
     "halfStepDissonance": 0.1,
-    "octaveJumpProb": 0.05,
+    "octaveJumpProb": 0.03,
     "phraseBars": {
       "values": [
         2,
@@ -209,7 +201,7 @@
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.52,
+    "densityRatio": 0.5,
     "styles": {
       "values": [
         "octave_echo",
@@ -219,7 +211,7 @@
       "weights": [
         4,
         3,
-        3
+        2
       ]
     }
   },
@@ -280,17 +272,17 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.94,
+    "followRootsProb": 0.84,
     "register": [
-      21,
-      43
+      20,
+      44
     ],
-    "glideProb": 0.01,
+    "glideProb": 0,
     "passingTones": [
       "P5",
       "m7"
     ],
-    "anticipationProb": 0.27
+    "anticipationProb": 0.26
   },
   "arrangement": {
     "structures": [

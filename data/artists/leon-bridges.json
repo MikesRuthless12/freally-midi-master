@@ -1,0 +1,296 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "leon-bridges",
+  "type": "artist",
+  "name": "Leon Bridges",
+  "aliases": [
+    "leon bridges",
+    "todd michael bridges",
+    "coming home"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2015-present",
+  "genres": [
+    "soul",
+    "neo-soul",
+    "rnb"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Leon Bridges",
+    "Wikipedia — Leon Bridges (https://en.wikipedia.org/wiki/Leon_Bridges)",
+    "songdata.io — Leon Bridges (https://songdata.io/search?query=Leon+Bridges)"
+  ],
+  "notes": "A 1960s-tracked debut and then a contemporary production turn, and the entry says \"both variants required\". This model holds them in one kit rather than in two modes: the snare is layered (the debut's high dry stick plus the later records' soft clap) with a rimshot option and a small displacement, and the hat base is weighted between the debut's no-carpet 8ths and the later 16ths. The band is the catalogue's own 67–120 and the keys are the named sharp-and-flat majors — F♯, G, A♭ and B — an unusual set the research calls out specifically. Harmony is the debut's \"50s/60s doo-wop-diatonic (`I–vi–IV–V`, 12-bar blues, `I–IV` two-chord vamps with dominant 7ths)\", both families written out by the entry, with the triad weight high; the later m9/maj9 extensions are what keeps the seventh weight from collapsing. Melody is \"smooth mid-tenor, low note-density, long phrases, minimal melisma, with a period-appropriate straight-tone delivery\", which is the legato articulation, density 2–5, a high `chordToneBias` and a near-zero octave jump. The \"female group-vocal answers\" are the counter at +12. Bass is \"upright or flatwound electric bass on the debut, walking in quarters with a slap-back feel; played electric with light sub-doubling on the later material\" — walking, so an independent riff with chromatic passing tones rather than a kick mirror. ⚠ The INFERRED parameters are every drum number and all melody figures; the research marks the debut's drum-tracking detail as inference. ⚠ The light sub-doubling on the later records is not authored as a `bass808` block — it doubles a played bass.",
+  "session": {
+    "bpm": {
+      "min": 67,
+      "max": 120,
+      "mode": 92
+    },
+    "keys": {
+      "values": [
+        "F#",
+        "G",
+        "Ab",
+        "B"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "blues",
+        "dorian"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.68,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 6,
+        "tambourine": 8,
+        "snap": 6
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.26,
+      "tresilloBias": 0.05
+    },
+    "snare": {
+      "layered": true,
+      "rimshotLayer": true,
+      "offGridMs": [
+        1,
+        6
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.14,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "fillDensity": 0.24,
+      "velocities": {
+        "main": [
+          0.42,
+          0.66
+        ],
+        "ghost": [
+          0.12,
+          0.3
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "snap",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -4,
+      "tambourineMirrorsClap": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 4
+      }
+    ],
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.46,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      77
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "structure": "long_arc",
+    "articulation": "legato",
+    "intervals": {
+      "step": 0.82,
+      "third": 0.16,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.38,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.03,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "spring_reverb_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.6,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M2",
+      "m3",
+      "M6"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.16
+    }
+  }
+}

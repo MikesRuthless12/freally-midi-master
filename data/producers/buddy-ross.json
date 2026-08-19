@@ -1,0 +1,366 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "buddy-ross",
+  "type": "producer",
+  "name": "Buddy Ross",
+  "aliases": [
+    "buddy ross",
+    "buddy ross keys",
+    "blonde live band"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap-soul"
+  ],
+  "era": "2016-present",
+  "genres": [
+    "trap-soul",
+    "rnb",
+    "producer"
+  ],
+  "relatedGenres": [
+    "trap-soul",
+    "neo-soul",
+    "lofi-hiphop",
+    "pop-2020s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 trap-soul — Buddy Ross",
+    "Wikipedia — Blonde (Frank Ocean album) (https://en.wikipedia.org/wiki/Blonde_(Frank_Ocean_album))",
+    "Wikipedia — Frank Ocean (https://en.wikipedia.org/wiki/Frank_Ocean)",
+    "Wikipedia — Malay (record producer) (https://en.wikipedia.org/wiki/Malay_(record_producer))"
+  ],
+  "notes": "\"His function is keyboard harmony… Model him as the chord author on tracks with no drums.\" So this model is the section's clearest chords-first producer: Mellotron, Moog and \"simple electric keyboard work\" driving arrangements, \"with extended voicings held over long static sections and one moving inner voice\" — a single-sonority family at top weight, the longest `chordDurationBeats` among the producers, and a high `adjacentSecondProb` for that one moving voice. The documented description of the arrangements is a restraint instruction — \"minimalist rock guitar and simple electric keyboard work\", \"deliberately unornamented, few notes, long sustains, and a lo-fi keyboard timbre rather than a polished pad\" — so the melody density is the lowest of the twenty producers and `motifPitchCount` is small. Drums are \"often none; where present, minimal programmed percussion mixed behind the keys\", and the arrangement's own rule is stated: \"sections defined by the keyboard part starting or stopping; **no fills, no risers**, and endings that simply stop\" — hence `fillBeforeSection` false and the roll rate at zero. ⛔ **`bass808` is null**: \"keyboard bass or a soft sub on the chord root, long decay, no slides.\" ⚠ `confidence` is **low**, mirroring medium-low: \"his credit and the album's instrumental description are sourced; individual technique is not separately documented\". ⚠ Every number here is **INFERRED**, `bpm.mode` included. ⚠ **`session.keys` is INFERRED.** The entry's Keys line describes the harmonic grammar but names no key centre, so these values and their weights are an authored choice — no key in this set is stated in the research. ⚠ **The countermelody reached 836/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.34 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. Second, `melody.densityPerBar` went from [1, 3] to [2, 4]. A lead allowed to thin to a single note a bar leaves the counter almost nothing to answer, and no amount of counter density recovers what the lead never played. This is the lead becoming reliably present rather than busier — the floor is what moved and the ceiling carries the density claim. ⚠ Every value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"\"minimalist rock guitar and simple electric keyboard work\" is the documented description of the arrangements he contributed to — deliberately unornamented, few notes, long sustains, and a lo-fi keyboard timbre rather than a polished pad.\", and every claim in it still holds after the change. ⚠ **And the style pool was opened.** `generators::counter` can play five answer shapes and this block asked for one. `answer_lick` is added because the entry names it — \"minimalist rock guitar and simple electric keyboard work is the documented description of the arrangements he contributed to — deliberately unornamented, few notes, long sustains\" — and the quoted description names two instruments and the block carried one. The keyboard stays the majority because the entry's own framing of his function is \"his function is keyboard harmony\"; the guitar is the minority answer, and \"few notes, long sustains\" is why it is weighted 1 against 3 rather than evenly. ⚠ The weights are INFERRED; the layer they weight is not. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit has no 808 — `bass808` is `null` here or in the parent it inherits — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so in this file it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead here. Where it was NOT dead was in the artists and producers who extend this kit and author an 808 of their own: they inherited the zero, `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, and their sub lane was silent at every seed — `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\" for 35 of them. Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: this kit's own statement about the 808 is the `bass808: null` beside it, and that is untouched. ⚠ **The bassline reached 743 of 1,000 distinct against `bass.rs`'s 0.95 share.** `mirror_kick` and `glideProb` 0.01 stay for *\"keyboard bass or a soft sub on the chord root, long decay, no slides\"*; what moved is how often it leaves the root, because a sub over a kick this sparse has six onsets to vary and `followRootsProb` 0.96 left almost nothing to draw. ⚠ **INFERRED:** `followRootsProb` 0.90, the `M2` and `anticipationProb` 0.20 are lane-conventional — this entry's confidence is medium-low and says in as many words that *\"individual technique is not separately documented and is marked\"*. ⛔ The bassline declares `loopVerbatim`: the entry says \"keyboard bass or a soft sub on the chord root, long decay, no slides\", so this low end is static by description rather than thin by accident. `engine/tests/bass.rs::static_low_end` waives the saturation share for it and nothing else — the absolute floor of 500 distinct basslines still applies and this model clears it. The declaration needs the corroborating `followRootsProb` of 0.9 beside it, so the word alone could not buy the exemption.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 130,
+      "mode": 84
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "C",
+        "Am",
+        "F",
+        "Dm",
+        "G"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.51
+    },
+    "humanize": {
+      "quantizeStrength": 0.6,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 11,
+        "closedHat": 8,
+        "perc": 12
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        72,
+        86
+      ],
+      "main": [
+        46,
+        60
+      ],
+      "ghost": [
+        16,
+        26
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.08,
+      "tresilloBias": 0.02
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.1,
+          0.18
+        ]
+      },
+      "offGridMs": [
+        5,
+        11
+      ],
+      "crossStickVerses": true
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.06,
+      "velocities": {
+        "main": [
+          0.18,
+          0.32
+        ],
+        "ghost": [
+          0.08,
+          0.16
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0,
+        "positions": [
+          "bar_4"
+        ],
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "openHat": {
+        "prob": 0.03,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "shaker"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "any",
+      "gainOffsetDb": -12
+    },
+    "bass808": null,
+    "fills": {
+      "smallEveryBars": 32,
+      "bigEveryBars": 32
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.2,
+      "seventh": 0.44,
+      "ninth": 0.36
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        88
+      ],
+      "topVoiceStepwise": true,
+      "adjacentSecondProb": 0.68
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      16,
+      32
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      80
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        4
+      ]
+    },
+    "densityPerBar": [
+      2,
+      4
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.86,
+      "third": 0.12,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.34,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.9,
+    "emptyBarBias": 0.1,
+    "octaveJumpProb": 0.02,
+    "articulation": "legato",
+    "timbreHint": "mellotron"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.3,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.2,
+    "loopVerbatim": true
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        16
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "hook": [
+        8,
+        16
+      ],
+      "outro": [
+        4,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 4
+      },
+      "switchUpProb": 0.14
+    }
+  }
+}

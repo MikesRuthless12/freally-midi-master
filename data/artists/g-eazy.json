@@ -169,26 +169,7 @@
         2
       ]
     },
-    "timbreHint": "warm_grand_piano",
-    "structure": "riff_loop",
-    "motifPitchCount": [
-      3,
-      4
-    ],
-    "intervals": {
-      "step": 0.59,
-      "third": 0.33,
-      "leap": 0.2
-    },
-    "contour": {
-      "riff": 0.64,
-      "descend": 0.28,
-      "arch": 0.2
-    },
-    "chordToneBias": 0.79,
-    "halfStepDissonance": 0.04,
-    "endVariation": true,
-    "octaveJumpProb": 0.1
+    "timbreHint": "warm_grand_piano"
   },
   "countermelody": {
     "registerOffset": 12,

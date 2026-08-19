@@ -1,0 +1,266 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rascal-flatts",
+  "type": "artist",
+  "name": "Rascal Flatts",
+  "aliases": [
+    "rascal flatts",
+    "rascal flats",
+    "rascall flatts"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2000-2012",
+  "genres": [
+    "country-pop",
+    "country",
+    "power ballad"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Rascal Flatts",
+    "songdata.io (https://songdata.io/search?query=Rascal+Flatts)",
+    "Mix — Rascal Flatts tracking session (https://www.mixonline.com/technology/rascal-flatts-jay-demarcus-hosts-tracking-session-new-flatts-album-379370)",
+    "Drumeo — Jim Riley (https://www.drumeo.com/beat/jim-riley-from-homeless-to-rascal-flatts/)"
+  ],
+  "notes": "The maximal country power-ballad trio. The tracking date is documented in player counts, not adjectives — \"seven players cutting together (two guitarists, drums, bass, scratch vocal, grand piano, synth) in a room chosen specifically for its drum sound\" — which is why the humanize is a live-band reading rather than a grid one. The drum grammar is quoted: \"hats-and-kick verse, snare from the chorus, tom-driven bridge, final chorus with doubled snare and continuous crash.\" Harmony is \"I–V–vi–IV and vi–IV–I–V; the minor cuts use i–VI–III–VII,\" and the minor family matters here because the entry flags \"'What Hurts the Most' F minor — one of the few minor-tonic radio ballads in this lane.\" The bass is written by a band member who also produces: \"root motion with pop-style anticipations, 8ths under choruses,\" hence a real anticipation figure over high root-following. Melody is \"high-tenor, wide-range and melisma-heavy — the most ornamented male vocal in the section,\" which is the widest male register and the highest octave-jump probability in this batch. ⚠ Confidence is medium (research: high-medium) and the per-track key/tempo readings are [LOW-CONF]; the entry notes songdata's 132–172 cluster folds onto a 66–86 ballad spine. ⚠ The INFERRED parameters are the humanize values, the perc lane density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 66,
+      "max": 146,
+      "mode": 103
+    },
+    "keys": {
+      "values": [
+        "C",
+        "D",
+        "E",
+        "G",
+        "Eb",
+        "Fm"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "major_pentatonic"
+      ],
+      "weights": [
+        6,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.85,
+      "velocityVar": 0.17,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "closedHat": 4,
+        "tom": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        114,
+        127
+      ],
+      "main": [
+        80,
+        98
+      ],
+      "ghost": [
+        30,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.22,
+      "offbeat8thShare": 0.34
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.26,
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tomHigh",
+        "tomLow",
+        "crash",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -2
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V",
+          "vi"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.24,
+      "ninth": 0.06
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      59,
+      88
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.26,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.12,
+      "descend": 0.28,
+      "arch": 0.6
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": [
+      0.12,
+      0.24
+    ],
+    "timbreHint": "piano_and_layered_electrics"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.52,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.82,
+    "register": [
+      28,
+      45
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.34
+  }
+}

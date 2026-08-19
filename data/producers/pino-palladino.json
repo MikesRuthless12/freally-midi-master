@@ -1,0 +1,307 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "pino-palladino",
+  "type": "producer",
+  "name": "Pino Palladino",
+  "aliases": [
+    "pino palladino",
+    "pino",
+    "precision bass soul",
+    "palladino"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1990-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul",
+    "funk"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "funk",
+    "rnb-2000s",
+    "boom-bap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Pino Palladino",
+    "Wikipedia — Pino Palladino (https://en.wikipedia.org/wiki/Pino_Palladino)",
+    "Wikipedia — Voodoo (https://en.wikipedia.org/wiki/Voodoo_(D%27Angelo_album))",
+    "Wikipedia — D'Angelo (https://en.wikipedia.org/wiki/D%27Angelo)"
+  ],
+  "notes": "The single most influential live-bass idiom in modern soul, windowed 1990-onward per Gate 2 (the 1980s fretless-pop era is excluded by the entry). Everything here is subordinated to the bassline block, because the entry documents the gear and the technique in detail: \"a 1963 sunburst Fender Precision, heavy-gauge LaBella strings tuned down to DGCF, a foam mute at the bridge, and an Ampeg B-15 amp — giving a short, dark, thumpy, upright-like note with almost no sustain and no fret buzz\", played with \"Jamerson-lineage 16th passing tones, lead-in licks, 10ths, arpeggio shapes, and — crucially — chords, lead lines and counter-melodies in the higher range of the instrument, so the bass regularly plays above C3 as a melodic voice\". That is the widest passing-tone set in the section, a register that climbs to 50 (C3 is 48), a glide probability near zero for the foam-muted short note, and the highest anticipation here. His harmonic contribution is stated as \"**deliberate ambiguity** — the bass note is frequently *not* the chord root, so a keyboard Fm9 sits over a bass A♭ or C. This is a real, modellable parameter: choose a chord tone other than the root for the downbeat\" — which is `followRootsProb` 0.18, the lowest number in the whole section, and why the chord voicing had to be lifted to 52 to sit above him. The drums encode the entry's inversion of the usual relationship: \"he plays in the pocket with improvised per-take variation, and the drummer follows his placement rather than the reverse\", so the kit is loosely quantised with a wide snare window and heavy velocity variation. ⚠ The INFERRED parameters are the entire drum block — the entry describes the drummer following him rather than giving drum values — plus every melody and chord number. ⚠ His part is \"genre-quoted per section rather than uniform across the song\"; a single model cannot switch idiom by section, so the wide passing-tone set stands in for it.",
+  "session": {
+    "bpm": {
+      "min": 64,
+      "max": 113,
+      "mode": 88
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.44,
+      "velocityVar": 0.28,
+      "timingJitterMs": {
+        "kick": 7,
+        "snare": 14,
+        "closedHat": 9,
+        "rim": 12
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.38,
+      "tresilloBias": 0.06
+    },
+    "snare": {
+      "offGridMs": [
+        8,
+        18
+      ],
+      "ghost": {
+        "prob": 0.52,
+        "pos": [
+          "1a",
+          "2e",
+          "2a",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.34,
+          0.6
+        ],
+        "ghost": [
+          0.12,
+          0.3
+        ]
+      },
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker",
+        "conga"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "gainOffsetDb": -7
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.04,
+      "seventh": 0.44,
+      "ninth": 0.52
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        84
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.28,
+    "chordDurationBeats": [
+      4,
+      12
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.22,
+      "descend": 0.42,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.46,
+    "emptyBarBias": 0.2,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "electric_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.18,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      50
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3",
+      "M3",
+      "M6",
+      "P4"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "b3",
+        "5",
+        "b7"
+      ],
+      [
+        "1",
+        "3",
+        "5",
+        "6"
+      ],
+      [
+        "1",
+        "2",
+        "4",
+        "5"
+      ],
+      [
+        "5",
+        "1",
+        "b7",
+        "4"
+      ]
+    ],
+    "anticipationProb": 0.6
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "outro": [
+        8,
+        24
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 4
+      },
+      "switchUpProb": 0.3
+    }
+  }
+}

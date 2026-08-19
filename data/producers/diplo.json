@@ -1,0 +1,398 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "diplo",
+  "type": "producer",
+  "name": "Diplo (Major Lazer · Jack Ü · Silk City)",
+  "aliases": [
+    "diplo",
+    "major lazer",
+    "silk city",
+    "thomas wesley pentz"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "2004-present",
+  "genres": [
+    "dance-pop",
+    "moombahton",
+    "dancehall",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "dancehall",
+    "reggaeton",
+    "house",
+    "baile-funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Diplo (Major Lazer · Jack Ü · Silk City)",
+    "Wikipedia — Diplo (https://en.wikipedia.org/wiki/Diplo)",
+    "Electro house (https://en.wikipedia.org/wiki/Electro_house)",
+    "Wikipedia — Mark Ronson (https://en.wikipedia.org/wiki/Mark_Ronson)"
+  ],
+  "notes": "A genre-collision producer running three documented project grammars — Major Lazer (dancehall-derived beat with an instrumental hook replacing the chorus), Jack Ü (bass-design-forward) and Silk City (straight four-on-the-floor house with Mark Ronson from 2018). The modelled band runs from the lowest tempo the entry states — \"~108 for moombahton\", the one reading it marks \"(documented)\" — up to the top of its house band, \"120-126 for the Silk City house project\". The third documented band, \"140-150 for the dancehall/trap material with a half-time feel\", is a different rhythmic family and is named here rather than folded in, because the compendium's rule is that families are picked and never blended. ⚠ INFERRED: the entry states 108 as a point and 120-126 as a band, so the 109-119 interior of the modelled range is a continuity choice, not a documented span; nothing below 108 is documented anywhere in the entry. The drums encode his stated vocabulary: \"dembow and baile-funk percussion — a syncopated kick-and-snare cell that leaves the backbeat implied — plus New Orleans bounce triplets and Miami-bass 808 patterns\", so the kick abandons the four-square grid for an anchor on 1 with a 0.42 tresillo bias, the snare keeps a 2&4 placement carrying the dembow figure as near-certain ghosts, and the perc bed is the widest in this section at five Latin and hand lanes. His stated view of dancehall as the terminus of house, soca, oldies, R&B and jazz is the map of that palette. `bass808` is `counter_riff` for the documented \"808 sub with short glides in the trap/dancehall mode\", so the filtered house sub of Silk City survives as the bassline. Harmony is \"the least important parameter in his work by design\" — two- or four-chord minor vamps — per the Hollertronix philosophy of \"disparate genres… smashed together for maximum attention-grabbing impact\". The lead palette is pitched flute, pan-pipe, marimba and chopped vocal. ⚠ The research says the tempo bands are partly convention-derived; that mark is repeated here, and every velocity, density and probability is INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 108,
+      "max": 126,
+      "mode": 108
+    },
+    "keys": {
+      "values": [
+        "Am",
+        "Em",
+        "Dm",
+        "Gm",
+        "Bm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "dorian"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 3,
+        "clap": 4,
+        "closedHat": 4,
+        "conga": 7,
+        "perc": 7,
+        "shaker": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        126
+      ],
+      "main": [
+        84,
+        100
+      ],
+      "ghost": [
+        34,
+        52
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.4,
+      "tresilloBias": 0.42,
+      "offbeat8thShare": 0.34
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        3,
+        9
+      ],
+      "ghost": {
+        "prob": 0.88,
+        "pos": [
+          "1a",
+          "2&",
+          "3a",
+          "4&"
+        ],
+        "vel": [
+          0.44,
+          0.66
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.56,
+      "openHat": {
+        "prob": 0.38,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T",
+            "32"
+          ],
+          "weights": [
+            3,
+            2,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.3
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "timbale",
+        "bongo",
+        "shaker",
+        "tom"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "placement": "any",
+      "gainOffsetDb": -2
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false,
+      "fillBeforeSection": true
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "staccato",
+      "distortion": "light",
+      "slideProb": 0.42,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P4",
+          "P8"
+        ],
+        "weights": [
+          3,
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "bar_2",
+        "bar_4",
+        "phrase_end"
+      ],
+      "register": [
+        24,
+        40
+      ],
+      "monoCutSelf": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.24,
+      "ninth": 0.06
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      90
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.56,
+      "descend": 0.26,
+      "arch": 0.18
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.05,
+    "articulation": "staccato",
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "pan_flute"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "bell_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.8,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.44,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "1",
+        "b7"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "4"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "bridge",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}
