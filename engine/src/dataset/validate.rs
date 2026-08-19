@@ -106,7 +106,70 @@ pub fn lint(model: &Value) -> Vec<Finding> {
         }
     }
 
+    percs(model, &mut findings);
+
     findings
+}
+
+/// Every `drums.percs.lanes` entry must be a lane the perc stage actually writes.
+///
+/// ⛔⛔ **This is the check that a schema `enum` would have duplicated, and the
+/// duplication is the reason it lives here instead.** `drums::percs` filters the
+/// authored list through [`PERC_LANES`]; a name that is a real `Lane` but not a
+/// **perc** lane is dropped between the dataset and the grid with no error and no
+/// gate. Four shipped models were in exactly that state — `john-mayer` and
+/// `maroon-5` asking for `pedalHat`, `chris-dave` and `robert-glasper` for
+/// `rideBell` — which is the same failure `PERC_LANES`' own history records for
+/// `woodblock`.
+///
+/// ▶ **The engine's constant is the only list.** Spelling the lanes into
+/// `artist-style.schema.json` as well would make a second copy for a test to keep
+/// honest, and this module's header already states the division of labour: the
+/// schema catches *shape*, this catches *meaning*. `bass.rs`, `chords.rs`,
+/// `melody.rs` and `arrange.rs` all gate an authored vocabulary against an engine
+/// constant the same way.
+///
+/// ⚠ **A typo and a wrong-but-real lane fail identically**, and that is right:
+/// from the generator's side `"shakerr"` and `"pedalHat"` were the same event —
+/// a name it will not write.
+fn percs(model: &Value, findings: &mut Vec<Finding>) {
+    if let Some(lanes) = model
+        .pointer("/drums/percs/lanes")
+        .and_then(Value::as_array)
+    {
+        for (at, lane) in lanes.iter().enumerate() {
+            let Some(name) = lane.as_str() else { continue };
+            if crate::generators::drums::is_perc_lane(name) {
+                continue;
+            }
+            findings.push(Finding {
+                pointer: format!("/drums/percs/lanes/{at}"),
+                message: format!(
+                    "`{name}` is not a percussion lane the engine writes, so this layer would be dropped in silence"
+                ),
+            });
+        }
+    }
+
+    // ⛔ **`placement` fails the same way one field over, and was the reason the
+    // predicate for it already existed.** `PercPlacement::parse` returns `None`
+    // for a word it does not know and [`percs`'s generator] falls back to `any`
+    // — so `"downbeats"` for `"downbeat"` does not error, it quietly sprinkles
+    // the crash across the bar. Gating the lane and leaving the word beside it
+    // ungated would have been half a check.
+    if let Some(name) = model
+        .pointer("/drums/percs/placement")
+        .and_then(Value::as_str)
+    {
+        if !crate::generators::drums::can_read_perc_placement(name) {
+            findings.push(Finding {
+                pointer: "/drums/percs/placement".to_owned(),
+                message: format!(
+                    "`{name}` is not a placement the engine can read, so this layer would fall back to `any` in silence"
+                ),
+            });
+        }
+    }
 }
 
 /// ⛔ **`pointer` is ONE buffer, pushed and truncated down the walk, not a

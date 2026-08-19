@@ -575,5 +575,11 @@
     "fadeOut": "Dissolvenza in uscita",
     "noWaveform": "Questo pad riproduce un campione integrato, quindi non c’è alcun file da disegnare.",
     "envelopeShape": "Attacco {{attack}} ms, decadimento {{decay}} ms, sostegno {{sustain}} dB, rilascio {{release}} ms"
+  },
+  "crash": {
+    "title": "Qualcosa nella finestra ha smesso di funzionare",
+    "body": "Il tuo progetto è ancora aperto nell'host. Ricarica il pannello per continuare: non è stato scritto nulla sul disco.",
+    "retry": "Ricarica il pannello",
+    "details": "Dettaglio tecnico"
   }
 }

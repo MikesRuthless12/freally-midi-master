@@ -144,6 +144,29 @@ pub fn dispatch(
 
         "eula_decline" => crate::eula::decline().map(|()| Value::Null),
 
+        // ---- Crash reporting. See [`crate::crash`] (TASK-093) --------------
+        //
+        // ⛔ **The page's half of the same folder the panic hook writes to.** A
+        // React render throw unmounts the window without touching Rust, so
+        // nothing in the process notices — and in a hosted DAW the producer is
+        // left with a dead rectangle they can only fix by re-inserting the
+        // plugin. `ErrorBoundary` catches it, shows a way back, and sends the
+        // stack here so there is something to read afterwards.
+        //
+        // ⚠ **Always `Ok`, even when nothing was written.** This is called from
+        // `componentDidCatch` — the app's last line — and an error returned to
+        // that path would be a second failure raised by the failure reporter.
+        //
+        // ⚠ **`Null`, not whether the write landed.** `eula_decline` two arms up
+        // answers the same way for the same reason: nothing reads this reply —
+        // `src/lib/crash.ts` discards it — so reporting the outcome would be
+        // inventing a contract with no second party to it.
+        "report_crash" => {
+            let detail = request.args["detail"].as_str().unwrap_or_default();
+            crate::crash::write("page", detail);
+            Ok(Value::Null)
+        }
+
         "roster_summary" => serde_json::to_value(dataset::roster()).map_err(|e| e.to_string()),
 
         "resolve_model" => {

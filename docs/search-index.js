@@ -106,12 +106,12 @@ window.SEARCH_INDEX = [
   {
     id: 'privacy',
     title: 'Privacy & the network',
-    body: 'privacy telemetry account cloud offline no outbound connection local network denylist gate',
+    body: 'privacy telemetry account cloud offline no outbound connection local network denylist gate crash report never sent',
   },
   {
     id: 'bugs',
     title: 'Reporting a bug',
-    body: 'bug report crash panic github issue host DAW log CLAP VST3 version',
+    body: 'bug report crash panic fault github issue host DAW log CLAP VST3 version crashes folder APPDATA Application Support crash log where are the logs recover panel',
   },
   {
     id: 'building',

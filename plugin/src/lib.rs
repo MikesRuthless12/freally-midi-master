@@ -23,6 +23,7 @@ use nih_plug::prelude::*;
 
 pub mod audio;
 pub mod bridge;
+pub mod crash;
 pub mod dataset;
 pub mod drag;
 mod editor;
@@ -172,6 +173,14 @@ pub struct FreallyParams {
 
 impl Default for FreallyMidiMaster {
     fn default() -> Self {
+        // ⛔ **The panic hook, before anything that could panic** (TASK-093).
+        // `release` is built `panic = "abort"`, so a panic here takes the host
+        // DAW down with it and the producer is left with a dead project and
+        // nothing to send anybody. Installing more than once is harmless — the
+        // hook guards itself, which is where a host that instantiates the
+        // plugin several times per process is accounted for.
+        crash::install_panic_hook();
+
         // **One store, threaded into both.** `params` is what the host
         // serializes; `shared` is what the editor reads and writes. They must
         // be the same `Arc` — two stores would save one and display the other,

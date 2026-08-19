@@ -575,5 +575,11 @@
     "fadeOut": "Fundido de salida",
     "noWaveform": "Este pad reproduce un sample incorporado, así que no hay archivo que dibujar.",
     "envelopeShape": "Ataque {{attack}} ms, caída {{decay}} ms, sostenido {{sustain}} dB, liberación {{release}} ms"
+  },
+  "crash": {
+    "title": "Algo en la ventana dejó de funcionar",
+    "body": "Tu proyecto sigue abierto en el anfitrión. Vuelve a cargar el panel para continuar: no se ha escrito nada en el disco.",
+    "retry": "Recargar el panel",
+    "details": "Detalle técnico"
   }
 }

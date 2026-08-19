@@ -835,6 +835,31 @@ useSession.subscribe((state, previous) => {
 });
 
 /**
+ * Show a producer where their stems went when the *song* is what they generated
+ * (TASK-143, cause 1).
+ *
+ * ⛔⛔ **Mike, 2026-08-06:** *"sometimes when i have the song generator on and
+ * the stems panel is supposed be shown it doesn't show it, but then when i press
+ * view all panels it shows the stems panel that should already be showing."*
+ * The word doing the work is **"sometimes"**, and it is the whole diagnosis:
+ * `session.ts`'s reveal subscriber is gated on `useSession.patterns` being
+ * non-empty, and `generate` here writes only to **this** store. So an
+ * arrangement on its own never asked for the panel at all — it appeared only
+ * when the producer happened to have generated a per-part pattern earlier in the
+ * session, which is exactly as intermittent as he describes.
+ *
+ * ⚠ **On `song` gaining a value, not on `generating` falling.** A restored
+ * project and a drill-out both leave an arrangement here without going through
+ * `generate`, and each of them is equally a producer with stems to drag.
+ * `revealStems` is idempotent and one-shot, so the extra callers cost nothing —
+ * `session.ts`'s subscriber makes the same argument for the same reason.
+ */
+useSong.subscribe((state, previous) => {
+  if (!state.song || previous.song) return;
+  useUi.getState().revealStems();
+});
+
+/**
  * Publish the arrangement to the session, which is what the host saves.
  *
  * ⛔ **Registered rather than imported, because the dependency runs one way.**

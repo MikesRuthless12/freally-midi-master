@@ -156,3 +156,41 @@ describe('the rail groups', () => {
     }
   });
 });
+
+/**
+ * Revealing the stems (TASK-143).
+ *
+ * ⛔⛔ **Mike found this in Ableton, 2026-08-06:** *"sometimes when i have the
+ * song generator on and the stems panel is supposed be shown it doesn't show it,
+ * but then when i press view all panels it shows the stems panel that should
+ * already be showing."* Two independent causes, and fixing one left the other —
+ * so both are pinned here. This file covers cause 2, the closed rail; `song.ts`
+ * covers cause 1, the trigger that never fired for an arrangement.
+ */
+describe('revealing the stems', () => {
+  beforeEach(() => {
+    useUi.setState({ stemsRevealed: false, rightRailOpen: false });
+  });
+
+  it('does not force the right rail open, because that costs the editor height', () => {
+    // ⛔⛔ **TASK-143 tried this and it was WRONG BOTH TIMES.** A closed rail is
+    // unmounted (`App.tsx`: `{rightRailOpen && <RightRail/>}`), so revealing a
+    // panel inside one shows nothing — which reads like the bug and is not one.
+    // The plugin's page always lays out at 1440, which *is* `WIDE_BREAKPOINT`,
+    // so the rail is already open in what ships; and forcing it re-lays the
+    // stage, shrinks the velocity lane, and makes a drag to 96 land on 85, which
+    // `e2e/piano-roll.spec.ts:380` caught.
+    useUi.getState().revealStems();
+
+    expect(useUi.getState().rightRailOpen).toBe(false);
+    // The group still swaps, which is the whole of what this setter should do.
+    expect(useUi.getState().sections.stems).toBe(true);
+  });
+
+  it('remembers across a reload, so the nudge does not overwrite a saved choice', () => {
+    // ⚠ The failure `STEMS_REVEALED_KEY` exists to prevent: the flag in memory
+    // while the rail choice is on disk made every reload "the first time".
+    useUi.getState().revealStems();
+    expect(window.localStorage.getItem('freally.stemsRevealed')).toBe('true');
+  });
+});

@@ -910,6 +910,24 @@ export const useUi = create<UiState>((set, get) => ({
       // already made — see the key's own note. If they leave the rail here and
       // then press a tab, *that* is what gets stored.
 
+      // ⛔⛔ **DO NOT force the rail open here, and TASK-143 is the second time
+      // that was tried.** `App.tsx` renders `{rightRailOpen && <RightRail/>}`, so
+      // a closed rail is unmounted and this switch is invisible — which looks
+      // exactly like the bug to fix, and is not one:
+      //
+      // - **The plugin's page always lays out at 1440**, which *is*
+      //   `WIDE_BREAKPOINT`, so the rail is already open in the product that
+      //   ships. The unmounted case is reachable only in a narrow browser
+      //   window, which is the dev and Playwright build.
+      // - **Opening it costs the editor height.** The stage re-lays, the
+      //   velocity lane shrinks, and a drag to velocity 96 lands on 85 —
+      //   `e2e/piano-roll.spec.ts:380` caught that the first time.
+      //
+      // ▶ What Mike actually reported in Ableton (*"sometimes … it doesn't show
+      // it"*) was the **trigger**, not the rail: the reveal hung off
+      // `useSession.patterns` and a Song-Mode generation writes only to
+      // `useSong`. That half is fixed, in `song.ts`.
+
       // ⚠ Just the fields that changed. `set` merges shallowly, so spreading the
       // whole store read as though something about this setter were different
       // from its neighbours.

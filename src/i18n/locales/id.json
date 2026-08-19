@@ -575,5 +575,11 @@
     "fadeOut": "Memudar keluar",
     "noWaveform": "Pad ini memainkan sampel bawaan, jadi tidak ada berkas untuk digambar.",
     "envelopeShape": "Serangan {{attack}} ms, peluruhan {{decay}} ms, tahanan {{sustain}} dB, pelepasan {{release}} ms"
+  },
+  "crash": {
+    "title": "Ada yang berhenti bekerja di jendela ini",
+    "body": "Proyek Anda masih terbuka di host. Muat ulang panel untuk melanjutkan — tidak ada yang ditulis ke disk.",
+    "retry": "Muat ulang panel",
+    "details": "Detail teknis"
   }
 }

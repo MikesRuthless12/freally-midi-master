@@ -575,5 +575,11 @@
     "fadeOut": "Fade de saída",
     "noWaveform": "Este pad toca um sample embutido, então não há arquivo para desenhar.",
     "envelopeShape": "Ataque {{attack}} ms, decaimento {{decay}} ms, sustentação {{sustain}} dB, liberação {{release}} ms"
+  },
+  "crash": {
+    "title": "Algo na janela parou de funcionar",
+    "body": "Seu projeto continua aberto no host. Recarregue o painel para continuar — nada foi gravado no disco.",
+    "retry": "Recarregar o painel",
+    "details": "Detalhe técnico"
   }
 }

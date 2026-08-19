@@ -230,26 +230,13 @@ test.describe('Phase gate — theming', () => {
   });
 });
 
+// ⛔ **The request assertion that lived here now lives in `e2e/offline.spec.ts`.**
+// It matched a `http://localhost:1420` prefix rather than the host, intercepted
+// with `context.route` rather than observing, watched no websockets, and its
+// journey never generated anything — so the one path the product exists for was
+// the one path it did not cover. Two gates for one claim meant the weaker was
+// the one that would rot; that file's header records what changed and why.
 test.describe('Phase gate — offline and AI-free', () => {
-  test('the UI makes no network requests of its own', async ({ page, context }) => {
-    // Generation, playback and export never touch the network. The updater is
-    // native, so nothing should leave the page at all.
-    const external: string[] = [];
-    await context.route('**/*', (route) => {
-      const url = route.request().url();
-      if (!url.startsWith('http://localhost:1420') && !url.startsWith('data:')) {
-        external.push(url);
-      }
-      return route.continue();
-    });
-
-    await page.reload();
-    await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
-    await page.getByRole('tab', { name: 'Chords' }).click();
-
-    expect(external, `the UI reached out to: ${external.join(', ')}`).toEqual([]);
-  });
-
   test('fonts are bundled, not fetched from a CDN', async ({ page }) => {
     const fontUrls = await page.evaluate(() =>
       performance

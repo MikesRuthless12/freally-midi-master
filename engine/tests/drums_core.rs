@@ -10,7 +10,23 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use engine::context::SessionContext;
-use engine::generators::drums::{can_read_perc_placement, generate, SnarePlacement, PERC_LANES};
+use engine::generators::drums::{
+    can_read_perc_placement, generate, is_perc_lane, SnarePlacement, PERC_LANES,
+};
+use engine::generators::read;
+
+/// What a model authored in `drums.percs.lanes`.
+///
+/// ⛔ **Through `read::block` and `read::strings`, which is how the generator
+/// itself reads this field** (`drums.rs`: `strings(block(drums, "percs"),
+/// "lanes")`). Spelling the walk out by hand here looked equivalent and was not:
+/// `read::block` treats an explicit `null` as *absent*, which is how a model
+/// switches off something `_defaults` gave it. A hand-rolled `.get()` chain
+/// reads `"percs": null` as a block that is present, so the test and the
+/// generator would disagree about the one case the helper exists for.
+fn authored_perc_lanes(model: &StyleModel) -> Vec<String> {
+    read::strings(read::block(model.blocks.get("drums"), "percs"), "lanes")
+}
 
 /// The perc lanes spelled the way the dataset spells them.
 ///
@@ -582,13 +598,8 @@ fn every_percussion_lane_the_engine_ships_is_reachable_from_the_dataset() {
         let drums = model.blocks.get("drums");
         let percs = drums.and_then(|d| d.get("percs"));
 
-        for lane in percs
-            .and_then(|p| p.get("lanes"))
-            .and_then(Value::as_array)
-            .map(|a| a.iter().filter_map(Value::as_str).collect::<Vec<_>>())
-            .unwrap_or_default()
-        {
-            *named.entry(lane.to_owned()).or_default() += 1;
+        for lane in authored_perc_lanes(&model) {
+            *named.entry(lane).or_default() += 1;
         }
         for flag in ["tambourine", "tambourineMirrorsClap"] {
             if percs.and_then(|p| p.get(flag)).and_then(Value::as_bool) == Some(true) {
@@ -621,6 +632,54 @@ fn every_percussion_lane_the_engine_ships_is_reachable_from_the_dataset() {
     assert!(
         off_snare > 0,
         "`Lane::OffSnare` ships with no model authoring `drums.snare.offSnare`"
+    );
+}
+
+#[test]
+fn every_authored_perc_lane_is_one_the_engine_writes() {
+    // ⛔⛔ **THE INVERSE OF THE TEST ABOVE, AND IT WAS THE OPEN DIRECTION.**
+    // `every_percussion_lane_the_engine_ships_is_reachable_from_the_dataset`
+    // asks *"can every lane the engine ships be reached?"* — engine → dataset.
+    // Nothing asked the other way, and the other way is where the silence is:
+    // `percs()` filters `lanes` through `PERC_LANES`, so a name that is a real
+    // `Lane` but not a **perc** lane is dropped between the dataset and the
+    // grid with no error, no finding and no gate.
+    //
+    // ⛔ **That is not hypothetical — it found four shipped models.**
+    // `john-mayer` and `maroon-5` asked for `pedalHat`; `chris-dave` and
+    // `robert-glasper` asked for `rideBell`. Both lanes had a GM note, a
+    // humanize stream, a kit pad and a lane bit, so every other gate was green.
+    // It is the same failure the constant's own history records for
+    // `woodblock`, which "vanished twice over" — arriving a second time because
+    // the first fix was a lane rather than a check.
+    //
+    // ⚠ **A typo is caught by the same assertion, and that is the point.**
+    // `"shakerr"` and `"pedalHat"` fail here identically, because from the
+    // generator's side they are the same event: a name it will not write.
+    //
+    // ▶ **This is the SHIPPED half.** A community model gets the same check at
+    // `dataset:validate` time, through the `percs` lint in
+    // `engine/src/dataset/validate.rs` — which reads the same `PERC_LANES`, so
+    // there is one list and no copy for anything to keep honest.
+    // ⛔ **`is_perc_lane`, not a set rebuilt from `PERC_LANES` here.** This test
+    // and the `dataset:validate` lint promise the same thing, and the promise is
+    // only worth anything if both ask the *shipping* code rather than each
+    // deriving its own answer — a second derivation agreeing today is what makes
+    // it invisible when it stops.
+    let mut refused: BTreeMap<String, Vec<String>> = BTreeMap::new();
+
+    for (id, model) in shipped() {
+        for lane in authored_perc_lanes(&model) {
+            if !is_perc_lane(&lane) {
+                refused.entry(lane).or_default().push(id.clone());
+            }
+        }
+    }
+
+    assert!(
+        refused.is_empty(),
+        "these models name a `drums.percs.lanes` entry the engine silently drops \
+         — either the lane belongs in `PERC_LANES` or the model has a typo: {refused:#?}"
     );
 }
 

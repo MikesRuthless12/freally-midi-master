@@ -143,6 +143,27 @@ pub const PERC_LANES: &[Lane] = &[
     Lane::Riser,
     Lane::Impact,
     Lane::Reverse,
+    // ── TASK-140, second pass ────────────────────────────────────────────
+    //
+    // ⛔⛔ **Four shipped models were already asking for these two and being
+    // silently refused**, which is the `woodblock` failure this list's own
+    // history records, happening again while nothing looked: `john-mayer` and
+    // `maroon-5` name `pedalHat`, `chris-dave` and `robert-glasper` name
+    // `rideBell`. Both are real `Lane` arms with a GM note (`midi.rs`: 44 and
+    // 53), a humanize stream, a kit pad and a lane bit — but `percs()` filters
+    // `lanes` through **this** list, so the request was dropped between the
+    // dataset and the grid with nothing on any gate saying so.
+    //
+    // ⚠ **They belong here on the rule this list already states**, not as an
+    // exception to it: the kick, snare and hats are excluded because each has
+    // an authored block and a placement grammar of its own. A pedal hat and a
+    // ride bell have neither — their whole behaviour is "sprinkle hits at this
+    // density", which is the membership test.
+    //
+    // ▶ Found by measuring the dataset against this constant rather than by
+    // reading either one. That check is now `every_authored_perc_lane_is_one_the_engine_writes`.
+    Lane::PedalHat,
+    Lane::RideBell,
 ];
 
 /// Where the snare lands, bar by bar (PRD § 3, research ch. 1).
@@ -2122,6 +2143,28 @@ impl PercPlacement {
     }
 }
 
+/// The `Lane` a `percs.lanes` entry names, if the generator will write it.
+///
+/// ⛔⛔ **THE ONE PLACE THE MEMBERSHIP RULE IS SPELLED, and it has to be the one
+/// [`percs`] itself uses.** The first cut wrote the rule twice — `percs` filtered
+/// inline and this answered separately — which reads as harmless because the two
+/// spellings agree today. They agree *by coincidence*: a lane later gated on
+/// something else (a kit pad, a tier) would be added to the generator's filter
+/// and not to this one, and the lint and the test that both derive their promise
+/// from this function would go on passing while the layer went silent. That is
+/// the exact failure this whole check exists to catch, one level up.
+///
+/// ⚠ `dataset::validate` refuses a lane that would be dropped in silence — see
+/// [`can_read_perc_placement`], which exists for the same reason one field over.
+fn perc_lane(name: &str) -> Option<Lane> {
+    lane_by_name(name).filter(|lane| PERC_LANES.contains(lane))
+}
+
+/// Is this `percs.lanes` entry one the generator will write?
+pub fn is_perc_lane(name: &str) -> bool {
+    perc_lane(name).is_some()
+}
+
 /// Is this `percs.placement` one the generator can act on?
 pub fn can_read_perc_placement(name: &str) -> bool {
     PercPlacement::parse(name).is_some()
@@ -2152,10 +2195,13 @@ fn percs(
 ) {
     let percs = block(drums, "percs");
 
+    // ⛔ **Through `perc_lane`, not an inline filter.** See its own note: the
+    // lint and the shipped-corpus test both promise that what the dataset names
+    // is what this writes, and that promise is only true while there is one
+    // spelling of the rule.
     let lanes: Vec<Lane> = strings(percs, "lanes")
         .iter()
-        .filter_map(|name| lane_by_name(name))
-        .filter(|lane| PERC_LANES.contains(lane))
+        .filter_map(|name| perc_lane(name))
         .collect();
 
     // ⚠ The tambourine is authored as its own flag rather than through `lanes`

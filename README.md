@@ -192,10 +192,13 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   or as audio — or turn on **Per lane** and drag just the hats out. The whole
   arrangement drags too. Files arrive named the way you would name them
   (`trap - Snare - 140 BPM - C# Minor`), and the clip's own notes ride on the
-  cursor so you can see what you picked up. Click a part's **MIDI** or **Audio**
+  cursor so you can see what you picked up — drag the whole arrangement and the
+  cursor carries a miniature of it instead, one row per part with each section's
+  clip at the bar it will land on. Click a part's **MIDI** or **Audio**
   chip and you get a menu of every instrument playing in it — drag just the hats,
   or **All Tracks** to take every lane out at once as separate files. Hold
-  **Ctrl** as you drop to stack them instead of laying them end to end.
+  **Ctrl** (**Command** on macOS) as you drop to stack them instead of laying
+  them end to end; the picture on the cursor shows that layout too.
   ⚠ **Windows is the one a human has actually dropped into Ableton.** An HTML5
   drag inside a plugin's webview is not an operating-system file drag, so each
   platform needs its own native drag source; macOS (`NSDraggingSession`) and
@@ -252,9 +255,23 @@ transmitted. Generation, playback, import, and export are entirely local.
 **The plugin makes no outbound connections at all.** The two that used to exist — a
 launch-time update check and an opt-in crash report — belonged to the desktop shell
 and were removed with it; a plugin is installed and updated by whoever installs
-plugins, and the host owns that. `scripts/check-denylist.mjs` gates this rather than
-asserting it: no HTTP client is linked into the binary at all, so the allowlist that
-used to carry `reqwest` and `hyper` is now empty. Details in [EULA.md](EULA.md) § 5.
+plugins, and the host owns that.
+
+Two gates enforce this rather than asserting it, and they cover different halves:
+`scripts/check-denylist.mjs` reads the **dependency graph** — no HTTP client is
+linked into the binary at all, so the allowlist that used to carry `reqwest` and
+`hyper` is now empty — while `e2e/offline.spec.ts` drives the real UI through a
+generation and fails if the browser attempts a single request, websocket or script
+load off the machine. The first cannot see code we wrote ourselves calling `fetch`;
+the second cannot see the Rust process. Neither alone is the claim.
+
+**Crash reports are written to disk and never sent anywhere.** If the plugin or the
+page falls over, a log lands in the `crashes/` folder beside your presets —
+`%APPDATA%\Freally MIDI Master\` on Windows, `~/Library/Application Support/Freally
+MIDI Master/` on macOS, `$XDG_DATA_HOME/freally-midi-master/` on Linux — for you to
+attach to a bug report if you choose to. Nothing reads that folder but you.
+
+Details in [EULA.md](EULA.md) § 5.
 
 ## Building from source
 
@@ -273,9 +290,20 @@ npm run ci:local            # every gate, with CI's own environment
 
 The release standalone is `target/release/standalone.exe` and can simply be
 double-clicked: it supplies its own audio period size rather than needing a flag,
-and opens no console window behind itself. If it ever dies, it appends a stack
-trace to `%APPDATA%\Freally MIDI Master\standalone-crash.log` — and
-`NIH_LOG=some\file.log` brings the whole log back without a rebuild.
+and opens no console window behind itself. If it ever dies, the report lands in
+`%APPDATA%\Freally MIDI Master\crashes\` — one folder for all three ways it can
+go, so nobody has to be told which file to look in:
+
+| Filename | What fell over |
+| --- | --- |
+| `crash-<seconds>-panic.log` | A Rust panic, with a backtrace |
+| `crash-<seconds>-fault.log` | A hardware fault, e.g. an access violation (Windows) |
+| `crash-<seconds>-page.log`  | A React render throw in the UI |
+
+The newest twenty are kept. A page throw also shows a pane in the plugin window
+with a way back, instead of leaving a dead rectangle inside your project, so the
+UI falling over no longer costs you the session. `NIH_LOG=some\file.log` still
+brings nih-plug's own log back without a rebuild.
 
 **`npm run build` must run before any cargo build**, because the plugin compiles
 the built UI and the dataset into its binary — a plugin has no resource directory
