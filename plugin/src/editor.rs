@@ -1017,6 +1017,41 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             );
         }
 
+        // Tags — the other half of TASK-058C (2026-08-22).
+        //
+        // ⚠ **The whole store, not one file's tags.** The entry asks to filter
+        // the tree by tag, so the page needs every tagged path anyway; answering
+        // per row would be `MAX_ENTRIES` bridge round-trips each time a branch
+        // opens, for a map `tags::MAX_TAGGED` bounds at 500 rows.
+        "tags_list" => {
+            return Some(serde_json::to_value(crate::tags::list()).map_err(|e| e.to_string()));
+        }
+
+        // ⛔⛔ **Containment HERE, where the explorer is in scope**, for exactly
+        // the reason `favourites_add` below states: `tags::set` has no reference
+        // to the library, so this is the only place that can refuse a path the
+        // browser would never list.
+        //
+        // ⚠ **No containment check on the way to clearing**, the same asymmetry
+        // favourites keeps: a folder removed from the library must still leave
+        // its files un-taggable-out, or tidying your roots would make a tag
+        // permanent. An empty list is `tags::set`'s remove.
+        "tags_set" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            let tags: Vec<String> =
+                match serde_json::from_value(request.args["tags"].clone()) {
+                    Ok(tags) => tags,
+                    Err(error) => return Some(Err(format!("that is not a tag list: {error}"))),
+                };
+            if !tags.is_empty() && !shared.explorer.contains(std::path::Path::new(path)) {
+                return Some(Err("that file is not in your sample library".into()));
+            }
+            return Some(
+                crate::tags::set(path, &tags)
+                    .and_then(|list| serde_json::to_value(list).map_err(|e| e.to_string())),
+            );
+        }
+
         // ── The browser's history (TASK-058) ─────────────────────────────
         //
         // ⛔ Read-only from the page. Nothing adds to the history over the

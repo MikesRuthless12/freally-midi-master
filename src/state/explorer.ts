@@ -111,6 +111,41 @@ export type Favourite = {
 };
 
 /**
+ * One tagged file (TASK-058C). Mirrors `tags::Tagged`.
+ *
+ * ⛔ **Keyed by path for the same reason [`Favourite`] is, plus one of its own:**
+ * the entry asks to filter the tree *by tag*, so a row that can be filtered out
+ * is a row whose tags had to be known — which is the per-row hashing
+ * `plugin/src/tags.rs` refuses. A tagged file that moves loses its tags.
+ */
+export type Tagged = {
+  path: string;
+  tags: string[];
+};
+
+/** The plugin's list, as the map the tree reads per row. */
+const byPath = (tagged: Tagged[]): Record<string, string[]> =>
+  Object.fromEntries(tagged.map((entry) => [entry.path, entry.tags]));
+
+/**
+ * Every tag in use, sorted, for the `Add…` field to complete against.
+ *
+ * ⚠ **Case-insensitive, keeping the first spelling** — the same rule
+ * `tags::clean` applies on the Rust side, so the list a producer completes
+ * against is the list the store will actually hold.
+ */
+export function vocabularyOf(tags: Record<string, string[]>): string[] {
+  const seen = new Map<string, string>();
+  for (const list of Object.values(tags)) {
+    for (const tag of list) {
+      const key = tag.toLowerCase();
+      if (!seen.has(key)) seen.set(key, tag);
+    }
+  }
+  return [...seen.values()].sort((a, b) => a.localeCompare(b));
+}
+
+/**
  * One file the browser opened lately (TASK-058). Mirrors `recent::Recent`.
  *
  * ⚠ **The same shape as [`Favourite`] deliberately**, so one row component draws
@@ -378,9 +413,22 @@ export function flattenTree(
     children: Record<string, ExplorerEntry[]>;
     truncatedIn: string[];
     query: string;
+    /**
+     * The only file paths that may be drawn, or `null` for "no such filter"
+     * (TASK-058C).
+     *
+     * ⛔⛔ **A folder never satisfies this on its own name, and that is what
+     * "composable" means.** `query` lets a matching folder bring its whole
+     * subtree — typing "Kicks" is how you get to the kicks — but a tag or star
+     * filter is a statement about *files*, so a folder called `808s` must not
+     * re-admit the untagged files inside it. A folder survives only by holding
+     * something that did.
+     */
+    only?: Set<string> | null;
   },
 ): TreeRow[] {
   const needle = view.query.trim().toLowerCase();
+  const only = view.only ?? null;
   const line = (path: string, depth: number, note: NonNullable<TreeRow['note']>): TreeRow => ({
     key: `${path}|${note}`,
     depth,
@@ -393,7 +441,14 @@ export function flattenTree(
     const open = entry.isDir && view.expanded.some((held) => samePath(held, entry.path));
     // ⚠ `forced` is how a matching folder brings its whole subtree: once a
     // folder's own name has matched, everything under it is shown regardless.
-    const hit = forced || needle === '' || entry.name.toLowerCase().includes(needle);
+    const named = forced || needle === '' || entry.name.toLowerCase().includes(needle);
+    // ⛔ While a tag or star filter is on, a **folder** is never a hit in its own
+    // right — see `only`. It is drawn because something under it is, and
+    // `forced` therefore never turns on, so the filter cannot be widened by a
+    // folder's name.
+    const hit = entry.isDir
+      ? named && only === null
+      : named && (only === null || only.has(entry.path));
     const kids = open ? view.children[entry.path] : undefined;
 
     const under: TreeRow[] = [];
@@ -612,6 +667,15 @@ type ExplorerStore = {
    * the tree re-renders on every refresh. Built once where the list is written.
    */
   starred: Set<string>;
+  /**
+   * Every tagged file, as path → tags (TASK-058C).
+   *
+   * ⚠ **A map rather than the `Tagged[]` the plugin answers with**, for the
+   * reason `starred` is a `Set`: the tree asks it per row, and
+   * `tagged.find(…)` over 500 entries on each of 2,000 rows is a million
+   * comparisons a render. Converted once where the list is written.
+   */
+  tags: Record<string, string[]>;
   waveform: Waveform | null;
   position: PreviewPosition;
   error: string | null;
@@ -633,6 +697,17 @@ type ExplorerStore = {
   collapse: (path: string) => void;
   /** Show a different library folder's tab. */
   setActiveRoot: (path: string) => void;
+  /** Read the tag store. ⚠ At mount and after an edit — never on the poll. */
+  loadTags: () => Promise<void>;
+  /**
+   * Set a file's tags to exactly this list (TASK-058C).
+   *
+   * ⚠ **The whole list, not add/remove.** The plugin normalises — trims,
+   * deduplicates case-insensitively, bounds the count — so a page that sent one
+   * tag at a time would be guessing at what the store did with the last one.
+   * An empty list removes the file from the store.
+   */
+  setTags: (path: string, tags: string[]) => Promise<void>;
   /** Star a file, or unstar it if it already is. */
   toggleFavourite: (path: string) => Promise<void>;
   /**
@@ -696,6 +771,7 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
   favourites: [],
   recent: [],
   starred: new Set(),
+  tags: {},
   midiSplit: null,
   audioSplit: null,
   extracting: null,
@@ -750,6 +826,35 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
       set({ favourites, starred: new Set(favourites.map((held) => held.path)) });
     } catch {
       // No stars is not a broken browser — the listing is unaffected.
+    }
+  },
+
+  /**
+   * Read the tag store from disk (TASK-058C).
+   *
+   * ⚠ **Not inside `refresh`, for the reason `loadFavourites` gives above.**
+   * `refresh` runs on the folder-dialog poll — every 400 ms for as long as a
+   * producer browses — and the tag store changes only when somebody edits a
+   * chip. `setTags` is handed the fresh store back, so this is needed at mount
+   * and nowhere else.
+   */
+  async loadTags() {
+    try {
+      set({ tags: byPath(await invoke<Tagged[]>('tags_list')) });
+    } catch {
+      // No tags is not a broken browser — the listing is unaffected.
+    }
+  },
+
+  async setTags(path, tags) {
+    set({ error: null });
+    try {
+      // The plugin answers with the whole store rather than an acknowledgement,
+      // so the page never has to guess what its own write produced — the shape
+      // `favourites_add` and `kits_save` both use.
+      set({ tags: byPath(await invoke<Tagged[]>('tags_set', { path, tags })) });
+    } catch (error) {
+      set({ error: reason(error) });
     }
   },
 

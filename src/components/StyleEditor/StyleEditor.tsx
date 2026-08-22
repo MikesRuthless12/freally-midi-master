@@ -30,6 +30,17 @@ import './StyleEditor.css';
 const MIN_KEPT = 30;
 
 /**
+ * The most moods one workflow may be trained in (TASK-040T).
+ *
+ * ⛔ **Mike named the number**, 2026-07-29: *"based on only a single genre/mood
+ * that they specify or maybe 2-3 moods"*. It is a limit on the producer's own
+ * declaration rather than on the engine — `engine::fit` records whatever list it
+ * is handed — because a workflow trained across five moods is a genre, which is
+ * the same argument `fit`'s own doc makes for taking one base and not two.
+ */
+const MAX_MOODS = 3;
+
+/**
  * Build a style of your own, save it, and generate from it (TASK-040U).
  *
  * ⛔ **A user model is a `StyleModel` in the same schema `datasetc` validates**,
@@ -187,31 +198,7 @@ export function StyleEditor({
   // allocated and thrown away per character.
   const kept = useVariations((s) => s.kept);
   const entries = useVariations((s) => s.entries);
-  const keptTakes = useMemo(
-    () =>
-      Object.values(entries)
-        .flat()
-        .filter((entry) => kept[keptKey(entry.part, entry.seed)]),
-    [entries, kept],
-  );
-  // ⛔ **A kept file counts as the patterns it holds, not as one file**
-  // (TASK-040T). `engine::fit::MIN_KEPT` is a floor on the number of *patterns*
-  // measured — its own doc says thirty is where "a single kept outlier sets a
-  // range's edge" stops being true — so counting a four-part `.mid` as one would
-  // put a number in front of the producer that the engine does not use.
-  //
-  // ⚠ **Counted through `patternsIn`, which is what `keptFilePatterns()` — the
-  // set actually sent to `user_model_train` — is built from.** Re-deriving the
-  // sum here meant the number in front of the producer and the training set were
-  // two expressions: any future change to one, deduping identical patterns
-  // across files say, would have made the readout lie. Passing the subscribed
-  // map rather than reading `getState()` inside keeps the memo's dependency real
-  // as well as its answer.
   const keptFiles = useVariations((s) => s.keptFiles);
-  const keptCount = useMemo(
-    () => keptTakes.length + patternsIn(keptFiles).length,
-    [keptTakes, keptFiles],
-  );
 
   /**
    * The draft as the dialog opened it — seeded from the session, then frozen.
@@ -237,6 +224,61 @@ export function StyleEditor({
     };
   });
   const [draft, setDraft] = useState<Draft>(opened);
+
+  /**
+   * The kept takes this training run will measure.
+   *
+   * ⛔⛔ **Narrowed to the declared moods, and without that the mood picker is
+   * decoration** (TASK-040T). Declaring a mood and then fitting every kept take
+   * regardless would put a name on a model whose numbers did not come from it —
+   * the readout-that-lies failure this repo keeps recording. Declaring nothing
+   * measures everything, which is the honest reading of "I did not say".
+   *
+   * ⚠ **A take generated on "Any" carries `mood: null` and is therefore
+   * excluded once anything is declared.** The engine did pick a mode from the
+   * seed, but the log does not record which — so counting it as being in the
+   * producer's mood would be a guess presented as provenance.
+   * `styles.moodsHint` says so where the checkboxes are.
+   *
+   * ⚠ **Declared below `draft` rather than beside the two store slices it also
+   * reads**, because `draft` is a `useState` and a memo above it would be a
+   * temporal-dead-zone throw on first render rather than a stale value.
+   */
+  const keptTakes = useMemo(
+    () =>
+      Object.values(entries)
+        .flat()
+        .filter((entry) => kept[keptKey(entry.part, entry.seed)])
+        .filter(
+          (entry) =>
+            draft.moods.length === 0 ||
+            (entry.mood !== null && draft.moods.includes(entry.mood)),
+        ),
+    [entries, kept, draft.moods],
+  );
+  // ⛔ **A kept file counts as the patterns it holds, not as one file**
+  // (TASK-040T). `engine::fit::MIN_KEPT` is a floor on the number of *patterns*
+  // measured — its own doc says thirty is where "a single kept outlier sets a
+  // range's edge" stops being true — so counting a four-part `.mid` as one would
+  // put a number in front of the producer that the engine does not use.
+  //
+  // ⚠ **Counted through `patternsIn`, which is what `keptFilePatterns()` — the
+  // set actually sent to `user_model_train` — is built from.** Re-deriving the
+  // sum here meant the number in front of the producer and the training set were
+  // two expressions: any future change to one, deduping identical patterns
+  // across files say, would have made the readout lie. Passing the subscribed
+  // map rather than reading `getState()` inside keeps the memo's dependency real
+  // as well as its answer.
+  //
+  // ⚠ **A kept FILE is never narrowed by the declared moods.** A file was not
+  // generated in one, which `trainFromKept` already says at the point it adds
+  // them — so filtering them out would drop the producer's own material for
+  // failing to carry provenance it could not have.
+  const keptCount = useMemo(
+    () => keptTakes.length + patternsIn(keptFiles).length,
+    [keptTakes, keptFiles],
+  );
+
   /**
    * Whether there was a beat on screen when this dialog opened.
    *
@@ -249,6 +291,11 @@ export function StyleEditor({
     () => Object.keys(useSession.getState().patterns).length > 0,
   );
   const [offered, setOffered] = useState<Scale[]>([]);
+  // The base's own moods, which is what the mood picker may offer (TASK-040T).
+  // Same rule as the scales one line up: a workflow trains in a mood its base
+  // actually records in, or "artist-accurate" stops being true at the moment
+  // the producer is deciding what their style is.
+  const [offeredMoods, setOfferedMoods] = useState<string[]>([]);
   // ⛔ **What copying this style's samples would cost, and whether the producer
   // said yes.** Mike, 2026-08-09: *"ensure that the end user knows that creating
   // their own original artist adds copies of samples … and ensure that they want
@@ -272,22 +319,31 @@ export function StyleEditor({
     ];
   }, [roster]);
 
-  // The base's own scales, which is what the picker may offer.
+  // The base's own scales and moods, which is what the two pickers may offer.
   useEffect(() => {
     let live = true;
     void invoke<SessionDefaults>('session_defaults', { styleId: draft.basedOn })
       .then((defaults) => {
         if (!live) return;
+        const moods = defaults.moods ?? [];
         setOffered(defaults.scales);
+        setOfferedMoods(moods);
         // Anything chosen that this base does not record in is dropped rather
         // than carried silently — the constraint has to survive changing base.
+        // ⚠ **The moods go the same way, and for a sharper reason than the
+        // scales do**: a mood the new base does not offer would narrow the kept
+        // set to nothing, so the count would fall to `0 / 30` with no control on
+        // screen explaining which tick did it.
         setDraft((current) => ({
           ...current,
           scales: current.scales.filter((scale) => defaults.scales.includes(scale)),
+          moods: current.moods.filter((mood) => moods.includes(mood)),
         }));
       })
       .catch(() => {
-        if (live) setOffered([]);
+        if (!live) return;
+        setOffered([]);
+        setOfferedMoods([]);
       });
     return () => {
       live = false;
@@ -429,16 +485,23 @@ export function StyleEditor({
       // is no seed that rebuilds somebody else's file.
       kept.push(...useVariations.getState().keptFilePatterns());
 
-      // ⚠ **Only the takes carry a mood.** A file was not generated in one, and
-      // recording a mood it does not have would be provenance nobody could act
-      // on. An all-file training set therefore trains in no named mood, which is
-      // the honest answer rather than a missing one.
-      const moods = [...new Set(keptTakes.map((take) => take.mood).filter((m) => m !== null))];
+      // ⛔⛔ **The moods the producer DECLARED, not the ones the kept set turned
+      // out to hold** (TASK-040T). This read `keptTakes.map(take => take.mood)`,
+      // which answers "what did you generate" rather than "what is this
+      // workflow" — a style trained on twenty dark takes and one bounce recorded
+      // itself as both, and a producer who had pinned nothing got a model whose
+      // provenance line said "no particular mood" however deliberate they had
+      // been. `keptTakes` is already narrowed to these, so the sentence
+      // `engine::fit` writes and the patterns it measures now name one set.
+      //
+      // ⚠ **Declaring nothing still trains in no named mood**, and that is the
+      // honest answer rather than a missing one: an all-file training set has no
+      // mood to record either, because a file was not generated in one.
       const entry = await invoke<RosterEntry>('user_model_train', {
         id,
         name: draft.name.trim(),
         base: draft.basedOn,
-        moods,
+        moods: draft.moods,
         kept,
       });
       await refreshRoster();
@@ -637,6 +700,46 @@ export function StyleEditor({
             ))}
             <small>{t('styles.scalesHint', { name: baseName })}</small>
           </fieldset>
+
+          {/* ⛔⛔ **The moods, chosen BEFORE generating** (TASK-040T). Mike,
+              2026-07-29: *"based on only a single genre/mood that they specify or
+              maybe 2-3 moods"*. The genre half of that was already here — it is
+              `basedOn` — and the moods were read back off whatever happened to be
+              kept, which is the opposite of specifying them.
+
+              ⚠ **Three, and the fourth checkbox is disabled rather than absent.**
+              A control that vanishes when you reach a limit does not say there
+              was one; a disabled one does, in the place the producer is looking.
+
+              ⚠ **Drawn only when the base offers moods at all.** An empty
+              fieldset with a hint naming a base that has no moods is a control
+              that can only fail — the same rule the "use selected" button
+              follows for a `.mid`. */}
+          {offeredMoods.length > 0 && (
+            <fieldset className="styleeditor__field styleeditor__choice">
+              <legend>{t('styles.moods')}</legend>
+              {offeredMoods.map((mood) => {
+                const on = draft.moods.includes(mood);
+                return (
+                  <label key={mood}>
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      disabled={!on && draft.moods.length >= MAX_MOODS}
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          moods: withToggled(draft.moods, mood, e.target.checked),
+                        })
+                      }
+                    />
+                    {mood}
+                  </label>
+                );
+              })}
+              <small>{t('styles.moodsHint', { count: MAX_MOODS })}</small>
+            </fieldset>
+          )}
 
           {/* ⛔⛔ **The four blocks TASK-040U's entry named**: *"they cannot yet
               reach roll vocabulary, snare placement, 808 behaviour or progression
@@ -949,6 +1052,14 @@ function draftFrom(model: Record<string, unknown>): Draft {
     melodyMin: melody.densityPerBar?.[0] ?? BLANK.melodyMin,
     melodyMax: melody.densityPerBar?.[1] ?? BLANK.melodyMax,
     scales: scales.values ?? [],
+    // ⛔ **A reopened style declares no moods, and that is deliberate**
+    // (TASK-040T). The declaration belongs to a training *run*, not to the file:
+    // `modelFrom` writes no moods, and the only place they survive is the
+    // sentence `engine::fit` puts in `notes` — which is prose for a human, so
+    // parsing a list back out of it would be a guess dressed as a read-back.
+    // The schema is `additionalProperties: false`, so the alternative is a new
+    // field on all 1,300 models to carry one dialog's state.
+    moods: [],
     // ⚠ **Absent reads back as unset, not as a default** — the same distinction
     // the write side keeps. A saved style that never chose a snare placement must
     // reopen still inheriting one, or opening and saving would author it.

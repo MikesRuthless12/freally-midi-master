@@ -11,6 +11,22 @@ export type Draft = {
   melodyMax: number;
   scales: Scale[];
   /**
+   * The moods this workflow is trained in, declared BEFORE generating
+   * (TASK-040T).
+   *
+   * ⛔⛔ **Declared rather than derived, and that is the whole of the remaining
+   * ask.** Mike, 2026-07-29: *"based on only a single genre/mood that they
+   * specify or maybe 2-3 moods"*. `trainFromKept` read the moods back off
+   * whatever the producer happened to have kept, which answers "what did you
+   * generate" and not "what is this workflow" — a style trained on twenty dark
+   * takes and one bounce recorded itself as both.
+   *
+   * ⚠ **Capped at three by the form, not here.** The cap is a rule about how
+   * much a producer can hold in their head; a draft read back off disk with
+   * four is still a legible draft.
+   */
+  moods: string[];
+  /**
    * The four blocks TASK-040U's entry named as unreachable (2026-08-15).
    *
    * ⛔ **Every one of them is optional, and "unset" means INHERIT rather than
@@ -40,6 +56,7 @@ export const BLANK: Draft = {
   melodyMin: 3,
   melodyMax: 7,
   scales: [],
+  moods: [],
   snare: '',
   rolls: [],
   bassRole: '',
@@ -63,8 +80,14 @@ export const BLANK: Draft = {
  * ⛔ **`name` and `basedOn` are not in it either.** A name is a label on
  * content, not content; and choosing a different base picks *which* thing is
  * being restated, not what is being said over it.
+ *
+ * ⛔ **`moods` is not content for the same reason `scales` is not.** The moods
+ * the form offers are the base's own, so ticking one restates the base — and
+ * `save()` writes none of them anyway: they reach a model only through
+ * `engine::fit`, which records them as provenance on a *trained* style. A mood
+ * ticked with nothing generated behind it has produced no style to save.
  */
-const NOT_CONTENT = new Set<keyof Draft>(['name', 'basedOn', 'scales']);
+const NOT_CONTENT = new Set<keyof Draft>(['name', 'basedOn', 'scales', 'moods']);
 
 /**
  * Whether this draft says nothing its base does not already say.

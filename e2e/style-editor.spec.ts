@@ -1,5 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
-import { pickArtist, rosterBox } from './app';
+import { openPanel, pickArtist, rosterBox } from './app';
 
 /**
  * Original Workflow — build a style of your own, save it, generate from it
@@ -185,6 +185,65 @@ test('training says how far short the kept set is, rather than going dead', asyn
 
   await expect(dialog.locator('.styleeditor__kept')).toContainText('1 / 30');
   await expect(dialog.getByRole('button', { name: 'Train' })).toBeDisabled();
+});
+
+test('⛔ the moods are declared, and only takes pinned to one of them are counted', async ({
+  page,
+}) => {
+  // ⛔⛔ **The last clause of TASK-040T.** Mike, 2026-07-29: *"based on only a
+  // single genre/mood that they specify or maybe 2-3 moods"*. The moods used to
+  // be read back off whatever happened to be kept, which answers "what did you
+  // generate" rather than "what is this workflow" — so a style trained on twenty
+  // dark takes and one bounce recorded itself as both.
+  //
+  // ⚠ **What a browser can prove is the narrowing, and the count is the
+  // readout of it.** `keptTakes` is both what the number counts and what
+  // `user_model_train` is sent, so a count that moves is the training set
+  // moving. The fit itself is Rust and is measured there.
+  await pickArtist(page, 'Mock Artist');
+  // ⛔ The mood chip lives in the session panel, which is behind a vertical tab.
+  await openPanel(page, 'session');
+
+  // One take with a mood pinned...
+  const mood = page.getByRole('combobox', { name: 'Mood' });
+  await mood.click();
+  await page.getByRole('option', { name: 'dark', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
+  const star = page.getByRole('button', { name: 'Keep this take for training' });
+  await star.click();
+  await expect(star).toHaveAttribute('aria-pressed', 'true');
+
+  // ...and one back on "the artist's", which records `mood: null` because the
+  // log does not know which mode the seed picked.
+  // ⚠ The panel is re-opened rather than assumed: generating swaps the rail to
+  // what it just produced, which is the right behaviour and closes this one.
+  await openPanel(page, 'session');
+  await mood.click();
+  await page
+    .getByRole('option', { name: /artist’s$/ })
+    .first()
+    .click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
+  await star.click();
+  await expect(star).toHaveAttribute('aria-pressed', 'true');
+
+  await page.getByRole('button', { name: /Original Workflow/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Style editor' });
+  const count = dialog.locator('.styleeditor__kept');
+
+  // Declaring nothing measures everything — the honest reading of "I did not
+  // say", and the behaviour before this change.
+  await expect(count).toContainText('2 / 30');
+
+  // Declaring `dark` drops the unpinned take, because it cannot be shown to be
+  // in that mood.
+  await dialog.getByLabel('dark', { exact: true }).check();
+  await expect(count).toContainText('1 / 30');
+
+  // ⚠ And the cap is a disabled fourth box rather than a vanishing one, so the
+  // limit is visible where the producer is looking. The mock offers two moods,
+  // so both stay reachable at a cap of three.
+  await expect(dialog.getByLabel('bounce', { exact: true })).toBeEnabled();
 });
 
 test('saving copies no samples unless the producer says so', async ({ page }) => {
