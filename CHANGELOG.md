@@ -66,6 +66,18 @@ not use is a false statement about where the product's numbers came from.
   else was visual.
 - **New clips open at your own length** (TASK-090). A preference for a *new*
   instance; a project keeps the length the host restored.
+- **The moods are declared before training, not inferred after it** (TASK-040T).
+  `trainFromKept` read them back off `keptTakes`, which answers *"what did you
+  generate"* rather than *"what is this workflow"* — a style trained on twenty
+  dark takes and one bounce recorded itself as both, and a producer who pinned
+  nothing got "no particular mood" however deliberate they had been. Declaring
+  them narrows the kept set, so the `18 / 30 kept` readout cannot disagree with
+  what is sent. ⚠ A take generated on "the artist's" carries `mood: null` and
+  drops out once anything is declared: the engine picked a mode from the seed but
+  does not record which, so counting it would be a guess presented as provenance.
+- **Fourteen more underground artists** (TASK-079) — rage, opium and jerk, taking
+  the roster to **1,317 models**. Two of the sixteen in the batch already had
+  entries and were revised rather than added.
 
 ### Added — three gates that close holes nothing was watching
 
