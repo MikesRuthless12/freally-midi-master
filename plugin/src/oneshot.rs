@@ -1699,7 +1699,7 @@ mod batch_import_tests {
     }
 
     #[test]
-    fn a_remote_path_is_refused_by_name_rather_than_read() {
+    fn a_remote_path_is_refused_rather_than_read() {
         // The UNC guard `refuse_remote` documents at length, reached through
         // the batch path — and reported rather than silently skipped, which is
         // what `load_many` used to do with it.
@@ -1708,7 +1708,18 @@ mod batch_import_tests {
 
         assert!(loaded.is_empty());
         assert_eq!(refused.len(), 1);
-        assert_eq!(refused[0].name, "kick.wav");
+        // ⛔ **Asserted on the REASON, not on a parsed file name**, which is the
+        // shape `remote_path_tests` already uses and the reason it does: on
+        // macOS and Linux a backslash is an ordinary filename character, so
+        // `Path::file_name` answers the whole string rather than `kick.wav`.
+        // The first cut of this pinned the name and passed on Windows only —
+        // caught by `quality (macos-latest)`, which is exactly the class of
+        // Windows-only assumption this repo has been bitten by before.
+        assert!(
+            refused[0].reason.contains("network path"),
+            "{:?}",
+            refused[0]
+        );
     }
 
     #[test]
