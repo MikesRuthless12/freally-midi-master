@@ -865,6 +865,15 @@ const handlers: Record<string, Handler> = {
         // mock can flip a buffer. What a spec can drive is the drawing, and
         // `PadEditor.test.tsx` sets the flag directly for that.
         reversed: false,
+        // ⚠ **`null` for the same reason** (TASK-052): a root is a
+        // *measurement* of decoded audio, and there is no decoder here. A
+        // fixture that invented one would let the panel be written against a
+        // reading the browser can never produce — the drift the `tweaks` note
+        // above records, one field along.
+        root: null,
+        // ⚠ Same reason: whether a sample can be held is a measurement of
+        // decoded audio, and there is no decoder here.
+        holds: null,
       };
     }),
   }),
@@ -913,6 +922,24 @@ const handlers: Record<string, Handler> = {
     return undefined;
   },
   one_shot_assign: () => undefined,
+  // ⚠ **Present, and just as unable to open a dialog** (TASK-049). A browser
+  // has no native multi-select picker, so this answers the way `one_shot_assign`
+  // does and `one_shot_status` reports cancelled — the honest fixture. Omitting
+  // it entirely would make the button throw *"unknown command"*, which is a
+  // failure the shipped plugin cannot produce.
+  one_shot_add_many: () => undefined,
+  // Undo and redo putting a whole kit back (TASK-050A). ⚠ **It really does
+  // replace**, because that is what the plugin does — a lane the snapshot leaves
+  // out goes back to its shipped sound, and a fixture that merged instead would
+  // make Ctrl+Z look like it worked while leaving a pad the producer had undone.
+  one_shot_set_all: (args?: InvokeArgs) => {
+    const lanes = (args as { lanes?: [string, string, boolean][] } | undefined)?.lanes ?? [];
+    droppedSamples.clear();
+    // ⚠ The direction arrives and is dropped, because nothing here can flip a
+    // buffer — `kit_state` above answers `reversed: false` for the same reason.
+    for (const [lane, path] of lanes) droppedSamples.set(lane, path);
+    return undefined;
+  },
   // ⚠ Forgets a dropped path too, or clearing a pad would leave `kit_state`
   // still reporting the sample the producer just removed — the readout-that-lies
   // failure, arriving through the fixture instead of through the product.

@@ -38,6 +38,8 @@ const KIT = [
     path: null,
     tweaks: untouchedPad(),
     reversed: false,
+    root: null,
+    holds: null,
   },
   {
     lane: 'snare' as const,
@@ -46,6 +48,8 @@ const KIT = [
     path: null,
     tweaks: untouchedPad(),
     reversed: false,
+    root: null,
+    holds: null,
   },
   {
     lane: 'closedHat' as const,
@@ -54,6 +58,8 @@ const KIT = [
     path: 'C:/s/my-hat.wav',
     tweaks: untouchedPad(),
     reversed: false,
+    root: null,
+    holds: null,
   },
   {
     lane: 'snap' as const,
@@ -62,6 +68,8 @@ const KIT = [
     path: null,
     tweaks: untouchedPad(),
     reversed: false,
+    root: null,
+    holds: null,
   },
 ];
 
@@ -169,6 +177,8 @@ describe('the KIT panel says what is actually loaded', () => {
         path: null,
         tweaks: untouchedPad(),
         reversed: false,
+        root: null,
+        holds: null,
       },
       {
         lane: 'chords' as const,
@@ -177,6 +187,8 @@ describe('the KIT panel says what is actually loaded', () => {
         path: 'C:/s/pad.wav',
         tweaks: untouchedPad(),
         reversed: false,
+        root: null,
+        holds: null,
       },
       {
         lane: 'bass' as const,
@@ -185,6 +197,8 @@ describe('the KIT panel says what is actually loaded', () => {
         path: null,
         tweaks: untouchedPad(),
         reversed: false,
+        root: null,
+        holds: null,
       },
       {
         lane: 'counter' as const,
@@ -193,6 +207,8 @@ describe('the KIT panel says what is actually loaded', () => {
         path: null,
         tweaks: untouchedPad(),
         reversed: false,
+        root: null,
+        holds: null,
       },
       // Nothing shipped and nothing assigned: there is no sample to hear.
       {
@@ -202,6 +218,8 @@ describe('the KIT panel says what is actually loaded', () => {
         path: null,
         tweaks: untouchedPad(),
         reversed: false,
+        root: null,
+        holds: null,
       },
     ];
 

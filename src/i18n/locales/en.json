@@ -57,7 +57,11 @@
     "playLane": "Play {{lane}}",
     "padLane": "Pad {{at}} lane",
     "useSelected": "Put the selected sample on {{lane}}",
-    "editPad": "Edit the sound of {{lane}}"
+    "editPad": "Edit the sound of {{lane}}",
+    "addMany": "Add samples…",
+    "imported": "{{count}} placed on the pads",
+    "notPlaced": "Not placed",
+    "dismissImport": "Done"
   },
   "sections": {
     "genres": "Genres",
@@ -574,7 +578,14 @@
     "fadeIn": "Fade in",
     "fadeOut": "Fade out",
     "noWaveform": "This pad plays a built-in sample, so there is no file to draw.",
-    "envelopeShape": "Attack {{attack}} ms, decay {{decay}} ms, sustain {{sustain}} dB, release {{release}} ms"
+    "envelopeShape": "Attack {{attack}} ms, decay {{decay}} ms, sustain {{sustain}} dB, release {{release}} ms",
+    "detectedRoot": "Sampled at {{note}} ({{cents}}¢)",
+    "rootUnsure": "— unsure",
+    "cannotHold": "This sample has no steady part to hold, so a long note ends when the file does.",
+    "storeB": "Store B",
+    "showB": "Show B",
+    "showA": "Show A",
+    "keepB": "Keep B"
   },
   "crash": {
     "title": "Something in the window stopped working",

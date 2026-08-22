@@ -57,7 +57,11 @@
     "playLane": "{{lane}} abspielen",
     "padLane": "Spur für Pad {{at}}",
     "useSelected": "Ausgewähltes Sample auf {{lane}} legen",
-    "editPad": "Klang von {{lane}} bearbeiten"
+    "editPad": "Klang von {{lane}} bearbeiten",
+    "addMany": "Samples hinzufügen…",
+    "imported": "{{count}} auf die Pads gelegt",
+    "notPlaced": "Nicht abgelegt",
+    "dismissImport": "Fertig"
   },
   "sections": {
     "genres": "Genres",
@@ -574,7 +578,14 @@
     "fadeIn": "Einblenden",
     "fadeOut": "Ausblenden",
     "noWaveform": "Dieses Pad spielt ein eingebautes Sample, es gibt also keine Datei zum Zeichnen.",
-    "envelopeShape": "Anstieg {{attack}} ms, Abfall {{decay}} ms, Haltepegel {{sustain}} dB, Ausklang {{release}} ms"
+    "envelopeShape": "Anstieg {{attack}} ms, Abfall {{decay}} ms, Haltepegel {{sustain}} dB, Ausklang {{release}} ms",
+    "detectedRoot": "Gesampelt bei {{note}} ({{cents}} Cent)",
+    "rootUnsure": "— unsicher",
+    "cannotHold": "Dieses Sample hat keinen gleichmäßigen Teil zum Halten, daher endet eine lange Note mit der Datei.",
+    "storeB": "B sichern",
+    "showB": "B zeigen",
+    "showA": "A zeigen",
+    "keepB": "B behalten"
   },
   "crash": {
     "title": "Etwas im Fenster funktioniert nicht mehr",

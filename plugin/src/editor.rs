@@ -1344,6 +1344,9 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             // buffer they window actually runs — see the field below.
             let reversed = crate::state::with(&shared.session, |s| s.one_shots_reversed.clone())
                 .unwrap_or_default();
+            // What each assigned sample was measured to be in (TASK-052), and
+            // whether it can be held while a note is (TASK-053A).
+            let measured = shared.one_shots.measured();
             let lanes: Vec<Value> = crate::shared::ALL_LANES
                 .iter()
                 .map(|lane| {
@@ -1370,6 +1373,26 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                         // forwards. Without this the trim handles shade one end
                         // of the picture and the engine cuts the other.
                         "reversed": reversed.get(lane).copied().unwrap_or(false),
+                        // ⛔ **What the sample was measured to be in, and how
+                        // sure that is** (TASK-052). `null` on a drum lane, on
+                        // a shipped pad, and on anything with no clear pitch —
+                        // all three are real answers, and the panel says which
+                        // rather than printing a note nobody measured.
+                        //
+                        // ⚠ The *clarity* travels with the note because the
+                        // task asks for the confidence to be surfaced: a root
+                        // detected at 0.61 on a noisy vocal chop is a number a
+                        // producer should be allowed to distrust.
+                        "root": measured.get(lane).and_then(|m| m.root),
+                        // ⛔ **Whether a held note on this pad actually holds**
+                        // (TASK-053A). `null` for a drum lane and for a lane
+                        // with nothing of the producer's on it — neither is a
+                        // pad a producer draws a whole note on and wonders
+                        // about. `false` is the one that earns a sentence: the
+                        // sample has no steady state, so the note ends when the
+                        // file does, and the editor says that rather than
+                        // shortening it silently.
+                        "holds": measured.get(lane).and_then(|m| m.holds),
                     })
                 })
                 .collect();
@@ -1387,6 +1410,25 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                 lane_arg(request)
                     .and_then(|lane| shared.assign_one_shot(lane).map(|()| Value::Null)),
             );
+        }
+
+        // The same dialog, multi-select, placing each file on the pad its name
+        // names (TASK-049). Answers through `one_shot_status` like the rest.
+        "one_shot_add_many" => {
+            return Some(shared.add_one_shots().map(|()| Value::Null));
+        }
+
+        // Put a whole kit back, as one undo step (TASK-050A). The page sends the
+        // *complete* set, so a lane it leaves out is a lane that goes back to
+        // its shipped sound — see `OneShots::set_all` for why that is a replace
+        // and `kits_load` is a merge.
+        "one_shot_set_all" => {
+            let pairs: Vec<(Lane, String, bool)> =
+                match serde_json::from_value(request.args["lanes"].clone()) {
+                    Ok(pairs) => pairs,
+                    Err(error) => return Some(Err(format!("that is not a kit: {error}"))),
+                };
+            return Some(shared.set_one_shots(pairs).map(|()| Value::Null));
         }
 
         "one_shot_clear" => {

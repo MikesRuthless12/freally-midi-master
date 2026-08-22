@@ -279,3 +279,307 @@ it('does not rearrange the rail when an editor is closed', async () => {
   expect(useKit.getState().editingPad).toBeNull();
   expect(useUi.getState().sections.genres).toBe(true);
 });
+
+/**
+ * The batch import's report (TASK-049).
+ *
+ * ⛔ **The point is that a partly-refused batch is NOT an error.** The plugin
+ * publishes one terminal status carrying a count and a list; the store has to
+ * keep the two apart from `error`, or eighteen pads landing would either shout
+ * at the producer or throw away the names of the two that did not.
+ */
+it('reports a batch import per file, and does not call it an error', async () => {
+  invoke
+    .mockResolvedValueOnce(undefined) // one_shot_add_many
+    .mockResolvedValueOnce({
+      state: 'imported',
+      loaded: 18,
+      refused: [
+        { name: 'broken.wav', reason: 'that file could not be decoded' },
+        {
+          name: 'untitled-7.wav',
+          reason: 'could not tell from the name which pad this is for',
+        },
+      ],
+    })
+    .mockResolvedValueOnce(kitState({ kick: 'Kick 01.wav' }));
+
+  await useKit.getState().addMany();
+
+  const { imported, error } = useKit.getState();
+  expect(error).toBeNull();
+  expect(imported?.loaded).toBe(18);
+  expect(imported?.refused.map((one) => one.name)).toEqual(['broken.wav', 'untitled-7.wav']);
+});
+
+it('clears the last import report when the next one starts', async () => {
+  // ⚠ The rule `refresh` states about `error`: what the previous import did
+  // stopped being true the moment the button was pressed again.
+  useKit.setState({ imported: { loaded: 3, refused: [] } });
+  invoke
+    .mockResolvedValueOnce(undefined)
+    .mockResolvedValueOnce({ state: 'cancelled' })
+    .mockResolvedValueOnce(kitState());
+
+  await useKit.getState().addMany();
+  expect(useKit.getState().imported).toBeNull();
+});
+
+it('does not open a second batch dialog while one is running', async () => {
+  // The same single-slot rule `assign` follows — the plugin keeps one dialog
+  // slot and refusing here is cheaper than being refused across the bridge.
+  useKit.setState({ assigning: 'kick' });
+  await useKit.getState().addMany();
+  expect(invoke).not.toHaveBeenCalled();
+});
+
+/**
+ * The kit is on the one undo stack (TASK-050A).
+ *
+ * ⛔ **What has to hold is the reference stability, not just the value.**
+ * `history.changed` compares snapshot fields by reference and `refresh` runs
+ * after every gesture in the app — so a fresh map each time would report the
+ * kit as changed on every snapshot, record a step for every seed keystroke, and
+ * stop anything ever coalescing.
+ */
+it('keeps the same kit object when nothing on the pads moved', async () => {
+  invoke.mockResolvedValue(kitState({ kick: 'Kick 01.wav' }));
+
+  await useKit.getState().refresh();
+  const first = useKit.getState().oneShots;
+  await useKit.getState().refresh();
+
+  expect(useKit.getState().oneShots).toBe(first);
+  expect(first).toEqual({ kick: { path: 'C:/samples/Kick 01.wav', reversed: false } });
+});
+
+it('replaces the kit object when a pad changes', async () => {
+  invoke.mockResolvedValueOnce(kitState({ kick: 'Kick 01.wav' }));
+  await useKit.getState().refresh();
+  const first = useKit.getState().oneShots;
+
+  invoke.mockResolvedValueOnce(kitState({ kick: 'Kick 02.wav' }));
+  await useKit.getState().refresh();
+
+  expect(useKit.getState().oneShots).not.toBe(first);
+  expect(useKit.getState().oneShots).toEqual({
+    kick: { path: 'C:/samples/Kick 02.wav', reversed: false },
+  });
+});
+
+it('reports only the lanes holding the producer own samples', async () => {
+  // ⚠ A shipped pad has no path and is absent — which is what the plugin reads
+  // as "put the built-in sound back on this one".
+  invoke.mockResolvedValueOnce(kitState({ snare: 'clap.wav' }));
+  await useKit.getState().refresh();
+  expect(useKit.getState().oneShots).toEqual({
+    snare: { path: 'C:/samples/clap.wav', reversed: false },
+  });
+});
+
+it('says what could not be put back, and stays quiet when everything was', async () => {
+  // ⛔ A clean undo is silent — the same rule `oneshot::restore` states for a
+  // reopened project. A sample that has moved since is still reported.
+  invoke
+    .mockResolvedValueOnce({ state: 'restored', refused: [] })
+    .mockResolvedValueOnce(kitState());
+  await useKit.getState().awaitLoader();
+  expect(useKit.getState().error).toBeNull();
+  expect(useKit.getState().imported).toBeNull();
+
+  invoke
+    .mockResolvedValueOnce({
+      state: 'restored',
+      refused: [{ name: 'gone.wav', reason: 'no such file' }],
+    })
+    .mockResolvedValueOnce(kitState());
+  await useKit.getState().awaitLoader();
+  expect(useKit.getState().error).toContain('gone.wav');
+});
+
+it('carries which way round a pad plays, so an undo cannot un-reverse it', async () => {
+  // ⛔ `oneshot::load` bakes a reversal into the buffer, so a path alone does
+  // not describe the sound. A snapshot that dropped the flag would restore the
+  // file playing forwards and `apply` would then persist that loss — the
+  // producer's `Ctrl`+← undone by a Ctrl+Z that was about something else.
+  const backwards = kitState({ kick: 'Kick 01.wav' });
+  backwards.lanes = backwards.lanes.map((row) =>
+    row.lane === 'kick' ? { ...row, reversed: true } : row,
+  );
+  invoke.mockResolvedValueOnce(backwards);
+  await useKit.getState().refresh();
+
+  expect(useKit.getState().oneShots).toEqual({
+    kick: { path: 'C:/samples/Kick 01.wav', reversed: true },
+  });
+});
+
+it('treats the same file played backwards as a different kit', async () => {
+  // Reference stability must not paper over the direction: if it did, an undo
+  // across a reverse would compare equal and skip the restore entirely.
+  invoke.mockResolvedValueOnce(kitState({ kick: 'Kick 01.wav' }));
+  await useKit.getState().refresh();
+  const forwards = useKit.getState().oneShots;
+
+  const flipped = kitState({ kick: 'Kick 01.wav' });
+  flipped.lanes = flipped.lanes.map((row) =>
+    row.lane === 'kick' ? { ...row, reversed: true } : row,
+  );
+  invoke.mockResolvedValueOnce(flipped);
+  await useKit.getState().refresh();
+
+  expect(useKit.getState().oneShots).not.toBe(forwards);
+});
+
+it('records one undo step for a sample dropped from the browser', async () => {
+  // ⛔ Drag and drop is the primary way a sample reaches a pad, and it used to
+  // record nothing — so the next Ctrl+Z reverted the drop silently along with
+  // whatever edit it was actually about. Five gestures do this; they all go
+  // through `drop` now.
+  const { useExplorer } = await import('./explorer');
+  const dropOn = vi.fn().mockResolvedValue(true);
+  useExplorer.setState({ dropOn });
+  invoke.mockResolvedValue(kitState({ kick: 'Kick 01.wav' }));
+
+  const landed = await useKit.getState().drop('kick', 'C:/samples/Kick 01.wav');
+
+  expect(landed).toBe(true);
+  expect(dropOn).toHaveBeenCalledWith('kick', 'C:/samples/Kick 01.wav', false);
+  expect(useKit.getState().oneShots).toEqual({
+    kick: { path: 'C:/samples/Kick 01.wav', reversed: false },
+  });
+});
+
+it('does not record a step for a drop the plugin refused', async () => {
+  const { useExplorer } = await import('./explorer');
+  useExplorer.setState({ dropOn: vi.fn().mockResolvedValue(false) });
+  invoke.mockResolvedValue(kitState());
+
+  expect(await useKit.getState().drop('kick', 'C:/elsewhere/kick.wav')).toBe(false);
+});
+
+/**
+ * Ctrl+Z held down (TASK-050A).
+ *
+ * ⛔ Restoring a kit is asynchronous while the session fields it travels with
+ * are restored synchronously, and the plugin keeps one loader slot — so a
+ * second restore issued while the first was still decoding used to be refused
+ * with *"already"* and surface as an error over a kit left a step behind. The
+ * newest wanted kit is parked instead, and it is the one that lands.
+ */
+it('sends one restore at a time and lands on the last kit asked for', async () => {
+  const { restoreKit } = await import('./kit');
+  const sent: unknown[] = [];
+
+  invoke.mockImplementation((command: string, args?: unknown) => {
+    if (command === 'one_shot_set_all') {
+      sent.push(args);
+      return Promise.resolve(undefined);
+    }
+    if (command === 'one_shot_status')
+      return Promise.resolve({ state: 'restored', refused: [] });
+    return Promise.resolve(kitState());
+  });
+
+  const first = restoreKit({ oneShots: { kick: { path: 'C:/a.wav', reversed: false } } });
+  const second = restoreKit({ oneShots: { snare: { path: 'C:/b.wav', reversed: true } } });
+  await Promise.all([first, second]);
+
+  // ⛔ The second call parked its kit rather than opening a second restore, so
+  // the last one asked for is the one that reached the plugin.
+  const last = sent[sent.length - 1] as { lanes: [string, string, boolean][] };
+  expect(last.lanes).toEqual([['snare', 'C:/b.wav', true]]);
+});
+
+it('does not send a restore for the kit already loaded', async () => {
+  // The guard that makes undo affordable: one seed keystroke carries the kit in
+  // its snapshot, and re-decoding a producer's samples to arrive where they
+  // already are would cut every sounding voice.
+  const { restoreKit } = await import('./kit');
+  invoke.mockResolvedValue(kitState({ kick: 'Kick 01.wav' }));
+  await useKit.getState().refresh();
+  invoke.mockClear();
+
+  await restoreKit({
+    oneShots: { kick: { path: 'C:/samples/Kick 01.wav', reversed: false } },
+  });
+  expect(invoke).not.toHaveBeenCalledWith('one_shot_set_all', expect.anything());
+});
+
+it('lets a redo cancel the undo that is still arriving', async () => {
+  // ⛔ While a restore is in flight the store still holds the kit it is
+  // *leaving*, so comparing against the store alone answered about a state
+  // already being replaced: undo to B then immediately redo to A, and "A is
+  // loaded" is true and useless — B is what is arriving, and it would have
+  // landed on top of the redo.
+  const { restoreKit } = await import('./kit');
+  const sent: string[] = [];
+  // ⚠ **A STATEFUL fake, because the real plugin is stateful.** A `kit_state`
+  // that answered the same fixture whatever was applied would report the kit as
+  // never changing, and every restore after the first would correctly be
+  // skipped as a no-op — a green test watching nothing.
+  let applied: Record<string, string> = {};
+
+  invoke.mockImplementation((command: string, args?: unknown) => {
+    if (command === 'one_shot_set_all') {
+      const { lanes } = args as { lanes: [string, string, boolean][] };
+      sent.push(lanes.map(([lane]) => lane).join(',') || '(empty)');
+      applied = Object.fromEntries(lanes.map(([lane, path]) => [lane, path]));
+      return Promise.resolve(undefined);
+    }
+    if (command === 'one_shot_status')
+      return Promise.resolve({ state: 'restored', refused: [] });
+    return Promise.resolve(kitState(applied as Partial<Record<Lane, string>>));
+  });
+
+  const undo = restoreKit({ oneShots: { snare: { path: 'C:/b.wav', reversed: false } } });
+  // The store still reads as the empty kit here — the restore has not landed.
+  const redo = restoreKit({ oneShots: {} });
+  await Promise.all([undo, redo]);
+
+  // ⚠ The undo may or may not reach the plugin first depending on scheduling —
+  // what must hold is that the kit is not left holding it.
+  expect(sent[sent.length - 1]).toBe('(empty)');
+  expect(useKit.getState().oneShots).toEqual({});
+});
+
+it('does not park a lane in `assigning` while a batch import runs', async () => {
+  // ⛔ The second cut set `assigning: 'kick'` as a stand-in for "a dialog is
+  // open", on the claim that every reader only asks whether it is null. That
+  // was false: `KitPanel` compares it to a lane to draw "choosing…" over that
+  // row's sample name, so pressing Add samples… made the kick row stop naming
+  // its own sample. A batch belongs to no lane.
+  let openWhileRunning: { assigning: unknown; importing: boolean } | null = null;
+  invoke.mockImplementation((command: string) => {
+    if (command === 'one_shot_add_many') {
+      const { assigning, importing } = useKit.getState();
+      openWhileRunning = { assigning, importing };
+      return Promise.resolve(undefined);
+    }
+    if (command === 'one_shot_status') return Promise.resolve({ state: 'cancelled' });
+    return Promise.resolve(kitState());
+  });
+
+  await useKit.getState().addMany();
+
+  expect(openWhileRunning).toEqual({ assigning: null, importing: true });
+  expect(useKit.getState().importing).toBe(false);
+});
+
+it('records one undo step for a saved kit being loaded', async () => {
+  // ⛔ `SavedKits` invoked `kits_load` and awaited the loader directly, and
+  // recorded nothing — so the next Ctrl+Z, about anything at all, restored a
+  // snapshot still naming the kit from before the load and unloaded it.
+  invoke.mockImplementation((command: string) => {
+    if (command === 'kits_load') return Promise.resolve(undefined);
+    if (command === 'one_shot_status') return Promise.resolve({ state: 'idle' });
+    return Promise.resolve(kitState({ kick: 'Kick 01.wav' }));
+  });
+
+  await useKit.getState().loadSaved('my-trap-kit');
+
+  expect(invoke).toHaveBeenCalledWith('kits_load', { id: 'my-trap-kit' });
+  expect(useKit.getState().oneShots).toEqual({
+    kick: { path: 'C:/samples/Kick 01.wav', reversed: false },
+  });
+});

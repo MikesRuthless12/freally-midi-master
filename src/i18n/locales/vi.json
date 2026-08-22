@@ -57,7 +57,11 @@
     "playLane": "Phát {{lane}}",
     "padLane": "Làn của pad {{at}}",
     "useSelected": "Đặt mẫu đã chọn vào {{lane}}",
-    "editPad": "Chỉnh âm thanh của {{lane}}"
+    "editPad": "Chỉnh âm thanh của {{lane}}",
+    "addMany": "Thêm sample…",
+    "imported": "Đã đặt {{count}} lên pad",
+    "notPlaced": "Chưa đặt được",
+    "dismissImport": "Xong"
   },
   "sections": {
     "genres": "Thể loại",
@@ -574,7 +578,14 @@
     "fadeIn": "Vào dần",
     "fadeOut": "Nhỏ dần",
     "noWaveform": "Pad này phát mẫu dựng sẵn nên không có tệp nào để vẽ.",
-    "envelopeShape": "Khởi âm {{attack}} ms, suy giảm {{decay}} ms, duy trì {{sustain}} dB, buông {{release}} ms"
+    "envelopeShape": "Khởi âm {{attack}} ms, suy giảm {{decay}} ms, duy trì {{sustain}} dB, buông {{release}} ms",
+    "detectedRoot": "Lấy mẫu ở {{note}} ({{cents}} cent)",
+    "rootUnsure": "— không chắc",
+    "cannotHold": "Sample này không có phần ổn định để giữ, nên nốt dài sẽ kết thúc khi hết tệp.",
+    "storeB": "Lưu B",
+    "showB": "Xem B",
+    "showA": "Xem A",
+    "keepB": "Giữ B"
   },
   "crash": {
     "title": "Có thứ gì đó trong cửa sổ đã ngừng hoạt động",

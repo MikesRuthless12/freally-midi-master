@@ -1335,6 +1335,40 @@
   gap: var(--space-1) var(--space-2);
 }
 
+/* The envelope's draggable corners (TASK-055). ⚠ `vector-effect` so the circle
+   keeps its size: the SVG is stretched to the panel with a non-uniform
+   `preserveAspectRatio`, which would otherwise draw these as ovals. */
+.pad-editor__env-grip {
+  fill: var(--color-primary);
+  stroke: var(--color-surface);
+  stroke-width: 1;
+  cursor: grab;
+  vector-effect: non-scaling-stroke;
+}
+
+.pad-editor__env-grip:hover,
+.pad-editor__env-grip:focus-visible {
+  fill: var(--color-text);
+  outline: none;
+}
+
+/* Storing and swapping the comparison shape (TASK-055). */
+.pad-editor__ab {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+/* What the sample was measured to be in (TASK-052). ⚠ Spans both dial columns,
+   because it is a statement about the pad rather than a control beside one — and
+   sitting half-width next to Transpose would read as that dial's own label. */
+.pad-editor__root {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-text-3);
+  font-size: var(--text-micro);
+}
+
 .pad-dial {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -1388,6 +1422,43 @@
   margin: var(--space-2) 0 0;
   color: var(--color-error);
   font-size: var(--text-micro);
+}
+
+/* What a batch import did, per file (TASK-049). ⚠ Not `--color-error`: a batch
+   that placed eighteen of twenty is a result, and colouring the whole report red
+   would say the import failed. Only the refused list is dimmed away from it. */
+.kit-import {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  font-size: var(--text-micro);
+}
+
+.kit-import__count {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.kit-import__heading {
+  margin: var(--space-2) 0 var(--space-1);
+  color: var(--color-text-3);
+}
+
+/* ⛔ **Scrolls rather than growing without limit.** A producer may pick fifty
+   files, and a report that pushes the saved-kit list off the panel is worse than
+   the problem it describes. */
+.kit-import__refused {
+  max-height: 9rem;
+  margin: 0 0 var(--space-2);
+  padding-left: var(--space-4);
+  overflow-y: auto;
+  color: var(--color-text-3);
+}
+
+.kit-import__refused b {
+  color: var(--color-text-2);
+  font-weight: 600;
 }
 
 .kit-drop {

@@ -28,7 +28,7 @@ type KitSummary = {
 
 export function SavedKits() {
   const { t } = useTranslation();
-  const awaitLoader = useKit((s) => s.awaitLoader);
+  const loadSaved = useKit((s) => s.loadSaved);
 
   const [kits, setKits] = useState<KitSummary[]>([]);
   const [name, setName] = useState('');
@@ -59,15 +59,16 @@ export function SavedKits() {
       .catch(fail);
   };
 
+  // ⛔⛔ **Through the store, which is what records the undo step.** This
+  // invoked `kits_load` and awaited the loader directly, and recorded nothing —
+  // so the producer's next Ctrl+Z, about anything at all, restored a snapshot
+  // still naming the kit from *before* the load and quietly unloaded the one
+  // they had just chosen. `loadSaved` also carries the wait this comment used
+  // to explain: `kits_load` hands the decode off and answers immediately, so a
+  // resolved promise means "started", and refreshing on it read the panel
+  // mid-decode.
   const load = (id: string) => {
-    // ⛔ **Waits for the loader thread rather than refreshing straight away.**
-    // `kits_load` hands the decode off and answers immediately, so a resolved
-    // promise means "started". Refreshing here read the panel mid-decode, and a
-    // kit whose samples had moved published its failure into a slot nothing
-    // read — no error on screen and unchanged pads.
-    invoke('kits_load', { id })
-      .then(() => awaitLoader())
-      .catch(fail);
+    void loadSaved(id);
   };
 
   return (

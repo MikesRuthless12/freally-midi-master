@@ -58,7 +58,7 @@ export function ExplorerPanel() {
   const select = useExplorer((s) => s.select);
   const play = useExplorer((s) => s.play);
   const setReverse = useExplorer((s) => s.setReverse);
-  const dropOn = useExplorer((s) => s.dropOn);
+  const dropSample = useKit((s) => s.drop);
   const children = useExplorer((s) => s.children);
   const truncatedIn = useExplorer((s) => s.truncatedIn);
   const missingRoots = useExplorer((s) => s.missingRoots);
@@ -119,7 +119,6 @@ export function ExplorerPanel() {
   const selectedPad = useUi((s) => s.selectedPad);
   const padsByStyle = useUi((s) => s.pads);
   const selectedId = useSession((s) => s.selectedId);
-  const refreshKit = useKit((s) => s.refresh);
   const selectedKind = useExplorer((s) => s.selectedKind);
   const assignTarget: Lane | null =
     activeTab === 'song'
@@ -237,9 +236,7 @@ export function ExplorerPanel() {
             return;
           }
           event.preventDefault();
-          void dropOn(assignTarget, selected, event.key === 'ArrowLeft').then(() =>
-            refreshKit(),
-          );
+          void dropSample(assignTarget, selected, event.key === 'ArrowLeft');
           return;
         }
 

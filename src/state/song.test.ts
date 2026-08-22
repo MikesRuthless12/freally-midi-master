@@ -174,6 +174,9 @@ function armedWith(current = song()) {
     partsOff: [],
     song: current,
     songEdited: false,
+    // The kit the snapshot was taken over (TASK-050A). Empty: these fixtures
+    // are about the session fields, and a kit belongs to the plugin.
+    oneShots: {},
   });
   return current;
 }
@@ -637,6 +640,9 @@ it('the snapshot taken on an artist change does not carry the old artist’s son
     partsOff: [],
     song: current,
     songEdited: true,
+    // The kit the snapshot was taken over (TASK-050A). Empty: these fixtures
+    // are about the session fields, and a kit belongs to the plugin.
+    oneShots: {},
   });
 
   // The artist moves. The song store is cleared by its own subscriber, but the

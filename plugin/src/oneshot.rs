@@ -62,6 +62,64 @@ pub enum Status {
     Failed {
         reason: String,
     },
+    /// A batch import finished: how many pads were filled, and every file that
+    /// did not land (TASK-049).
+    ///
+    /// ⛔ **The refusals are a LIST, not the last one.** [`Self::Failed`] carries
+    /// a single reason because its callers draw from a folder the producer
+    /// merely *browsed* — a re-roll that found no snare in it is not news. A
+    /// batch is files they picked by hand, so every one of them is a sound they
+    /// expected to hear, and *"18 of 20 landed"* without naming the two is the
+    /// readout-that-lies failure in its counting form. TASK-049's own line:
+    /// *"per-file error toasts that never abort the batch"*.
+    Imported {
+        loaded: usize,
+        refused: Vec<Refused>,
+    },
+    /// A whole kit was put back by an undo or a redo (TASK-050A).
+    ///
+    /// ⛔ **Says nothing unless something could not be restored**, which is the
+    /// rule [`OneShots::restore`] already states for the reopen path: *"a reopen
+    /// that announces five toasts nobody asked for is noise. A failure is still
+    /// reported, because a sample that did not come back is something the
+    /// producer has to know."* An undo is the same kind of event — machine
+    /// driven, not a dialog the producer is standing in front of — so it gets
+    /// the same manners. It is a distinct variant rather than
+    /// [`Self::Imported`] precisely so the panel cannot answer Ctrl+Z with
+    /// *"12 placed on the pads"*, which would be a true count of a thing that
+    /// did not happen.
+    Restored {
+        refused: Vec<Refused>,
+    },
+}
+
+/// One file a batch import did not put on a pad, and why.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Refused {
+    /// The file's own name.
+    ///
+    /// ⚠ **Never the full path.** This is drawn in a toast inside somebody
+    /// else's DAW, and where a producer keeps their samples is theirs. The name
+    /// is also the only part they can act on — it is what they would rename.
+    pub name: String,
+    pub reason: String,
+}
+
+/// What was measured about one assigned sample, for the KIT panel to draw.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Measured {
+    /// The note it is in, or `None` — see [`crate::audio::pitch::detect_root`]
+    /// for why that is a real answer and the common one (TASK-052).
+    pub root: Option<crate::audio::pitch::Root>,
+    /// Whether a held note on it holds, or `None` on a lane where holding a
+    /// note means nothing at all (TASK-053A).
+    ///
+    /// ⚠ **Three states, and the middle one is the point.** `Some(false)` is
+    /// the one that earns a sentence on screen: the sample has no steady part,
+    /// so a long note ends where the file does.
+    pub holds: Option<bool>,
 }
 
 /// The one-shots this instance has assigned, and the one dialog that assigns
@@ -106,7 +164,7 @@ impl OneShots {
                 // ⚠ Forwards: the Open dialog and the folder re-roll have no
                 // reverse gesture. Only `Ctrl`+← asks for one, and it comes
                 // through `restore`.
-                Some(path) => match load(&path, false) {
+                Some(path) => match load(&path, false, lane) {
                     Ok(one_shot) => {
                         let name = one_shot.name.clone();
                         apply(&assigned, &missing, &kits, &session, |map| {
@@ -118,6 +176,73 @@ impl OneShots {
                 },
             };
             claimed.publish(status);
+        });
+        Ok(())
+    }
+
+    /// Take a whole selection in one dialog and fill the pads their names name
+    /// (TASK-049's batch import — and the caller TASK-050 has been missing).
+    ///
+    /// ⛔ **The filename IS the assignment rule, and it is [`crate::roles::guess`]
+    /// — the classifier that shipped 2026-08-09 with nothing calling it.** A
+    /// producer dropping a sample pack in has already done the sorting: the
+    /// files are called `Kick 01.wav` and `OH_dark.wav`. Making them place
+    /// twelve of those one Open dialog at a time is exactly the work this
+    /// removes, and it is the only reason to guess at all — the roadmap's own
+    /// rule is that *"a wrong guess a producer overrides in one click is
+    /// useful, a wrong guess that silently becomes the assignment is not"*, and
+    /// every pad here stays one click from being repointed.
+    ///
+    /// ⛔ **A second file for a lane this batch already filled is REFUSED BY
+    /// NAME, not allowed to win.** Two kicks in one selection is ordinary — a
+    /// pack ships `Kick 01`…`Kick 08` — and the alternative is that the pad
+    /// silently holds whichever the platform handed over last. Saying which
+    /// file was dropped is what lets the producer pick the one they meant.
+    /// ⚠ Pads filled *before* the batch are fair game: these are files they
+    /// just asked for.
+    ///
+    /// ⛔ **It never aborts.** A name that classifies to nothing, a remote path
+    /// and a file that will not decode are each one entry in
+    /// [`Status::Imported::refused`]; everything else still lands. TASK-049
+    /// states this as *"per-file error toasts that never abort the batch"*, and
+    /// its verify line is a 20-file batch with 2 corrupt files giving 18 pads
+    /// and 2 toasts.
+    ///
+    /// Returns as soon as the thread is running — see the module header.
+    pub fn add_many(&self, kits: &Arc<KitHandoff>, session: &SessionStore) -> Result<(), String> {
+        let claimed = self.claim()?;
+        let assigned = Arc::clone(&self.assigned);
+        let missing = Arc::clone(&self.missing);
+        let kits = Arc::clone(kits);
+        let session = SessionStore::clone(session);
+
+        std::thread::spawn(move || {
+            // ⚠ An empty selection is a cancel, not an import of nothing. Some
+            // platforms answer `Some(vec![])` for a dialog dismissed sideways.
+            let picked = pick_files().unwrap_or_default();
+            if picked.is_empty() {
+                claimed.publish(Status::Cancelled);
+                return;
+            }
+
+            let (pairs, mut refused) = lanes_for(&picked);
+            let (loaded, failures) = decode_all(&pairs);
+            refused.extend(failures);
+
+            let count = loaded.len();
+            if count > 0 {
+                // ⛔ One `apply` for the whole selection — `load_many`'s own doc
+                // has the reason at length: each one cuts every sounding voice.
+                apply(&assigned, &missing, &kits, &session, |map| {
+                    for (lane, one_shot) in loaded {
+                        map.insert(lane, one_shot);
+                    }
+                });
+            }
+            claimed.publish(Status::Imported {
+                loaded: count,
+                refused,
+            });
         });
         Ok(())
     }
@@ -154,12 +279,13 @@ impl OneShots {
             return Err("that folder has nothing this could put on a pad".to_owned());
         }
 
-        let pairs: Vec<(Lane, String)> = lanes
+        let pairs: Vec<(Lane, String, bool)> = lanes
             .iter()
             // ⚠ Skipped rather than fatal: a folder with no snare in it should
             // still re-roll the kick, and saying so lane by lane would be a
             // dozen toasts for one gesture.
-            .filter_map(|lane| pick_for(*lane, &files, seed).map(|path| (*lane, path)))
+            // ⚠ Forwards — the re-roll has no reverse gesture either.
+            .filter_map(|lane| pick_for(*lane, &files, seed).map(|path| (*lane, path, false)))
             .collect();
 
         self.load_many(
@@ -185,7 +311,7 @@ impl OneShots {
     /// problems and a producer can act on the difference.
     fn load_many(
         &self,
-        pairs: Vec<(Lane, String)>,
+        pairs: Vec<(Lane, String, bool)>,
         empty_reason: &str,
         kits: &Arc<KitHandoff>,
         session: &SessionStore,
@@ -198,30 +324,26 @@ impl OneShots {
         let empty_reason = empty_reason.to_owned();
 
         std::thread::spawn(move || {
-            let mut loaded: Vec<(Lane, OneShot)> = Vec::new();
-            let mut refused: Option<String> = None;
-
-            for (lane, path) in &pairs {
-                // ⚠ **The same guard `restore` carries**, added for consistency
-                // rather than because a live feed needs it: today both callers
-                // are trustworthy — `randomize` draws from the explorer's own
-                // listing, `load_kit` from a kit file written out of
-                // `snapshot()` — but a saved kit is a file, and the day one
-                // becomes importable a UNC path in it would authenticate
-                // outward on the first read. A guard that is already there is
-                // not one somebody has to remember.
-                if refuse_remote(Path::new(path)).is_err() {
-                    continue;
-                }
-                match load(Path::new(path), false) {
-                    Ok(one_shot) => loaded.push((*lane, one_shot)),
-                    Err(reason) => refused = Some(reason),
-                }
-            }
+            let (loaded, refused) = decode_all(&pairs);
 
             let status = if loaded.is_empty() {
                 Status::Failed {
-                    reason: refused.unwrap_or(empty_reason),
+                    // ⛔ **The caller's own sentence FIRST, and the decoder's
+                    // after it.** *"No snare in that folder"* and *"every sample
+                    // in that kit has moved"* are different problems a producer
+                    // can act on the difference between, which is why
+                    // `empty_reason` is passed in at all — and it had become
+                    // unreachable: `decode_all` now records a refusal for every
+                    // failed pair, including the remote-path skips the old loop
+                    // passed over silently, so `refused` is never empty here.
+                    // Composing keeps the context and gains the specific.
+                    //
+                    // ⚠ **The LAST refusal, not the first** — this path has
+                    // always shown one reason for a whole set. The batch that
+                    // reports all of them is [`Status::Imported`].
+                    reason: refused.last().map_or(empty_reason.clone(), |last| {
+                        format!("{empty_reason} — {}", last.reason)
+                    }),
                 }
             } else {
                 let count = loaded.len();
@@ -241,6 +363,111 @@ impl OneShots {
         Ok(())
     }
 
+    /// Replace every assignment at once — how one undo step puts a whole kit
+    /// back (TASK-050A).
+    ///
+    /// ⛔ **Replaces rather than merges, and that is the whole difference from
+    /// [`Self::load_kit`].** Undo has to be able to make a pad EMPTY again: a
+    /// producer who put their own snare on and pressed Ctrl+Z must hear the
+    /// shipped one, and a merge would leave theirs playing because the snapshot
+    /// simply does not mention that lane. A saved kit is *a set of pads to
+    /// fill*; a snapshot is a statement about all of them, the empty ones
+    /// included.
+    ///
+    /// ⛔ **An empty set is a real request, not an error.** Undoing back past
+    /// the first assignment of a session restores a kit with nothing of the
+    /// producer's on it, and refusing that — the way [`Self::load_kit`] refuses
+    /// an empty kit file — would put the bottom of the undo stack out of reach.
+    ///
+    /// ⛔ **A path that has since moved is DROPPED rather than remembered, and
+    /// this is the one place that is right.** `apply` deliberately preserves
+    /// paths that failed to load so a reopened project does not lose them. A
+    /// snapshot is not a reopen: carrying a stale path through an undo would
+    /// put a lane back into the missing state the producer has already stepped
+    /// away from, and the next edit would persist it again.
+    /// ⛔⛔ **A lane the kit is ALREADY playing is reused, not re-read.** Undo is
+    /// a held-down gesture and a snapshot names the whole kit, so decoding it
+    /// wholesale meant every Ctrl+Z re-read a dozen files off disk, re-decoded
+    /// and re-resampled them, and re-ran an NSDF on every pitched one — to
+    /// arrive at eleven samples already sitting decoded in `assigned`, because
+    /// only one of them had moved.
+    ///
+    /// ⛔⛔ **And reuse is what keeps a REVERSED pad reversed.** A snapshot
+    /// carries the direction beside the path, but the reuse is what makes the
+    /// common case exact rather than a re-decode that has to be told: the
+    /// stored [`OneShot`] already holds its flipped buffer, its measured root
+    /// and its loop region.
+    pub fn set_all(
+        &self,
+        pairs: Vec<(Lane, String, bool)>,
+        kits: &Arc<KitHandoff>,
+        session: &SessionStore,
+    ) -> Result<(), String> {
+        let claimed = self.claim()?;
+        let assigned = Arc::clone(&self.assigned);
+        let missing = Arc::clone(&self.missing);
+        let kits = Arc::clone(kits);
+        let session = SessionStore::clone(session);
+
+        std::thread::spawn(move || {
+            // What is already loaded, so an unchanged lane costs a clone of two
+            // `Arc`s rather than a disk read. ⚠ Taken and released before
+            // `decode_all`, which is slow and must not hold this lock.
+            let held: BTreeMap<Lane, OneShot> = assigned
+                .lock()
+                .map(|map| map.clone())
+                .unwrap_or_else(|_| BTreeMap::new());
+
+            let mut loaded: Vec<(Lane, OneShot)> = Vec::new();
+            let mut stale: Vec<(Lane, String, bool)> = Vec::new();
+            // Every lane the snapshot names, kept so the `missing` clear below
+            // can be scoped to exactly them.
+            let named = pairs.clone();
+            for (lane, path, reversed) in pairs {
+                // ⚠ The direction is part of the match: the same file assigned
+                // backwards is a different buffer, and reusing the forward one
+                // would silently un-reverse the pad.
+                match held.get(&lane) {
+                    Some(one) if one.path == path && one.reversed == reversed => {
+                        loaded.push((lane, one.clone()));
+                    }
+                    _ => stale.push((lane, path, reversed)),
+                }
+            }
+
+            let (fresh, refused) = decode_all(&stale);
+            loaded.extend(fresh);
+
+            // ⛔⛔ **Only the lanes this snapshot HAS AN OPINION ABOUT, and that
+            // scoping is the whole of the fix.** Clearing the map wholesale
+            // deleted the remembered path of a lane the undo never touched: a
+            // project whose snare had moved keeps that path in `missing` so
+            // `apply` can chain it back into `one_shots` and putting the file
+            // back still restores it — which is the entire reason that field
+            // exists. But a missing lane reports `path: null` through
+            // `kit_state`, so the page's snapshot cannot mention it, so a
+            // wholesale clear dropped it from the project for good on the first
+            // Ctrl+Z after any assignment.
+            //
+            // ⚠ Cleared BEFORE `apply`, which reads what is left to preserve
+            // the paths of lanes outside this restore.
+            if let Ok(mut map) = missing.lock() {
+                for (lane, _, _) in &named {
+                    map.remove(lane);
+                }
+            }
+            apply(&assigned, &missing, &kits, &session, |map| {
+                map.clear();
+                for (lane, one_shot) in loaded {
+                    map.insert(lane, one_shot);
+                }
+            });
+
+            claimed.publish(Status::Restored { refused });
+        });
+        Ok(())
+    }
+
     /// Put a saved kit's samples on, all at once (TASK-051).
     ///
     /// ⚠ **A kit that has lost some of its samples still loads the rest.** A
@@ -256,7 +483,13 @@ impl OneShots {
             return Err("that kit has no samples in it".to_owned());
         }
         self.load_many(
-            pairs,
+            // ⚠ Forwards: a saved kit stores paths, not directions — the
+            // reversal a producer set with `Ctrl`+← belongs to the project, and
+            // `kits::save` deliberately writes neither.
+            pairs
+                .into_iter()
+                .map(|(lane, path)| (lane, path, false))
+                .collect(),
             "every sample in that kit has moved or been deleted",
             kits,
             session,
@@ -288,7 +521,7 @@ impl OneShots {
             held.insert(lane, raw);
         }
         refuse_remote(path)?;
-        let one_shot = load(path, reversed)?;
+        let one_shot = load(path, reversed, lane)?;
         if let Ok(mut held) = self.missing.lock() {
             held.remove(&lane);
         }
@@ -357,6 +590,42 @@ impl OneShots {
             .collect()
     }
 
+    /// What was measured about each assigned sample: its root (TASK-052) and
+    /// whether it can be held (TASK-053A).
+    ///
+    /// ⚠ **Its own reader rather than more elements on [`Self::snapshot`]'s
+    /// tuple**, which `kits_save` also walks: a saved kit is a list of paths a
+    /// producer named, and it has no business carrying measurements that will
+    /// be taken again the moment those paths are decoded.
+    ///
+    /// ⚠ **One reader for both, and one walk under one lock.** They were two,
+    /// called back to back by `kit_state` — which `refresh()` runs after every
+    /// gesture in the app — so the same map was locked and walked twice to
+    /// answer two facts about the same sample.
+    pub fn measured(&self) -> BTreeMap<Lane, Measured> {
+        let Ok(map) = self.assigned.lock() else {
+            return BTreeMap::new();
+        };
+        map.iter()
+            .map(|(lane, one_shot)| {
+                (
+                    *lane,
+                    Measured {
+                        root: one_shot.root,
+                        // ⛔ **`None` unless the lane can be held at all**, which
+                        // is `roles::is_melodic` for the reason `load` gives at
+                        // length — `Lane::Sub` rings out, so *"this sample has no
+                        // steady part to hold"* would be a claim about a lane
+                        // where no note is ever gated. Absent is the honest
+                        // answer and the panel draws nothing for it.
+                        holds: crate::roles::is_melodic(*lane)
+                            .then_some(one_shot.loop_region.is_some()),
+                    },
+                )
+            })
+            .collect()
+    }
+
     /// Read the outcome, and clear it if there is one.
     ///
     /// ⛔ **Taken rather than merely read**, for the reason
@@ -415,6 +684,112 @@ fn pick_file() -> Option<std::path::PathBuf> {
     rfd::FileDialog::new()
         .add_filter("Audio", engine::formats::AUDIO)
         .pick_file()
+}
+
+/// The same dialog, letting the producer pick the whole pack at once (TASK-049).
+///
+/// ⚠ **Deliberately the same filter as [`pick_file`]**, from the same constant,
+/// for the reason that function's own doc gives: a dialog offering a `.flac` the
+/// decoder refuses is the two-lists failure TASK-049 opens by naming.
+fn pick_files() -> Option<Vec<std::path::PathBuf>> {
+    rfd::FileDialog::new()
+        .add_filter("Audio", engine::formats::AUDIO)
+        .pick_files()
+}
+
+/// Which pad each picked file belongs on, and which files answer nothing.
+///
+/// Split out from [`OneShots::add_many`] so the rule can be tested without a
+/// native dialog in the way — the classifier is the whole of the behaviour, and
+/// it is the half that would otherwise only ever run in front of a human.
+fn lanes_for(picked: &[std::path::PathBuf]) -> (Vec<(Lane, String, bool)>, Vec<Refused>) {
+    // ⚠ Forwards, every one: a multi-select dialog has no reverse gesture, the
+    // same reason `assign` passes `false`. Only `Ctrl`+← assigns backwards.
+    let mut pairs: Vec<(Lane, String, bool)> = Vec::new();
+    let mut refused: Vec<Refused> = Vec::new();
+
+    for path in picked {
+        let name = file_name(path);
+
+        let Some(lane) = crate::roles::guess(&name) else {
+            refused.push(Refused {
+                name,
+                reason: "could not tell from the name which pad this is for".to_owned(),
+            });
+            continue;
+        };
+        // ⛔ First name wins — see [`OneShots::add_many`] for why the loser is
+        // named rather than silently overwritten.
+        if pairs.iter().any(|(taken, _, _)| *taken == lane) {
+            refused.push(Refused {
+                // ⚠ **The pad is not named, and that is deliberate.** `{lane:?}`
+                // would put `ClosedHat` or `GhostSnare` — a Rust identifier —
+                // into a panel translated into nineteen languages. The producer
+                // can see which pads filled; what they cannot see is which of
+                // their files lost, and that is the half this carries.
+                reason: "another file in this batch already claimed that pad".to_owned(),
+                name,
+            });
+            continue;
+        }
+        pairs.push((lane, path.display().to_string(), false));
+    }
+
+    (pairs, refused)
+}
+
+/// Decode every pair, keeping **all** the failures rather than the last.
+///
+/// ⛔ **One loop, three callers, because *"a file that will not decode must not
+/// cost the producer the rest of the set"* is the same rule for a folder
+/// re-roll, a saved kit and an import.** They differ only in how much of the
+/// failure they report, which is the caller's decision and not this one's.
+fn decode_all(pairs: &[(Lane, String, bool)]) -> (Vec<(Lane, OneShot)>, Vec<Refused>) {
+    let mut loaded: Vec<(Lane, OneShot)> = Vec::new();
+    let mut refused: Vec<Refused> = Vec::new();
+
+    for (lane, path, reversed) in pairs {
+        let as_path = Path::new(path);
+        let name = file_name(as_path);
+
+        // ⚠ **The same guard `restore` carries**, added for consistency rather
+        // than because a live feed needs it: `randomize` draws from the
+        // explorer's own listing and `load_kit` from a kit file written out of
+        // `snapshot()` — but a saved kit is a file, and the day one becomes
+        // importable a UNC path in it would authenticate outward on the first
+        // read. A guard that is already there is not one somebody has to
+        // remember.
+        //
+        // ⚠ **It DOES bind on `add_many`**, and that is a deliberate tightening
+        // rather than an oversight: a producer multi-selecting from a
+        // `\\server\share` library is refused here, where the single-file
+        // `assign` — which calls `load` directly — still allows it. One dialog
+        // is stricter than the other; the strict one is the new one, and no
+        // path this guard refuses can reach `apply` or be persisted.
+        if let Err(reason) = refuse_remote(as_path) {
+            refused.push(Refused { name, reason });
+            continue;
+        }
+        match load(as_path, *reversed, *lane) {
+            Ok(one_shot) => loaded.push((*lane, one_shot)),
+            Err(reason) => refused.push(Refused { name, reason }),
+        }
+    }
+
+    (loaded, refused)
+}
+
+/// A file's own name, for a message a producer reads.
+///
+/// ⚠ **Never the full path.** These are drawn in a panel inside somebody else's
+/// DAW, and where a producer keeps their samples is theirs; the name is also
+/// the only part they can act on. One spelling because three call sites in this
+/// file wanted it.
+fn file_name(path: &Path) -> String {
+    path.file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or_default()
+        .to_owned()
 }
 
 /// Refuse a path that names something on the network.
@@ -534,7 +909,7 @@ fn pick_for(lane: Lane, files: &[String], seed: u64) -> Option<String> {
 /// every note, both through the linear interpolator on the audio thread.
 /// [`crate::audio::resample`] does it once here, band-limited, on this thread,
 /// which is the loader thread the decode already runs on.
-fn load(path: &Path, reversed: bool) -> Result<OneShot, String> {
+fn load(path: &Path, reversed: bool, lane: Lane) -> Result<OneShot, String> {
     let decoded = import::decode_file(path)?;
     let target = crate::audio::kit_rate();
     let mut samples =
@@ -561,21 +936,75 @@ fn load(path: &Path, reversed: bool) -> Result<OneShot, String> {
     if reversed {
         samples.reverse();
     }
+
+    // ⛔⛔ **What note this actually is, on the lanes where that means
+    // anything** (TASK-052). Without it `Kit::with_one_shots` roots the sample
+    // at whatever the *shipped* pad for that lane is rooted at — MIDI 84 on the
+    // lead — so a violin sampled at C2 played two octaves out under the melody
+    // it was dropped into.
+    //
+    // ⛔ **Asked only where `pitch::applies_to` allows, and that is a cost
+    // decision as well as a correctness one.** A root on a kick would make the
+    // drum grid's hand-drawn hits transpose it (that function's own doc), and
+    // an NSDF over half a second is real work on a thread a kit re-roll runs a
+    // dozen of.
+    //
+    // ⚠ **After the reverse, so it measures the buffer that will play.** A
+    // reversed sample has the same fundamental, but this is the buffer the pad
+    // holds and measuring the other one would be a reading of a sound nobody
+    // will hear.
+    let root = if crate::audio::pitch::applies_to(lane) {
+        crate::audio::pitch::detect_root(&samples, target)
+    } else {
+        None
+    };
+
+    // ⛔⛔ **Where this sample can be held, if it can be** (TASK-053A). A
+    // whole-note chord under a four-bar loop must sound for four bars, and
+    // without this it stops when the file does — so the piano roll's note
+    // lengths do nothing audible on a sustaining part.
+    //
+    // ⛔⛔ **`roles::is_melodic`, NOT `pitch::applies_to` — the two lists differ
+    // by exactly one lane and it is the one that matters here.** The question a
+    // loop answers is *"can a note on this lane be held"*, and that is the
+    // question `sampler::hold_for` already asks, of `is_melodic`. `applies_to`
+    // answers a different one — *"does this lane carry a root"* — and it
+    // includes `Lane::Sub`, which `roles.rs` deliberately excludes from the
+    // melodic list because an 808 *"has always rung past its note"* so its
+    // slide can arrive. `hold_for(Sub, …)` is therefore `RINGS_OUT`, pinned by
+    // its own test, and `trigger_with` discards a region on any voice that
+    // rings out.
+    //
+    // ▶ Gating on `applies_to` meant every imported 808 paid a full-buffer
+    // sustain walk on the loader thread for a region nothing could ever reach,
+    // and `holds()` told the pad editor a Sub sample could be held when no note
+    // on that lane is ever gated. `sampler.rs`'s own warning names this exact
+    // drift: *"widening the gate — gating `Sub` … could land in one path and
+    // not the other."*
+    //
+    // ⚠ **Not measured on a reversed buffer.** `Voice::reversed` mirrors the
+    // read index rather than the buffer, and a loop *inside* a mirrored read is
+    // a second thing for the render loop to reason about for a combination
+    // nobody has asked for — a backwards pad is a gesture, not a sustain.
+    let loop_region = if crate::roles::is_melodic(lane) && !reversed {
+        crate::audio::sustain::find(&samples, target)
+    } else {
+        None
+    };
+
     let decoded = crate::audio::kit::DecodedAudio {
         samples,
         sample_rate: target,
     };
     Ok(OneShot {
         reversed,
+        root,
+        loop_region,
         path: path.display().to_string(),
         // The file's own name. ⚠ `file_name` rather than `file_stem`: two
         // samples called `01` in different folders are common, and the
         // extension is often the only thing telling them apart on screen.
-        name: path
-            .file_name()
-            .and_then(|name| name.to_str())
-            .unwrap_or("sample")
-            .to_owned(),
+        name: file_name(path),
         samples: decoded.samples.into(),
         sample_rate: decoded.sample_rate,
     })
@@ -676,6 +1105,11 @@ mod tests {
             samples: Arc::from(vec![level; 64].into_boxed_slice()),
             sample_rate: 48_000,
             reversed: false,
+            // A flat buffer has no pitch to find and no steady state a loop
+            // could be spliced into, so these fixtures carry the answers
+            // detection would give them anyway.
+            root: None,
+            loop_region: None,
         }
     }
 
@@ -1190,5 +1624,230 @@ mod missing_path_tests {
         let moved = (1..60u64)
             .any(|seed| pick_for(Lane::Snare, &files, seed) != pick_for(Lane::Snare, &files, 7));
         assert!(moved, "every seed picked the same file");
+    }
+}
+
+/// The batch import (TASK-049), and the classifier's first caller (TASK-050).
+///
+/// ⚠ Its own module rather than sharing `missing_path_tests`: nothing here is
+/// about a path that went missing, and a test file that groups by "where it
+/// happened to be written" is the one nobody can find anything in.
+#[cfg(test)]
+mod batch_import_tests {
+    use super::*;
+
+    fn picked(names: &[&str]) -> Vec<std::path::PathBuf> {
+        names
+            .iter()
+            .map(|name| std::path::PathBuf::from(format!("C:/packs/{name}")))
+            .collect()
+    }
+
+    #[test]
+    fn a_pack_lands_on_the_pads_its_filenames_name() {
+        let (pairs, refused) = lanes_for(&picked(&[
+            "Kick 01.wav",
+            "SNARE_hard.wav",
+            "closed hat.wav",
+            "OpenHat 04.wav",
+            "808_Cmaj.wav",
+        ]));
+
+        assert!(refused.is_empty(), "{refused:?}");
+        let lanes: Vec<Lane> = pairs.iter().map(|(lane, _, _)| *lane).collect();
+        assert_eq!(
+            lanes,
+            vec![
+                Lane::Kick,
+                Lane::Snare,
+                Lane::ClosedHat,
+                Lane::OpenHat,
+                Lane::Sub
+            ]
+        );
+    }
+
+    #[test]
+    fn a_name_the_classifier_cannot_place_is_refused_by_name_and_costs_the_batch_nothing() {
+        // TASK-049's verify line in miniature: the batch never aborts, and the
+        // file that did not land is named rather than counted.
+        let (pairs, refused) = lanes_for(&picked(&["kick 01.wav", "untitled-7.wav", "snare.wav"]));
+
+        assert_eq!(pairs.len(), 2, "the two placeable files still landed");
+        assert_eq!(refused.len(), 1);
+        assert_eq!(refused[0].name, "untitled-7.wav");
+    }
+
+    #[test]
+    fn the_first_kick_wins_the_pad_and_the_rest_are_named_rather_than_overwriting_it() {
+        // ⛔ The rule `add_many` exists to state: a pack ships `Kick 01`…`Kick
+        // 08`, and the alternative to refusing the rest is a pad silently
+        // holding whichever file the platform handed over last.
+        let (pairs, refused) = lanes_for(&picked(&["Kick 01.wav", "Kick 02.wav", "Kick 03.wav"]));
+
+        assert_eq!(pairs.len(), 1);
+        assert!(pairs[0].1.ends_with("Kick 01.wav"), "{:?}", pairs[0].1);
+        assert_eq!(refused.len(), 2);
+        // ⚠ **Named by FILE, not by pad.** The producer can see which pads
+        // filled; what they cannot see is which of their files lost, and a Rust
+        // lane identifier in a panel translated into nineteen languages would
+        // not have told them anyway.
+        assert_eq!(
+            refused.iter().map(|one| &*one.name).collect::<Vec<_>>(),
+            vec!["Kick 02.wav", "Kick 03.wav"]
+        );
+    }
+
+    #[test]
+    fn a_remote_path_is_refused_rather_than_read() {
+        // The UNC guard `refuse_remote` documents at length, reached through
+        // the batch path — and reported rather than silently skipped, which is
+        // what `load_many` used to do with it.
+        let (loaded, refused) =
+            decode_all(&[(Lane::Kick, r"\\evil.example.com\s\kick.wav".into(), false)]);
+
+        assert!(loaded.is_empty());
+        assert_eq!(refused.len(), 1);
+        // ⛔ **Asserted on the REASON, not on a parsed file name**, which is the
+        // shape `remote_path_tests` already uses and the reason it does: on
+        // macOS and Linux a backslash is an ordinary filename character, so
+        // `Path::file_name` answers the whole string rather than `kick.wav`.
+        // The first cut of this pinned the name and passed on Windows only —
+        // caught by `quality (macos-latest)`, which is exactly the class of
+        // Windows-only assumption this repo has been bitten by before.
+        assert!(
+            refused[0].reason.contains("network path"),
+            "{:?}",
+            refused[0]
+        );
+    }
+
+    #[test]
+    fn a_file_that_will_not_decode_is_one_refusal_and_not_a_stopped_batch() {
+        let dir = std::env::temp_dir().join("freally-batch-import-test");
+        std::fs::create_dir_all(&dir).expect("a temp dir");
+        let bad = dir.join("snare 01.wav");
+        std::fs::write(&bad, b"this is not a wav file").expect("write");
+
+        let (loaded, refused) = decode_all(&[
+            (Lane::Snare, bad.display().to_string(), false),
+            (
+                Lane::Kick,
+                dir.join("kick 01.wav").display().to_string(),
+                false,
+            ),
+        ]);
+
+        assert!(loaded.is_empty());
+        assert_eq!(
+            refused.len(),
+            2,
+            "both files reported, neither aborted the other: {refused:?}"
+        );
+        assert_eq!(refused[0].name, "snare 01.wav");
+        assert_eq!(refused[1].name, "kick 01.wav");
+
+        let _ = std::fs::remove_file(&bad);
+    }
+}
+
+/// Detecting what note a producer's sample is in (TASK-052).
+///
+/// ⛔ Its own module for the reason the batch import's is: this is about the
+/// measurement feeding the kit, not about dialogs or missing paths.
+#[cfg(test)]
+mod detected_root_tests {
+    use super::tests::one_shot;
+    use super::*;
+    use crate::audio::preview_kit;
+
+    /// `seconds` of a sine at `hz`, at the kit's own rate.
+    fn sine(hz: f32, seconds: f32) -> Vec<f32> {
+        let rate = crate::audio::kit_rate() as f32;
+        let n = (rate * seconds) as usize;
+        (0..n)
+            .map(|i| (2.0 * std::f32::consts::PI * hz * i as f32 / rate).sin())
+            .collect()
+    }
+
+    fn tone(hz: f32) -> OneShot {
+        let samples = sine(hz, 1.0);
+        OneShot {
+            path: "C:/samples/tone.wav".into(),
+            name: "tone.wav".into(),
+            root: crate::audio::pitch::detect_root(&samples, crate::audio::kit_rate()),
+            loop_region: crate::audio::sustain::find(&samples, crate::audio::kit_rate()),
+            samples: Arc::from(samples.into_boxed_slice()),
+            sample_rate: crate::audio::kit_rate(),
+            reversed: false,
+        }
+    }
+
+    #[test]
+    fn a_measured_root_beats_the_one_the_shipped_pad_would_have_lent_it() {
+        // ⛔⛔ **The defect this task exists to fix.** The lead pad is rooted at
+        // MIDI 84 because that is where the melody generator writes, so before
+        // this a sample recorded at A2 (110 Hz, MIDI 45) was played as though it
+        // were already a C6 — nearly four octaves out, with no control that
+        // fixed it.
+        let base = preview_kit().expect("the shipped kit must load");
+        let lent = base.pads[base.pad_for(Lane::Melody).unwrap()].root_note;
+
+        let assigned = BTreeMap::from([(Lane::Melody, tone(110.0))]);
+        let kit = base.with_one_shots(&assigned);
+        let measured = kit.pads[kit.pad_for(Lane::Melody).unwrap()].root_note;
+
+        assert_eq!(measured, Some(45), "A2 is MIDI 45");
+        assert_ne!(measured, lent, "the lent root is what this replaces");
+    }
+
+    #[test]
+    fn a_sample_with_no_pitch_still_inherits_rather_than_losing_its_root() {
+        // ⚠ **The fallback is the whole safety of the change.** A vocal chop or
+        // a noisy pad detects nothing, and answering `None` there would leave a
+        // melodic lane playing every note as sampled — monotone, which is worse
+        // than the octave error this replaces.
+        let base = preview_kit().expect("the shipped kit must load");
+        let lent = base.pads[base.pad_for(Lane::Melody).unwrap()].root_note;
+
+        let assigned = BTreeMap::from([(Lane::Melody, one_shot("chop.wav", 0.5))]);
+        let kit = base.with_one_shots(&assigned);
+
+        assert_eq!(
+            kit.pads[kit.pad_for(Lane::Melody).unwrap()].root_note,
+            lent,
+            "a sample with no detectable pitch keeps the pad's own root"
+        );
+    }
+
+    #[test]
+    fn a_drum_lane_is_never_given_a_root_however_tuned_its_sample_is() {
+        // ⛔ `pitch::applies_to`'s rule, reached through the kit: a root on a
+        // kick makes the drum grid's hand-drawn hits transpose it, and a 110 Hz
+        // kick is an ordinary kick rather than an instruction to do that.
+        let base = preview_kit().expect("the shipped kit must load");
+        let assigned = BTreeMap::from([(Lane::Kick, tone(110.0))]);
+        let kit = base.with_one_shots(&assigned);
+
+        assert_eq!(kit.pads[kit.pad_for(Lane::Kick).unwrap()].root_note, None);
+    }
+
+    #[test]
+    fn detection_is_only_asked_of_the_lanes_that_can_use_an_answer() {
+        // The gate is `applies_to`, and it is asked in `load` rather than after
+        // the fact — a kit re-roll decodes a dozen files and an NSDF over half a
+        // second each is real work on the loader thread.
+        for lane in [
+            Lane::Melody,
+            Lane::Counter,
+            Lane::Bass,
+            Lane::Chords,
+            Lane::Sub,
+        ] {
+            assert!(crate::audio::pitch::applies_to(lane), "{lane:?}");
+        }
+        for lane in [Lane::Kick, Lane::Snare, Lane::ClosedHat, Lane::Clap] {
+            assert!(!crate::audio::pitch::applies_to(lane), "{lane:?}");
+        }
     }
 }

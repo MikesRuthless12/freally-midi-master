@@ -60,6 +60,15 @@ pub struct Pad {
     /// what every shipped pad and every untouched one-shot carries — see
     /// [`PadShape::is_plain`], which is how the audio thread skips the work.
     pub shape: PadShape,
+    /// Where this pad may be looped while a note is held (TASK-053A).
+    ///
+    /// ⛔ **`None` on every shipped pad, and that is a measurement rather than
+    /// a decision.** The kits are synthesized tones under decay envelopes, and
+    /// [`crate::audio::sustain::find`] refuses a decay — so nothing this
+    /// product already ships changes how it sounds. It becomes `Some` only for
+    /// a producer's own sample with a genuine steady state, on a lane where
+    /// holding a note means anything.
+    pub loop_region: Option<(usize, usize)>,
 }
 
 #[derive(Clone)]
@@ -104,6 +113,32 @@ pub struct OneShot {
     /// so the choice can be written into the project and reapplied on reload,
     /// which is the one thing the reversed samples cannot tell us themselves.
     pub reversed: bool,
+    /// What note the sample is actually in, when it is in one (TASK-052).
+    ///
+    /// ⛔⛔ **This is what makes a one-shot on a melodic part play at the right
+    /// octave rather than a plausible one.** [`Kit::with_one_shots`] inherits
+    /// `root_note` from the pad the shipped kit ships for that lane — the lead
+    /// pad is rooted at MIDI 84 because that is where the melody generator
+    /// writes — so a violin sampled at C2 assigned there was transposed as
+    /// though it were already a C6. That entry's own doc calls the inheritance
+    /// *"sensible"* and names this task as what makes it exact.
+    ///
+    /// `None` for percussion and for anything with no clear pitch, which is a
+    /// real answer and the common one: [`crate::audio::pitch::detect_root`]
+    /// refuses noise rather than guessing, and it is only asked at all on the
+    /// lanes [`crate::audio::pitch::applies_to`] names.
+    pub root: Option<crate::audio::pitch::Root>,
+    /// Where this sample can be looped while a note is held (TASK-053A).
+    ///
+    /// ⛔ **What makes a four-bar chord four bars long.** Without it a held note
+    /// sounds for however long the file happens to be and then stops, so the
+    /// piano roll's note lengths do nothing audible on a sustaining part.
+    ///
+    /// `None` for percussion, for plucks and stabs, and for anything else with
+    /// no steady state — [`crate::audio::sustain::find`] refuses rather than
+    /// approximating, because a loop point in the wrong place is a click on
+    /// every held note, which is worse than the shortened note it replaces.
+    pub loop_region: Option<(usize, usize)>,
 }
 
 /// Written out for the same reason [`Kit`]'s is: a derived one would print the
@@ -194,7 +229,29 @@ impl Kit {
                 pitch_semis: base.map_or(0, |pad| pad.pitch_semis),
                 pitch_cents: base.map_or(0, |pad| pad.pitch_cents),
                 choke_group: base.and_then(|pad| pad.choke_group),
-                root_note: base.and_then(|pad| pad.root_note),
+                // ⛔ **The sample's OWN pitch wins over the pad's** (TASK-052).
+                // Inheriting was the sensible fallback this doc describes; a
+                // measured root is the exact answer. A sample with no clear
+                // pitch — a vocal chop, a noisy pad — detects nothing and still
+                // inherits, because a melodic lane with no root at all plays
+                // every note as sampled, which is monotone and worse than the
+                // octave error this replaces.
+                //
+                // ⛔⛔ **`applies_to` is asked HERE as well as in
+                // `oneshot::load`, and that is not a duplicated rule.** In
+                // `load` it is a *cost* decision — an NSDF over half a second
+                // is real work and a kit re-roll decodes a dozen files. Here it
+                // is the *correctness* one: this is the only place that holds
+                // the lane and the measurement together at the moment a pad is
+                // built, and a root on a kick makes the drum grid's hand-drawn
+                // hits transpose it. Leaving the invariant to whoever happens to
+                // construct the `OneShot` is how it gets broken by the next
+                // caller that does not know it exists.
+                root_note: one_shot
+                    .root
+                    .filter(|_| crate::audio::pitch::applies_to(*lane))
+                    .map(|root| root.note)
+                    .or_else(|| base.and_then(|pad| pad.root_note)),
                 // ⛔ **Deliberately NOT inherited.** Everything else on this
                 // line is a property of the *voice* the kit ships for this lane
                 // — where it sits in the mix, what it is rooted at. A shape is a
@@ -204,6 +261,24 @@ impl Kit {
                 // its tail. [`Kit::with_tweaks`] re-resolves it against the
                 // audio that is actually here.
                 shape: PadShape::default(),
+                // ⛔ **The producer's sample brings its own loop, and it is
+                // never inherited** (TASK-053A) — for the reason `shape` right
+                // above is not: a loop region is a pair of offsets into a
+                // *specific* buffer, and this is a different buffer. Carrying
+                // the base pad's would loop somewhere arbitrary in the new
+                // sample, which is the click this feature must not produce.
+                //
+                // ⛔ **Gated on the lane here as well as in `oneshot::load`**,
+                // for exactly the reason `root_note` two lines up is: this is
+                // the only place holding the lane and the measurement together
+                // as a pad is built, and leaving the invariant to whoever
+                // constructs the `OneShot` is how it gets broken by the next
+                // caller that does not know it exists. ⚠ `is_melodic`, not
+                // `applies_to` — a note can only be held on a lane whose notes
+                // are gated by their own length, which excludes `Sub`.
+                loop_region: one_shot
+                    .loop_region
+                    .filter(|_| crate::roles::is_melodic(*lane)),
             };
 
             match kit.pad_for(*lane) {
@@ -327,6 +402,12 @@ impl Kit {
                 choke_group: pad.choke_group,
                 root_note: pad.root_note,
                 shape: PadShape::default(),
+                // A shipped pad is a synthesized tone under a decay envelope,
+                // and `sustain::find` refuses a decay — so measuring one here
+                // would answer None on every pad in every kit at a cost paid on
+                // every plugin start. See the field for why that is a
+                // measurement rather than a decision.
+                loop_region: None,
             });
         }
 
@@ -864,6 +945,10 @@ mod tests {
                 samples: Arc::from(vec![0.5f32; 16].into_boxed_slice()),
                 sample_rate: 48_000,
                 reversed: false,
+                // A kick has no root to detect — see `pitch::applies_to`, and
+                // nothing that rings out can reach a loop point either.
+                root: None,
+                loop_region: None,
             },
         )]);
 

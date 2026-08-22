@@ -451,6 +451,27 @@ mod tests {
     use super::*;
     use engine::pattern::{Lane, LaneTrack, Note, Part, Scale};
 
+    /// One sixteenth-note hit.
+    ///
+    /// ⚠ **A builder because `Note` has no `Default`** — eleven fields, of
+    /// which two ever vary here, and a second literal is a second place for
+    /// them to drift.
+    fn note(pitch: u8, vel: u8) -> Note {
+        Note {
+            start_tick: 0,
+            len_ticks: 240,
+            pitch,
+            vel,
+            model_vel: None,
+            slide_to_pitch: None,
+            slide_ms: None,
+            slide_overlap_ticks: None,
+            timing_locked: false,
+            articulation: None,
+            reversed: false,
+        }
+    }
+
     fn pattern_with(lane: Lane, pitch: u8) -> Pattern {
         Pattern {
             id: "t".into(),
@@ -466,19 +487,7 @@ mod tests {
             scale: Scale::NaturalMinor,
             lanes: vec![LaneTrack {
                 lane,
-                notes: vec![Note {
-                    start_tick: 0,
-                    len_ticks: 240,
-                    pitch,
-                    vel: 110,
-                    model_vel: None,
-                    slide_to_pitch: None,
-                    slide_ms: None,
-                    slide_overlap_ticks: None,
-                    timing_locked: false,
-                    articulation: None,
-                    reversed: false,
-                }],
+                notes: vec![note(pitch, 110)],
             }],
             ppq: PPQ,
             mood: None,
@@ -767,6 +776,75 @@ mod tests {
             decoded.samples.iter().all(|s| s.abs() <= 1.0),
             "a sample wrapped: {:?}",
             decoded.samples
+        );
+    }
+    /// The null test TASK-056 names, and the gate TASK-053A is measured by.
+    ///
+    /// ⛔⛔ **Render twice, byte-identical.** The whole offline path has to be a
+    /// pure function of the pattern and the kit: nothing may read a clock, draw
+    /// from an unseeded stream, or depend on which order a map happened to
+    /// iterate in. This is also the one test that would catch a *held* voice
+    /// that never ends — TASK-053A's loop runs inside this same code path, and
+    /// a wrap that could not converge would show up here as two different
+    /// renders long before anybody heard it.
+    ///
+    /// ⚠ **Every part, not just the one that was easy to check** — and through
+    /// the writer as well as the buffer, because the `.wav` is what a producer
+    /// actually drags.
+    #[test]
+    fn rendering_the_same_pattern_twice_gives_the_same_bytes() {
+        let kit = crate::audio::preview_kit().expect("the shipped kit must load");
+        for (lane, pitch) in [
+            (Lane::Kick, 36),
+            (Lane::Snare, 38),
+            (Lane::ClosedHat, 42),
+            (Lane::Melody, 72),
+            (Lane::Bass, 36),
+            (Lane::Chords, 60),
+        ] {
+            let pattern = pattern_with(lane, pitch);
+            let once = to_stereo(&pattern, kit);
+            let twice = to_stereo(&pattern, kit);
+            assert_eq!(once, twice, "{lane:?} did not render the same way twice");
+
+            if let (Some(once), Some(twice)) = (once, twice) {
+                assert_eq!(
+                    to_wav(&once, &pattern),
+                    to_wav(&twice, &pattern),
+                    "{lane:?} wrote two different files from one render"
+                );
+            }
+        }
+    }
+
+    /// The limiter is what keeps a stem inside full scale.
+    ///
+    /// ⚠ **Soft-clipped rather than held at −1 dBFS**, which is what TASK-056's
+    /// text asks for, and the difference is worth stating: a fixed headroom
+    /// would attenuate every stem whether or not it needed it, while the knee
+    /// leaves anything below it untouched and shapes only what would have
+    /// clipped. What the entry actually protects against — a file that wraps
+    /// round on write — is what this holds.
+    #[test]
+    fn a_loud_stem_stays_inside_full_scale() {
+        let kit = crate::audio::preview_kit().expect("the shipped kit must load");
+        let mut pattern = pattern_with(Lane::Kick, 36);
+        // Every lane at once, all on beat one, at full velocity.
+        pattern.lanes = [Lane::Kick, Lane::Snare, Lane::ClosedHat, Lane::Clap]
+            .iter()
+            .map(|lane| LaneTrack {
+                lane: *lane,
+                // ⚠ `pattern_with`'s own note builder, so the eleven fields
+                // `Note` has — it carries no `Default` — are spelled once.
+                notes: vec![note(36, 127)],
+            })
+            .collect();
+
+        let rendered = to_stereo(&pattern, kit).expect("four lanes must render audio");
+        let peak = rendered.iter().fold(0.0f32, |peak, s| peak.max(s.abs()));
+        assert!(
+            peak <= 1.0,
+            "the limiter let something past full scale: {peak}"
         );
     }
 }

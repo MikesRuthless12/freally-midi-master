@@ -57,7 +57,11 @@
     "playLane": "Reproducir {{lane}}",
     "padLane": "Carril del pad {{at}}",
     "useSelected": "Poner la muestra seleccionada en {{lane}}",
-    "editPad": "Editar el sonido de {{lane}}"
+    "editPad": "Editar el sonido de {{lane}}",
+    "addMany": "Añadir samples…",
+    "imported": "{{count}} colocados en los pads",
+    "notPlaced": "Sin colocar",
+    "dismissImport": "Listo"
   },
   "sections": {
     "genres": "Géneros",
@@ -574,7 +578,14 @@
     "fadeIn": "Fundido de entrada",
     "fadeOut": "Fundido de salida",
     "noWaveform": "Este pad reproduce un sample incorporado, así que no hay archivo que dibujar.",
-    "envelopeShape": "Ataque {{attack}} ms, caída {{decay}} ms, sostenido {{sustain}} dB, liberación {{release}} ms"
+    "envelopeShape": "Ataque {{attack}} ms, caída {{decay}} ms, sostenido {{sustain}} dB, liberación {{release}} ms",
+    "detectedRoot": "Muestreado en {{note}} ({{cents}} cents)",
+    "rootUnsure": "— incierto",
+    "cannotHold": "Este sample no tiene una parte estable que sostener, así que una nota larga termina con el archivo.",
+    "storeB": "Guardar B",
+    "showB": "Ver B",
+    "showA": "Ver A",
+    "keepB": "Conservar B"
   },
   "crash": {
     "title": "Algo en la ventana dejó de funcionar",

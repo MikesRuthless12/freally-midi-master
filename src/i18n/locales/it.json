@@ -57,7 +57,11 @@
     "playLane": "Riproduci {{lane}}",
     "padLane": "Traccia del pad {{at}}",
     "useSelected": "Metti il campione selezionato su {{lane}}",
-    "editPad": "Modifica il suono di {{lane}}"
+    "editPad": "Modifica il suono di {{lane}}",
+    "addMany": "Aggiungi campioni…",
+    "imported": "{{count}} messi sui pad",
+    "notPlaced": "Non inseriti",
+    "dismissImport": "Fatto"
   },
   "sections": {
     "genres": "Generi",
@@ -574,7 +578,14 @@
     "fadeIn": "Dissolvenza in entrata",
     "fadeOut": "Dissolvenza in uscita",
     "noWaveform": "Questo pad riproduce un campione integrato, quindi non c’è alcun file da disegnare.",
-    "envelopeShape": "Attacco {{attack}} ms, decadimento {{decay}} ms, sostegno {{sustain}} dB, rilascio {{release}} ms"
+    "envelopeShape": "Attacco {{attack}} ms, decadimento {{decay}} ms, sostegno {{sustain}} dB, rilascio {{release}} ms",
+    "detectedRoot": "Campionato a {{note}} ({{cents}} cent)",
+    "rootUnsure": "— incerto",
+    "cannotHold": "Questo campione non ha una parte stabile da tenere, quindi una nota lunga finisce con il file.",
+    "storeB": "Salva B",
+    "showB": "Mostra B",
+    "showA": "Mostra A",
+    "keepB": "Tieni B"
   },
   "crash": {
     "title": "Qualcosa nella finestra ha smesso di funzionare",
