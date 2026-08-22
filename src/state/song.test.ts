@@ -893,3 +893,41 @@ it('a preset load does not leave a snapshot naming the arrangement it deleted', 
   // …and from the entry that is current, so redo cannot bring it back.
   expect(useHistory.getState().present?.state.song).toBeNull();
 });
+
+/**
+ * Revealing the stems on a Song-Mode generation (TASK-143, cause 1).
+ *
+ * ⛔⛔ **Mike, 2026-08-06:** *"sometimes when i have the song generator on and
+ * the stems panel is supposed be shown it doesn't show it, but then when i press
+ * view all panels it shows the stems panel that should already be showing."*
+ * `session.ts`'s reveal subscriber is gated on `useSession.patterns`, and
+ * generating an arrangement writes only to this store — so the panel appeared
+ * only when a per-part pattern happened to exist already. That is the
+ * *"sometimes"*. `ui.test.ts` covers the other cause, the unmounted rail.
+ */
+it('asks for the stems panel when an arrangement arrives, with no pattern behind it', () => {
+  useUi.setState({ stemsRevealed: false, rightRailOpen: false });
+  // ⛔ Empty on purpose: this is the case the session subscriber cannot see.
+  expect(useSession.getState().patterns).toEqual({});
+
+  useSong.setState({ song: song() });
+
+  expect(useUi.getState().stemsRevealed).toBe(true);
+  expect(useUi.getState().sections.stems).toBe(true);
+});
+
+it('does not re-ask once the producer has switched the rail away', () => {
+  // ⚠ The subscriber fires on `song` gaining a value, not on every write, and
+  // `revealStems` is one-shot as well. Either alone would be enough; both
+  // together are what stop this being a panel policy that reasserts itself on
+  // every edit of the arrangement.
+  useUi.setState({ stemsRevealed: false });
+  useSong.setState({ song: song() });
+  useUi.getState().showSection('session');
+  expect(useUi.getState().sections.stems).toBe(false);
+
+  useSong.setState({ song: null });
+  useSong.setState({ song: song() });
+
+  expect(useUi.getState().sections.stems).toBe(false);
+});

@@ -743,22 +743,67 @@
           <strong>No outbound connections exist.</strong> The desktop app had exactly two — a
           launch-time update check and an opt-in crash report — and both were removed with it. The
           plugin is installed and updated by whoever installs plugins, and no HTTP client is
-          compiled into it. A build gate checks this on every commit rather than trusting the claim.
+          compiled into it. Two build gates check this on every commit rather than trusting the
+          claim: one reads the dependency graph and fails if an HTTP client is linked at all, the
+          other drives the real interface through a generation and fails if the browser attempts a
+          single request off the machine.
+        </p>
+        <p class="note">
+          Crash reports are written to a folder on your own disk and are never sent anywhere. They
+          exist so you have something to attach to a bug report if you choose to — nothing reads
+          that folder but you.
         </p>
       </article>
 
       <article class="release" id="bugs">
         <h2>Reporting a bug</h2>
         <p class="summary">
-          The in-app crash reporter belonged to the desktop app and went with it. A plugin lives
-          inside someone else's process: when it takes the host down there is no window of ours left
-          to draw a dialog in, and the report a producer needs to send is the DAW's own crash log,
-          not ours.
+          There is no reporter that phones home, and there never will be. What there is instead is a
+          folder: when either half of the plugin falls over, it writes what happened to your own
+          disk, and you decide whether to send it.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>OS</th>
+              <th>Where the reports are</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Windows</td>
+              <td><code>%APPDATA%\Freally MIDI Master\crashes\</code></td>
+            </tr>
+            <tr>
+              <td>macOS</td>
+              <td><code>~/Library/Application Support/Freally MIDI Master/crashes/</code></td>
+            </tr>
+            <tr>
+              <td>Linux</td>
+              <td>
+                <code>$XDG_DATA_HOME/freally-midi-master/crashes/</code>, or
+                <code>~/.local/share/freally-midi-master/crashes/</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          The filename says which half went: <code>-panic</code> is the audio engine with a
+          backtrace, <code>-page</code> is the interface, and on Windows <code>-fault</code> is a
+          hardware fault such as an access violation. The newest twenty are kept, so the folder
+          never grows without limit and you can attach the lot to an issue.
         </p>
         <p class="note">
-          So report a crash the ordinary way — open an issue on the repository, and say which host,
-          which format (CLAP or VST3) and which OS version. Attach the log your DAW wrote if it
-          wrote one.
+          If the <em>interface</em> is what broke, you will see a panel with a way back into your
+          session rather than a dead rectangle — the arrangement lives outside the part that
+          crashed, so pressing the button redraws your own work. Report it anyway; the log is
+          already on disk.
+        </p>
+        <p class="note">
+          So: open an issue on the repository, say which host, which format (CLAP or VST3) and which
+          OS version, and attach the newest file from the folder above. If the crash took the whole
+          DAW down, attach the log your DAW wrote as well — when the host dies there may be no
+          window of ours left to write from.
         </p>
       </article>
 

@@ -575,5 +575,11 @@
     "fadeOut": "Fondu sortant",
     "noWaveform": "Ce pad joue un échantillon intégré : il n'y a donc aucun fichier à dessiner.",
     "envelopeShape": "Attaque {{attack}} ms, déclin {{decay}} ms, maintien {{sustain}} dB, relâchement {{release}} ms"
+  },
+  "crash": {
+    "title": "Quelque chose dans la fenêtre a cessé de fonctionner",
+    "body": "Votre projet est toujours ouvert dans l'hôte. Rechargez le panneau pour continuer — rien n'a été écrit sur le disque.",
+    "retry": "Recharger le panneau",
+    "details": "Détail technique"
   }
 }

@@ -575,5 +575,11 @@
     "fadeOut": "Yavaşça kıs",
     "noWaveform": "Bu pad yerleşik bir örnek çalıyor, bu yüzden çizilecek bir dosya yok.",
     "envelopeShape": "Atak {{attack}} ms, düşüş {{decay}} ms, sürdürme {{sustain}} dB, bırakma {{release}} ms"
+  },
+  "crash": {
+    "title": "Penceredeki bir şey çalışmayı durdurdu",
+    "body": "Projeniz ana uygulamada hâlâ açık. Devam etmek için paneli yeniden yükleyin — diske hiçbir şey yazılmadı.",
+    "retry": "Paneli yeniden yükle",
+    "details": "Teknik ayrıntı"
   }
 }

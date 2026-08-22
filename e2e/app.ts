@@ -50,6 +50,21 @@ export async function pickArtist(page: Page, name: string): Promise<void> {
   await box.blur();
 }
 
+/**
+ * Pick someone and generate, which is the opening of almost every journey.
+ *
+ * ⛔ **The gesture was copied into three specs** — `part-toggles`,
+ * `rail-layout` and `offline` — each with its own comment explaining why it
+ * uses `pickArtist` rather than a raw fill. This module's own header exists for
+ * exactly that: a gesture written once, so the next change to the way in has one
+ * place to know about it.
+ */
+export async function generate(page: Page, name: string): Promise<void> {
+  await pickArtist(page, name);
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
+  await expect(page.getByRole('table', { name: 'Generated pattern' })).toBeVisible();
+}
+
 /** The same, for the genre combobox above it. */
 export async function pickGenre(page: Page, name: string): Promise<void> {
   const box = page.getByRole('combobox', { name: 'Genres' });

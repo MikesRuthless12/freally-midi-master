@@ -575,5 +575,11 @@
     "fadeOut": "Wyciszenie na wyjściu",
     "noWaveform": "Ten pad odtwarza wbudowaną próbkę, więc nie ma pliku do narysowania.",
     "envelopeShape": "Narastanie {{attack}} ms, opadanie {{decay}} ms, podtrzymanie {{sustain}} dB, wybrzmienie {{release}} ms"
+  },
+  "crash": {
+    "title": "Coś w oknie przestało działać",
+    "body": "Twój projekt jest nadal otwarty w hoście. Załaduj panel ponownie, aby kontynuować — nic nie zostało zapisane na dysku.",
+    "retry": "Załaduj panel ponownie",
+    "details": "Szczegóły techniczne"
   }
 }

@@ -16,15 +16,14 @@ import {
   allNotes,
   patternTicks,
   previewBars,
-  sectionBars,
+  songClips,
   PREVIEW_HEIGHT,
   PREVIEW_LABEL_HEIGHT,
   PREVIEW_WIDTH,
-  type PreviewBar,
 } from './previewLayout';
-import { readPalette } from '../PianoRoll/palette';
-import { sectionDensity } from '../SongTimeline/sketch';
+import { readPalette, type Palette } from '../PianoRoll/palette';
 import type { Lane, Pattern, Song } from '../../lib/ipc-types';
+import type { DragFormat } from '../../state/drag';
 
 /** What `drag_start` accepts, and what `drag::Preview` expects on the other side. */
 export type PreviewPayload = { width: number; height: number; rgba: string };
@@ -65,16 +64,88 @@ export function drawDragPreview(
   // per-lane row sends the pattern whole and names the lane — the plugin does
   // the cutting — so without this the drag image showed the whole kit and every
   // lane chip drew the same picture.
-  return draw(label, previewBars(allNotes(patterns, lane), patternTicks(first)));
+  const marks = previewBars(allNotes(patterns, lane), patternTicks(first));
+  return draw(label, (ctx, palette) => {
+    ctx.fillStyle = palette.primary;
+    for (const mark of marks) {
+      ctx.globalAlpha = mark.alpha;
+      ctx.fillRect(mark.x, mark.y, mark.width, mark.height);
+    }
+  });
 }
 
-/** The same picture for a whole arrangement. */
-export function drawSongPreview(song: Song, label: string): PreviewPayload | null {
-  return draw(label, sectionBars(sectionDensity(song)));
+/**
+ * The arrangement as it will land in the DAW (TASK-144).
+ *
+ * ⛔⛔ **This used to be the "purple graph" Mike objected to** — one card with a
+ * row of density bars, drawn identically whether the drop would land 1 file or
+ * 13, saying nothing about MIDI or audio and nothing about the modifier. His
+ * correction names what it has to be instead: *"i want the song arrangement
+ * being dragged in to actually show the midi clips either together back to back
+ * or stacked with the 'Ctrl' or 'Command' keys being pressed, same with audio
+ * clips."* A producer looking at the cursor should recognise the shape of their
+ * own record and see where it is going to sit.
+ *
+ * ⚠ **`stacked` is read once, when the gesture becomes a drag.** The bitmap
+ * goes to the shell before `DoDragDrop` and cannot be redrawn mid-gesture — see
+ * [`songClips`]. The payload still swaps as the modifier changes; only the
+ * picture is fixed.
+ *
+ * ⚠ **`format` and `stacked` are REQUIRED, with no default between them.** A
+ * default of `'midi'` would hand an audio drop a MIDI picture the moment a
+ * caller forgot the argument — silently, and looking correct — which is the
+ * readout-that-lies case this file is otherwise built around. The one call site
+ * has both in scope.
+ */
+export function drawSongPreview(
+  song: Song,
+  label: string,
+  format: DragFormat,
+  stacked: boolean,
+): PreviewPayload | null {
+  const clips = songClips(song, stacked);
+  return draw(label, (ctx, palette) => {
+    // ⛔ **A clip is drawn as a clip**: a filled, bordered rectangle at its true
+    // bar and its true length. That is the whole of Mike's correction, and it is
+    // the same shape `SongTimeline` paints, so the cursor and the timeline agree.
+    //
+    // ⚠ **MIDI and audio are told apart by FILL, not by a word.** He names them
+    // as two kinds of chip; there is no room for a legend at this size. MIDI is
+    // the solid primary the note blocks already use; audio is hollow with a
+    // centre line, which is what a waveform reduces to at four pixels tall.
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = palette.primary;
+    ctx.strokeStyle = palette.primary;
+    ctx.lineWidth = 1;
+    for (const clip of clips) {
+      if (format === 'audio') {
+        ctx.strokeRect(
+          clip.x + 0.5,
+          clip.y + 0.5,
+          Math.max(1, clip.width - 1),
+          clip.height - 1,
+        );
+        ctx.fillRect(clip.x, clip.y + clip.height / 2 - 0.5, clip.width, 1);
+      } else {
+        ctx.fillRect(clip.x, clip.y, clip.width, clip.height);
+      }
+    }
+  });
 }
 
-/** The card, the name, and the marks under it. */
-function draw(label: string, marks: PreviewBar[]): PreviewPayload | null {
+/**
+ * The card, the name, and whatever the caller paints under it.
+ *
+ * ⚠ **A paint hook rather than two payload parameters.** This took a
+ * `PreviewBar[]` *and* a `PreviewClip[]` *and* a format flag, where every call
+ * passed one list and an empty sentinel for the other. What is genuinely shared
+ * is the card, the label, the divider and the encode; how the marks are painted
+ * belongs to whoever knows what they mean.
+ */
+function draw(
+  label: string,
+  paint: (ctx: CanvasRenderingContext2D, palette: Palette) => void,
+): PreviewPayload | null {
   const canvas = document.createElement('canvas');
   canvas.width = PREVIEW_WIDTH;
   canvas.height = PREVIEW_HEIGHT;
@@ -112,12 +183,7 @@ function draw(label: string, marks: PreviewBar[]): PreviewPayload | null {
   ctx.lineTo(PREVIEW_WIDTH, PREVIEW_LABEL_HEIGHT);
   ctx.stroke();
 
-  ctx.fillStyle = palette.primary;
-  for (const mark of marks) {
-    ctx.globalAlpha = mark.alpha;
-    ctx.fillRect(mark.x, mark.y, mark.width, mark.height);
-  }
-  ctx.globalAlpha = 1;
+  paint(ctx, palette);
 
   let pixels: ImageData;
   try {

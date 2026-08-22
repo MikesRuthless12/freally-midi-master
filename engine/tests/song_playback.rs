@@ -530,16 +530,27 @@ fn a_single_part_flatten_keeps_that_part_rather_than_a_stand_in() {
     // it. Without carrying the part through, every melodic stem landed on disk
     // as `FMM Melody.mid` with a track called `trap — Drums` inside it.
     let song = song("trap", 5);
+    let mut played = Vec::new();
     for part in [Part::Drums, Part::Chords, Part::Melody, Part::Counter] {
         let flat = song.flatten_parts(Some(&[part]));
         if flat.note_count() == 0 {
             continue;
         }
+        played.push(part);
         assert_eq!(
             flat.part, part,
             "a {part:?} stem reported itself as another part"
         );
     }
+
+    // ⛔ **One DAW track per part is TASK-128's other half**, and it only means
+    // anything if more than one part actually produces a file — a song that
+    // played drums alone would satisfy every assertion above while proving
+    // nothing about the split.
+    assert!(
+        played.len() > 1,
+        "a trap arrangement should hand back more than one stem; got {played:?}"
+    );
 
     // And the whole-song flatten still uses the stand-in, because there is no
     // honest alternative — it never reaches the writer.
@@ -596,5 +607,52 @@ fn a_stem_and_its_track_in_the_multi_track_file_agree() {
         whole, stem,
         "the multi-track file and the stem disagree — same part, same song, two \
          different performances"
+    );
+}
+
+#[test]
+fn each_sections_clip_lands_at_its_own_bar_in_the_stem() {
+    // ⛔⛔ **TASK-128's whole claim, and it had no test of its own.** Mike,
+    // 2026-08-04: *"there is no need to export a whole song as midi, just drag
+    // midi/audio to the daw"* — dragging the arrangement must land **one track
+    // per part with each section's clip at its own bar position**, not one
+    // merged file a producer then has to take apart.
+    //
+    // ▶ **The behaviour is already right** — `flatten_parts` places every note
+    // at `section_start + offset + note.start_tick`, so a per-part stem *is* the
+    // whole timeline with that part in it. What was missing is anything saying
+    // so. The roadmap's own phrasing — *"aligned to bar 1"* — reads like the
+    // opposite claim, and the entry was left open for a year on the strength of
+    // it. This is the assertion that settles which is true.
+    //
+    // ⚠ **Absolute ticks, not a count.** A test that only counted notes would
+    // pass just as well if every clip had been collapsed onto bar 1, which is
+    // precisely the failure being ruled out.
+    let mut clip = one_bar_kick("a");
+    clip.bars = 1;
+
+    // An intro of 2 bars, then a section of 4. The second section's kick must
+    // start at bar 3.
+    let song = two_sections(clip, 2, 4);
+    let stem = song.flatten_parts(Some(&[Part::Drums]));
+
+    let ticks: Vec<u32> = stem
+        .lanes
+        .iter()
+        .flat_map(|track| track.notes.iter().map(|note| note.start_tick))
+        .collect();
+
+    let bar = PPQ * 4;
+    assert_eq!(
+        ticks,
+        vec![0, bar, 2 * bar, 3 * bar, 4 * bar, 5 * bar],
+        "the six bars of a 2 + 4 arrangement did not land one per bar"
+    );
+
+    // ⛔ And the second section is genuinely later, which is the property a
+    // flattened-to-bar-1 export would break while keeping the note count.
+    assert!(
+        ticks.iter().any(|tick| *tick >= 2 * bar),
+        "nothing landed at or after the second section's start bar"
     );
 }

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { pickArtist } from './app';
+import { generate } from './app';
 
 /**
  * Switching generators on and off for playback (TASK-127).
@@ -16,16 +16,6 @@ import { pickArtist } from './app';
  * that. Here the claim is *reachability*: the switches exist, they appear only
  * for parts that were actually generated, and pressing one changes its state.
  */
-
-async function generate(page: import('@playwright/test').Page, query: string) {
-  // ⚠ The shared helper, not a local copy of the gesture. This waited for an
-  // option to become *visible* before pressing Enter, which the portalled menu
-  // does not satisfy in the same frame — and `pickArtist` also blurs, which the
-  // app requires before any keyboard shortcut will fire.
-  await pickArtist(page, query);
-  await page.getByRole('button', { name: 'Generate', exact: true }).click();
-  await expect(page.getByRole('table', { name: 'Generated pattern' })).toBeVisible();
-}
 
 test('no switches exist until something has been generated', async ({ page }) => {
   // ⛔ A switch for a part nobody has generated would be a control that changes

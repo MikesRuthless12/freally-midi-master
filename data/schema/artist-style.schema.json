@@ -83,7 +83,7 @@
       "additionalProperties": false
     },
 
-    "drums": { "$ref": "#/$defs/partBlock" },
+    "drums": { "$ref": "#/$defs/drumsBlock" },
     "chords": { "$ref": "#/$defs/partBlock" },
     "melody": { "$ref": "#/$defs/partBlock" },
     "countermelody": { "$ref": "#/$defs/partBlock" },
@@ -114,7 +114,7 @@
             "minimum": 0
           },
           "session": { "type": "object" },
-          "drums": { "$ref": "#/$defs/partBlock" },
+          "drums": { "$ref": "#/$defs/drumsBlock" },
           "chords": { "$ref": "#/$defs/partBlock" },
           "melody": { "$ref": "#/$defs/partBlock" },
           "countermelody": { "$ref": "#/$defs/partBlock" },
@@ -193,6 +193,58 @@
           "additionalProperties": false
         }
       ]
+    },
+
+    "drumsBlock": {
+      "description": "The drum block. Everything except `percs` is still open, exactly as partBlock describes — this narrows only the sub-block whose generator has landed.",
+      "allOf": [
+        { "$ref": "#/$defs/partBlock" },
+        {
+          "type": "object",
+          "properties": {
+            "percs": {
+              "description": "Null is how a model switches the inherited block OFF, and the schema must not be stricter than the engine: read::block in engine/src/generators/mod.rs treats an explicit null as absent, which is exactly what `\"bass808\": null` does in 51 shipped models. _defaults.json authors drums.percs, so this is the only way a model can decline it.",
+              "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/percsBlock" }]
+            }
+          }
+        }
+      ]
+    },
+
+    "percsBlock": {
+      "description": "The percussion layer (TASK-140). Locked down rather than left open because the generator that reads it has landed, which is the rule partBlock states for itself. `lanes` is what this exists for: a name that is not a perc lane is dropped silently by drums::percs, which is how `woodblock` — and later `pedalHat` and `rideBell` — were authored by shipped models and never heard.",
+      "type": "object",
+      "properties": {
+        "lanes": {
+          "description": "The voices to sprinkle. Deliberately NOT enumerated here: the list is the engine's PERC_LANES, and spelling it out again would be a second copy for a test to keep honest. dataset:validate refuses an unknown lane through the percs lint in engine/src/dataset/validate.rs, which reports this same JSON pointer with the reason. Null is accepted for the same reason percs itself is: read::strings treats a non-array as absent, so refusing it here would fail a file the engine reads correctly.",
+          "type": ["array", "null"],
+          "items": { "type": "string" }
+        },
+        "densityPerBar": {
+          "description": "Hits per bar, as [min, max]. Non-negative: a negative count is not a sparser layer, it is a typo.",
+          "type": "array",
+          "items": { "type": "number", "minimum": 0 },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "placement": {
+          "description": "Which 16ths a hit may land on. `any` is the default and means a sprinkle; `downbeat` is what makes a crash authorable, since a cymbal accent is a position rather than a density.",
+          "enum": ["any", "offbeat", "downbeat"]
+        },
+        "gainOffsetDb": {
+          "description": "How far under the kit the layer sits, in dB — the way a producer thinks about it.",
+          "$ref": "#/$defs/numSpec"
+        },
+        "tambourine": {
+          "description": "A steady 8th-note tambourine. Its own flag rather than a lanes entry because it is a pulse, not a sprinkle.",
+          "type": "boolean"
+        },
+        "tambourineMirrorsClap": {
+          "description": "Double every clap with a tambourine. The second of the two non-density forms, and the reason both are flags.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
     },
 
     "partBlock": {

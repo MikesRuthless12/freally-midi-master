@@ -1,0 +1,80 @@
+/* The crash pane (TASK-093).
+
+   ⛔ **Every value here is a token or a literal, and nothing is inherited from a
+   parent that may not exist.** This renders precisely when the tree above it has
+   thrown, so a rule that depends on a layout class the crashed subtree was going
+   to supply would leave the recovery UI unreadable — which is the failure it
+   exists to prevent, one layer down. */
+.crashpane {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  padding: var(--space-4);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+}
+
+.crashpane__card {
+  max-width: 34rem;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-float);
+  background: var(--color-surface);
+}
+
+.crashpane__title {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  /* ⚠ Not `--color-error`. The producer's project is intact and the panel can be
+     brought back — painting this red would report a data loss that has not
+     happened. */
+  color: var(--color-text);
+}
+
+.crashpane__body {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-2);
+  font-size: var(--text-body);
+  line-height: 1.5;
+}
+
+.crashpane__retry {
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
+  color: var(--color-bg);
+  font-family: inherit;
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+
+.crashpane__retry:hover {
+  background: var(--color-primary-hot);
+}
+
+.crashpane__details {
+  margin-top: var(--space-4);
+  color: var(--color-text-3);
+}
+
+.crashpane__details summary {
+  cursor: pointer;
+}
+
+.crashpane__details pre {
+  /* The stack is the one thing here that must not be reflowed — a wrapped frame
+     list is far harder to read back over a support thread. */
+  overflow: auto;
+  max-height: 14rem;
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+}

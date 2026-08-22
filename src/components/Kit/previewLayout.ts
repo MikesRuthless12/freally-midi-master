@@ -15,7 +15,8 @@
  */
 
 import { patternTicks } from '../PianoRoll/notes';
-import type { Lane, Note, Pattern } from '../../lib/ipc-types';
+import { partsInUse, totalBars } from '../SongTimeline/clips';
+import type { Lane, Note, Pattern, Song } from '../../lib/ipc-types';
 
 /** The drag image, in pixels. Big enough to read, small enough not to cover the drop target. */
 export const PREVIEW_WIDTH = 260;
@@ -91,30 +92,6 @@ export function previewBars(notes: Note[], ticks: number): PreviewBar[] {
 }
 
 /**
- * The arrangement's shape, one bar per bucket.
- *
- * ⚠ **The sections, not the notes.** Drawing every note of a three-minute record
- * into 260 pixels is a solid block, which says nothing; the shape of the
- * arrangement is what a producer recognises. `levels` is `sectionDensity`'s
- * reading — the same one `SongTimeline` draws its sketch from.
- */
-export function sectionBars(levels: number[]): PreviewBar[] {
-  if (levels.length === 0) return [];
-  const width = PREVIEW_WIDTH / levels.length;
-  const tallest = PREVIEW_HEIGHT - PREVIEW_LABEL_HEIGHT - 8;
-  return levels.map((level, index) => {
-    const height = Math.max(2, Math.min(1, Math.max(0, level)) * tallest);
-    return {
-      x: index * width + 1,
-      y: PREVIEW_HEIGHT - 4 - height,
-      width: Math.max(1, width - 2),
-      height,
-      alpha: 0.4 + 0.6 * Math.min(1, Math.max(0, level)),
-    };
-  });
-}
-
-/**
  * Every note the drop will actually contain.
  *
  * ⛔ **`lane` is not optional decoration.** A per-lane drag sends the pattern
@@ -127,5 +104,90 @@ export function allNotes(patterns: Pattern[], lane?: Lane): Note[] {
     pattern.lanes
       .filter((track) => lane === undefined || track.lane === lane)
       .flatMap((track) => track.notes),
+  );
+}
+
+/**
+ * One clip of an arrangement, where it will land.
+ *
+ * ⚠ Carries its row rather than a part name: the picture is 260 pixels wide and
+ * has no room for labels, so what a producer reads is the *shape* — five rows
+ * of blocks stepping along a timeline is their record, and they recognise it.
+ */
+export type PreviewClip = Omit<PreviewBar, 'alpha'>;
+
+/** The gap between rows, so five parts do not read as one block. */
+const CLIP_GAP = 1;
+
+/** The thinnest a clip may draw, so a one-bar intro is still a rectangle. */
+export const MIN_CLIP_WIDTH = 2;
+
+/**
+ * The arrangement as it will land in the DAW (TASK-144).
+ *
+ * ⛔⛔ **Mike, 2026-08-06, correcting his own first request:** *"i don't want it
+ * to show how many midi/audio files, i want the song arrangement being dragged
+ * in to actually show the midi clips either together back to back or stacked
+ * with the 'Ctrl' or 'Command' keys being pressed, same with audio clips."* So
+ * this is a miniature of the record, not a legend and not a count — clip
+ * rectangles at their true bar positions and true lengths, one row per part,
+ * the way `SongTimeline` already draws them.
+ *
+ * ▶ **`stacked` is the modifier's layout, and both are knowable before the drag
+ * begins** — the plugin spools `Prepared::paths` and `Prepared::stacked` up
+ * front, so neither needs anything rendered to draw it.
+ * - **Back to back** (no modifier): every clip at its own bar, which is the
+ *   arrangement.
+ * - **Stacked** (Ctrl / Command): the same clips overlaid at bar 1, one row per
+ *   part. They overlap on purpose — that is what stacking *does*, and a picture
+ *   that tidied them into a row would be describing a third layout that no
+ *   modifier produces.
+ *
+ * ⛔ **The bitmap is fixed when the drag starts and cannot be redrawn as Ctrl
+ * goes down** — `drag/windows.rs` hands it to `IDragSourceHelper` ahead of
+ * `DoDragDrop`. So this draws the layout that was true at that moment, which is
+ * the honest limit rather than a bug. The *payload* still swaps mid-gesture,
+ * which already works.
+ *
+ * ⚠ **Empty is a real answer**, and the caller must treat it as one: a song with
+ * no sections, or one whose sections carry no patterns, draws nothing rather
+ * than a full-width block claiming a record that is not there.
+ */
+export function songClips(song: Song, stacked = false): PreviewClip[] {
+  // ⛔ **The rows are the parts the song actually plays**, not all five. A row
+  // for a part nothing plays is a claim that the record has a countermelody in
+  // it. `partsInUse` is the one definition of that, in `SongTimeline/clips.ts`.
+  const rows = partsInUse(song);
+  if (rows.length === 0) return [];
+
+  // ⛔ **`totalBars`, not a private maximum.** This file's own header states the
+  // rule — *"`patternTicks`, not a private copy … a private copy here would have
+  // been the ninth"* — and `SongTimeline` scales its width from exactly this, so
+  // a second definition is how the cursor and the timeline come to draw
+  // different pictures of one arrangement.
+  const total = totalBars(song);
+  if (total <= 0) return [];
+
+  const rowHeight = (PREVIEW_HEIGHT - PREVIEW_LABEL_HEIGHT) / rows.length;
+
+  return song.sections.flatMap((section) =>
+    rows.flatMap((part, row) =>
+      section.patterns[part]
+        ? [
+            {
+              // ⚠ Stacked puts every clip at bar 1 and keeps its own length —
+              // the two halves of what the producer sees when they drop with
+              // Ctrl held.
+              x: stacked ? 0 : (section.startBar / total) * PREVIEW_WIDTH,
+              y: PREVIEW_LABEL_HEIGHT + row * rowHeight,
+              width: Math.max(
+                MIN_CLIP_WIDTH,
+                (section.bars / total) * PREVIEW_WIDTH - CLIP_GAP,
+              ),
+              height: Math.max(2, rowHeight - CLIP_GAP),
+            },
+          ]
+        : [],
+    ),
   );
 }

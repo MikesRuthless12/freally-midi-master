@@ -575,5 +575,11 @@
     "fadeOut": "Ausblenden",
     "noWaveform": "Dieses Pad spielt ein eingebautes Sample, es gibt also keine Datei zum Zeichnen.",
     "envelopeShape": "Anstieg {{attack}} ms, Abfall {{decay}} ms, Haltepegel {{sustain}} dB, Ausklang {{release}} ms"
+  },
+  "crash": {
+    "title": "Etwas im Fenster funktioniert nicht mehr",
+    "body": "Dein Projekt ist im Host weiterhin geöffnet. Lade das Panel neu, um fortzufahren — es wurde nichts auf die Festplatte geschrieben.",
+    "retry": "Panel neu laden",
+    "details": "Technische Details"
   }
 }

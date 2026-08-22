@@ -575,5 +575,11 @@
     "fadeOut": "Nhỏ dần",
     "noWaveform": "Pad này phát mẫu dựng sẵn nên không có tệp nào để vẽ.",
     "envelopeShape": "Khởi âm {{attack}} ms, suy giảm {{decay}} ms, duy trì {{sustain}} dB, buông {{release}} ms"
+  },
+  "crash": {
+    "title": "Có thứ gì đó trong cửa sổ đã ngừng hoạt động",
+    "body": "Dự án của bạn vẫn đang mở trong host. Hãy tải lại bảng điều khiển để tiếp tục — chưa có gì được ghi xuống đĩa.",
+    "retry": "Tải lại bảng điều khiển",
+    "details": "Chi tiết kỹ thuật"
   }
 }

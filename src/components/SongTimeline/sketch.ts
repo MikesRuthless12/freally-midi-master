@@ -6,7 +6,7 @@
  * replaced that with the notes themselves (`clipArt.ts`), because Mike's review
  * found the honest version of what it was: *"a clip does not look like a clip"*.
  * `density` and `sketchGradient` went with it rather than being left as dead
- * code; `sectionDensity` is a different thing and still has two callers.
+ * code; `sectionDensity` is a different thing and still has a caller.
  *
  * ⚠ **The node-count reasoning that produced the gradient is still true and now
  * lives in `clipArt.ts`.** A structure may hold 64 sections over 5 rows, so a

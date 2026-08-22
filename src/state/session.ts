@@ -2415,9 +2415,10 @@ export const useSession = create<SessionState>((set, get) => ({
         },
       });
       // ⛔ **The parts this one was written against, generated behind it**
-      // (TASK-129). See `UPSTREAM`: this fills a tab the producer has never
-      // pressed Generate on, so that the counter they just made has a melody
-      // they can hear it against.
+      // (TASK-129). The dependency graph lives in `parts.rs` and reaches here as
+      // the reply's `upstream` field (TASK-166): this fills a tab the producer
+      // has never pressed Generate on, so that the counter they just made has a
+      // melody they can hear it against.
       //
       // ⛔⛔ **`record` in BOTH seed fields, and that is the whole correctness of
       // it.** `parts.rs` writes the counter against `melody::generate(model,

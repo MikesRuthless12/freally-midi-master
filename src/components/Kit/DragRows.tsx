@@ -647,9 +647,36 @@ export function DragChip({
         // each of the eight lane chips produce a pixel-identical picture — of
         // the whole kit — while the file that dropped held one lane. That is
         // the readout-that-lies case the preview exists to prevent.
+        // ⛔ **The modifier is read HERE, and this is the only moment it can
+        // be** (TASK-144). `drag/windows.rs` hands the bitmap to
+        // `IDragSourceHelper` before `DoDragDrop`, so the picture is fixed once
+        // the drag begins and pressing Ctrl afterwards cannot redraw it. The
+        // *payload* still swaps mid-gesture — `QueryContinueDrag` watches the
+        // modifier and rewrites `CF_HDROP` — so what this fixes is the picture
+        // alone, which is the honest limit rather than a gap.
+        //
+        // ⛔⛔ **ONE modifier per platform, NOT `ctrlKey || metaKey`.** The union
+        // reads as the safe, permissive choice and is the one thing this must not
+        // be, because the *payload* is not permissive: `drag/windows.rs:419`
+        // gates on `MK_CONTROL` alone and `drag/macos.rs:222` on Command alone —
+        // the latter deliberately, since Ctrl-click **is** right-click on macOS.
+        // Taking the union makes the picture disagree with the files on both
+        // platforms in opposite directions: a Mac producer holding Control gets a
+        // stacked picture and an arrangement on disk, and a Windows producer
+        // holding the Super key gets the same split. A cursor that promises a
+        // layout the drop does not deliver is the readout-that-lies case this
+        // file exists to prevent.
+        //
+        // ⚠ **Not the `ctrl || meta` written at the other eight sites.** Those
+        // are keyboard *shortcuts*, where accepting either is a courtesy with
+        // nothing on the other side to contradict it. This one has to match a
+        // native drag source exactly.
+        const stacked = navigator.platform.toLowerCase().includes('mac')
+          ? event.metaKey
+          : event.ctrlKey;
         live.preview =
           subject.kind === 'song'
-            ? drawSongPreview(subject.song, title)
+            ? drawSongPreview(subject.song, title, format, stacked)
             : drawDragPreview(subject.patterns, title, subject.lane);
         live.moved = true;
       }}

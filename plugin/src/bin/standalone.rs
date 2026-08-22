@@ -8,7 +8,7 @@
 // `npm run plugin:standalone` is a debug build and is how this is developed —
 // keeping its console is the whole point of that path, because everything below
 // prints there. In release there is nowhere for `eprintln!` to go, which is why
-// [`crash_log`] exists: a crash reporter that writes to a stream nobody attached
+// the fault reporter exists: a crash reporter that writes to a stream nobody attached
 // is not a reporter.
 //
 // ⚠ Logging still works in release: `NIH_LOG` takes a **file path** as well as
@@ -136,7 +136,12 @@ fn report_hardware_faults() {
                     std::backtrace::Backtrace::force_capture()
                 );
                 eprintln!("{report}");
-                crash_log(&report);
+                // ⛔ **The one crash folder** — see `crash.rs`, whose own header
+                // states the rule this used to break: a producer asked for
+                // "the crash folder" should not have to be told which of two to
+                // look in. This wrote its own `standalone-crash.log` beside it,
+                // with a third hand-rolled `%APPDATA%` join to get there.
+                freally_midi_master_plugin::crash::write("fault", &report);
             }
         }
         // ⚠ Let Windows carry on killing us. This is a reporter, not a recovery
@@ -148,40 +153,6 @@ fn report_hardware_faults() {
     // signature Windows specifies.
     unsafe {
         SetUnhandledExceptionFilter(Some(filter));
-    }
-}
-
-/// Append a crash report to `%APPDATA%\Freally MIDI Master\standalone-crash.log`.
-///
-/// ⛔⛔ **Because the release build has no console, so `eprintln!` goes nowhere.**
-/// Taking the terminal window away took the crash reporter's only output with
-/// it, and this project currently has **an unreproduced standalone crash** — so
-/// shipping a silent one would have thrown away the evidence for exactly the
-/// question that is open. TASK-063D's whole point was that
-/// `STATUS_ACCESS_VIOLATION` with no frames costs a reproduction and buys
-/// nothing.
-///
-/// ⚠ **Appends, and says nothing when it cannot.** This runs inside an unhandled
-/// exception filter on a process Windows is already killing: there is no one to
-/// report a failed write to, and doing more work on the way down risks losing
-/// the report that did land. `Err` is discarded deliberately.
-#[cfg(windows)]
-fn crash_log(report: &str) {
-    use std::io::Write;
-
-    let Some(base) = std::env::var_os("APPDATA") else {
-        return;
-    };
-    let path = std::path::PathBuf::from(base)
-        .join("Freally MIDI Master")
-        .join("standalone-crash.log");
-    let _ = std::fs::create_dir_all(path.parent().unwrap_or(&path));
-    if let Ok(mut file) = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&path)
-    {
-        let _ = writeln!(file, "{report}");
     }
 }
 
@@ -197,7 +168,7 @@ const MAX_LOG_BYTES: u64 = 1_000_000;
 /// Send nih-plug's log — panics included — to a file, because release has no
 /// console (TASK-159).
 ///
-/// ⛔⛔ **THE HALF OF THE CRASH REPORTER THAT WAS MISSING.** [`crash_log`]
+/// ⛔⛔ **THE HALF OF THE CRASH REPORTER THAT WAS MISSING.** The fault filter above
 /// catches *hardware faults* and this project's open standalone bug is not one:
 /// Mike, *"opens up the console with the app and crashes before it even loads"*,
 /// and three launches off a fresh build could not reproduce it. A **panic** is
@@ -309,8 +280,11 @@ fn main() {
     report_hardware_faults();
 
     // TASK-159. **The other half of that, and the half the open crash needs.**
-    // A hardware fault writes `standalone-crash.log`; a *panic* went to a stderr
-    // that a `windows_subsystem = "windows"` build does not have. Before
+    // A hardware fault writes into the crash folder (`crash.rs`); a *panic* went
+    // to a stderr that a `windows_subsystem = "windows"` build does not have.
+    // ⚠ Panics now reach the crash folder too — `install_panic_hook` chains
+    // rather than replaces — but this file is still what carries nih-plug's
+    // ordinary log, which a panic's surrounding context lives in. Before
     // `nih_export_standalone_with_args` below, because that is what reads
     // `NIH_LOG`.
     #[cfg(all(windows, not(debug_assertions)))]

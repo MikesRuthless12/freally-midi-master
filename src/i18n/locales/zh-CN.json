@@ -575,5 +575,11 @@
     "fadeOut": "淡出",
     "noWaveform": "此打击垫播放内置采样，因此没有可绘制的文件。",
     "envelopeShape": "起音 {{attack}} 毫秒、衰减 {{decay}} 毫秒、延持 {{sustain}} dB、释音 {{release}} 毫秒"
+  },
+  "crash": {
+    "title": "窗口中的某些功能已停止运行",
+    "body": "你的工程仍在宿主中打开。重新加载面板即可继续 — 磁盘上没有写入任何内容。",
+    "retry": "重新加载面板",
+    "details": "技术详情"
   }
 }

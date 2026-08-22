@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { TranslatedErrorBoundary } from './components/ErrorBoundary/ErrorBoundary';
+import { reportCrash } from './lib/crash';
 import './styles/tokens.css';
 import { initTheme } from './state/theme';
 import { initI18n } from './i18n';
@@ -12,7 +14,13 @@ initI18n();
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <App />
+    {/* ⛔ **Outside `App`, so it catches `App` itself** (TASK-093). A boundary
+        rendered inside the tree it is protecting cannot survive a throw in that
+        tree's own root, which in a hosted DAW is a dead rectangle the producer
+        can only fix by removing and re-inserting the plugin. */}
+    <TranslatedErrorBoundary onCaught={reportCrash}>
+      <App />
+    </TranslatedErrorBoundary>
   </React.StrictMode>,
 );
 
