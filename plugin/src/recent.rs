@@ -85,10 +85,6 @@ pub fn list() -> Vec<Recent> {
 
 fn write(recent: &[Recent]) -> Result<(), String> {
     let path = path_of_store().ok_or("this platform has no per-user data directory")?;
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|error| format!("could not create {parent:?}: {error}"))?;
-    }
     let text = serde_json::to_string_pretty(&Stored {
         recent: recent.to_vec(),
     })

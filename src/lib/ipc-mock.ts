@@ -137,6 +137,29 @@ export const untouchedPad = (): PadTweaks => ({
 const starred = new Map<string, Favourite>();
 
 /**
+ * Files tagged this page load (TASK-058C), path → tags.
+ *
+ * ⛔ **It genuinely accumulates and it genuinely normalises**, for the reason
+ * the favourites map does: a mock that answered a constant would let a spec type
+ * a tag and have nothing to assert. The trim and the case-insensitive dedupe are
+ * copied from `tags::clean` deliberately — a fixture that stored `"  808  "`
+ * verbatim would let a chip render with the whitespace the plugin strips, and the
+ * spec would be pinning behaviour the product does not have.
+ */
+const tagged = new Map<string, string[]>();
+
+const cleanTags = (tags: string[]): string[] => {
+  const out: string[] = [];
+  for (const raw of tags) {
+    const tag = raw.trim().slice(0, 32);
+    if (tag === '' || out.some((held) => held.toLowerCase() === tag.toLowerCase())) continue;
+    out.push(tag);
+    if (out.length === 12) break;
+  }
+  return out;
+};
+
+/**
  * Files the browser opened this page load (TASK-058), newest first.
  *
  * ⚠ It genuinely mutates, for the reason the favourites map does: a mock that
@@ -982,7 +1005,24 @@ const handlers: Record<string, Handler> = {
   // ⚠ It genuinely mutates, for the reason `droppedSamples` gives — a mock that
   // answered a constant would let a spec press the star and have nothing to
   // assert.
+  // No crash folder in a browser, and a mock that invented one would put a
+  // notice about a crash that never happened in front of every gallery
+  // screenshot. `null` is what a healthy install answers, which is the state
+  // every other spec is written against.
+  crashes_pending: () => null,
   favourites_list: () => [...starred.values()],
+  tags_list: () => [...tagged.entries()].map(([path, tags]) => ({ path, tags })),
+  tags_set: (args?: InvokeArgs) => {
+    const { path, tags } = (args ?? {}) as { path?: unknown; tags?: unknown };
+    const key = String(path ?? '');
+    const cleaned = cleanTags(Array.isArray(tags) ? tags.map(String) : []);
+    // ⚠ An empty list REMOVES the row, which is `tags::set`'s own rule — a mock
+    // that kept an empty entry would let a spec pass while the store grew a row
+    // per file the producer had ever cleared.
+    if (cleaned.length === 0) tagged.delete(key);
+    else tagged.set(key, cleaned);
+    return [...tagged.entries()].map(([p, t]) => ({ path: p, tags: t }));
+  },
   recent_list: () => recent,
   recent_clear: () => {
     recent = [];

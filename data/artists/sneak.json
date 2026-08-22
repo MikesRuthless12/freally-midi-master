@@ -1,0 +1,256 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sneak",
+  "type": "artist",
+  "name": "sneak",
+  "aliases": [
+    "sneak",
+    "sneakties"
+  ],
+  "tier": "standard",
+  "extends": [
+    "plugg"
+  ],
+  "era": "2020s",
+  "genres": [
+    "rap",
+    "plugg"
+  ],
+  "relatedGenres": [
+    "plugg",
+    "jerk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research ch.4 Sneak (UNRESOLVED)"
+  ],
+  "notes": "⛔⛔ **IDENTIFICATION UNRESOLVED — FLAGGED FOR HUMAN VERIFICATION, AND THE PARAMETERS BELOW ARE THE ARCHETYPE RATHER THAN THE ARTIST.** The research says so plainly: the best candidate is the lowercase underground artist \"sneak\" (SoundCloud \"sneakties\"), with Sneako the NYC streamer-rapper a second, tonally out-of-place possibility. Nothing here is a claim about a specific person's workflow — it is the jerk/plugg archetype the loop-channel context implies, authored so the name resolves to something coherent rather than to nothing. ⚠ **Do not deepen this to flagship until the identification is settled**, and if it settles on a different person, rewrite rather than adjust.",
+  "session": {
+    "bpm": {
+      "min": 140,
+      "max": 160,
+      "mode": 148
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.56,
+      "tresilloBias": 0.4,
+      "lockTo808": 0.9
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": false,
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.3,
+          0.48
+        ]
+      },
+      "offGridMs": 12
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.64,
+          0.86
+        ],
+        "ghost": [
+          0.3,
+          0.48
+        ]
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2_pre"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.45,
+        "velocityRamp": true,
+        "burstOnly": true
+      }
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.38,
+      "slidesPer4Bars": [
+        1,
+        2
+      ],
+      "register": [
+        22,
+        37
+      ],
+      "distortion": "light"
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16,
+      "snareRollLadder": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "16th"
+      ],
+      "velocityRampRange": [
+        50,
+        100
+      ],
+      "rampJitter": 16,
+      "descendProb": 0.26,
+      "gapProb": 0.3,
+      "grouping": [
+        "strong_weak_weak"
+      ],
+      "pitchWalk": 2
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        74
+      ],
+      "topVoiceStepwise": true
+    },
+    "chordDurationBeats": [
+      4,
+      10
+    ]
+  },
+  "melody": {
+    "register": [
+      70,
+      93
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.58,
+      "third": 0.3,
+      "leap": 0.12
+    },
+    "chordToneBias": 0.62,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "soft_bell"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.36,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.88,
+    "register": [
+      25,
+      42
+    ],
+    "glideProb": 0.34
+  }
+}

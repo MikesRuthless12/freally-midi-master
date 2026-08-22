@@ -1,0 +1,267 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ohsxnta",
+  "type": "artist",
+  "name": "ohsxnta",
+  "aliases": [
+    "ohsxnta",
+    "ohsanta",
+    "ohsama"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dark-plugg"
+  ],
+  "era": "2021-present",
+  "genres": [
+    "rap",
+    "plugg"
+  ],
+  "relatedGenres": [
+    "dark-plugg",
+    "plugg"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research ch.4 ohsxnta"
+  ],
+  "notes": "OsamaSon's early running mate — the joint tape *Ohsama* (2022) is the primary reference. Dark plugg archetype: sparse kicks, clap on 3, gliding restrained 808s, icy bells over short loops. ⚠ Confidence MEDIUM on thin press: this is the *Ohsama*-era sound rather than a career-spanning claim, and the entry says so rather than implying more coverage than the sources carry. ⚠ 333 distinct harmonies in 1000 seeds against a floor of 500, so the duration window widened and `1_per_bar` joined the harmonic rhythm — both true of the lane, and neither changes which chords are reachable.",
+  "session": {
+    "bpm": {
+      "min": 135,
+      "max": 155,
+      "mode": 143
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.5,
+      "tresilloBias": 0.46,
+      "lockTo808": 0.94
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": false,
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.28,
+          0.44
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.36,
+      "velocities": {
+        "main": [
+          0.6,
+          0.8
+        ],
+        "ghost": [
+          0.28,
+          0.44
+        ]
+      },
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "1_pre"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0.05,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32T",
+            "16T"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        },
+        "positions": [
+          "bar_4",
+          "phrase_end"
+        ],
+        "freqPerBar": 0.4,
+        "velocityRamp": true,
+        "burstOnly": true
+      }
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.44,
+      "slidesPer4Bars": [
+        1,
+        3
+      ],
+      "register": [
+        23,
+        39
+      ],
+      "distortion": "light"
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "32t",
+        "16th"
+      ],
+      "velocityRampRange": [
+        46,
+        92
+      ],
+      "rampJitter": 12,
+      "descendProb": 0.3,
+      "gapProb": 0.24,
+      "grouping": [
+        "strong_weak_weak_weak",
+        "even"
+      ],
+      "pitchWalk": 4
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.2,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        49,
+        73
+      ],
+      "topVoiceStepwise": true
+    },
+    "chordDurationBeats": [
+      3,
+      14
+    ]
+  },
+  "melody": {
+    "register": [
+      73,
+      96
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.28,
+      "leap": 0.1
+    },
+    "chordToneBias": 0.66,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        1
+      ]
+    },
+    "timbreHint": "icy_bell"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.32,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      25,
+      42
+    ],
+    "glideProb": 0.46
+  }
+}

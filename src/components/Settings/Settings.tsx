@@ -17,7 +17,8 @@ import { invoke } from '../../lib/ipc';
 import { LOCALES } from '../../i18n/locales';
 import { CATEGORIES, type CategoryId } from './categories';
 import { useUi } from '../../state/ui';
-import { useSession } from '../../state/session';
+import { readStored, writeStored } from '../../state/storage';
+import { BAR_CHOICES, defaultBars, setDefaultBars, useSession } from '../../state/session';
 import { THEME_PREFERENCES, type ThemePreference } from '../../state/theme';
 import './Settings.css';
 
@@ -51,8 +52,9 @@ const CATEGORY_ICONS: Record<CategoryId, typeof Settings2> = {
  * their own language in their own script.
  */
 const CATEGORY_TERMS: Record<CategoryId, string> = {
-  general: 'general dataset styles artists skipped problems',
-  appearance: 'appearance theme dark light system colour color motion animation reduce',
+  general: 'general dataset styles artists skipped problems crash report log error',
+  appearance:
+    'appearance theme dark light system colour color motion animation reduce bars length clip four eight',
   language: `language locale translation ${LOCALES.map((l) => `${l.english} ${l.native}`).join(' ')}`,
   about: 'about version licence license disclaimer credits artist names privacy',
 };
@@ -63,6 +65,91 @@ const THEME_ICONS: Record<ThemePreference, typeof Sun> = {
   dark: Moon,
   light: Sun,
 };
+
+/**
+ * A crash report the producer has not been shown yet (TASK-093).
+ *
+ * ⛔ **The panic hook and the error boundary have written these all along and
+ * nothing ever read the folder.** A log nobody is told about is a log nobody
+ * attaches to a bug report, which is the only reason it exists.
+ *
+ * ⚠ **Here rather than as a dialog on open.** `product-vision.md`'s brand
+ * anti-patterns forbid a first-run modal outright and the PRD says *"never modal
+ * for recoverable errors"* — and a crash that already happened, in front of a
+ * plugin that is now working, is the most recoverable state there is. So it
+ * waits where somebody goes when they go looking.
+ */
+type PendingCrash = { at: number; kind: string };
+
+/** The newest crash stamp the producer has dismissed. */
+const CRASH_SEEN_KEY = 'freally.crashSeen';
+
+/**
+ * Ask the plugin once per Settings open whether there is a report to show.
+ *
+ * ⛔ **A hook on the MODAL, not on the notice, and the difference is an editor
+ * thread.** `CrashNotice` renders inside `{shown === 'general' && …}`, and
+ * `shown` is derived from the search box — so clicking to Appearance and back,
+ * or typing a prefix that filters General out and deleting it, unmounts and
+ * remounts it. Owning the effect there re-fired `crashes_pending`, which is a
+ * `read_dir` on the thread a DAW draws its window from, on every one of those.
+ * The modal mounts once.
+ */
+function usePendingCrash(): [PendingCrash | null, () => void] {
+  const [pending, setPending] = useState<PendingCrash | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    const since = Number(readStored(CRASH_SEEN_KEY, (v): v is string => v !== null, '0'));
+    invoke<PendingCrash | null>('crashes_pending', { since })
+      .then((found) => {
+        if (live) setPending(found);
+      })
+      .catch(() => {
+        // No crash folder is the normal case, not a failure to report.
+        if (live) setPending(null);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const dismiss = () => {
+    if (pending !== null) writeStored(CRASH_SEEN_KEY, String(pending.at));
+    setPending(null);
+  };
+
+  return [pending, dismiss];
+}
+
+function CrashNotice({ pending, onDismiss }: { pending: PendingCrash; onDismiss: () => void }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="settings__problems" role="status">
+      <p>
+        {t(pending.kind === 'panic' ? 'settings.crashPanic' : 'settings.crashPage', {
+          // ⚠ The producer's own locale and timezone, from a stamp in seconds.
+          // Formatting it in Rust would need a calendar crate; the page already
+          // has `Intl`.
+          when: new Date(pending.at * 1000).toLocaleString(),
+        })}
+      </p>
+      <p>
+        <button
+          type="button"
+          className="btn-ghost"
+          onClick={() => void invoke('crashes_reveal')}
+        >
+          {t('settings.crashReveal')}
+        </button>
+        <button type="button" className="btn-ghost" onClick={onDismiss}>
+          {t('settings.crashDismiss')}
+        </button>
+      </p>
+    </div>
+  );
+}
 
 function Toggle({
   label,
@@ -93,6 +180,8 @@ function Toggle({
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const [active, setActive] = useState<CategoryId>('general');
+  const [openingBars, setOpeningBars] = useState(defaultBars);
+  const [pendingCrash, dismissCrash] = usePendingCrash();
   const [search, setSearch] = useState('');
   // A model that failed to load is skipped rather than fatal (TASK-016), which
   // is right for the launch and wrong for the user: until now nothing outside
@@ -196,6 +285,10 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           >
             {shown === 'general' && (
               <section className="settings__section">
+                {pendingCrash !== null && (
+                  <CrashNotice pending={pendingCrash} onDismiss={dismissCrash} />
+                )}
+
                 <h3>{t('settings.datasetHeading')}</h3>
                 {problems.length === 0 ? (
                   <p className="settings__note">
@@ -254,6 +347,40 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                   checked={reduceMotion}
                   onChange={setReduceMotion}
                 />
+
+                {/* ⛔ **The last of TASK-090's "interface" list**, and it is
+                    deliberately *not* wired to the session store. A project's
+                    clip length is document state the host restores; this decides
+                    the one case nothing else answers — a fresh instance on a
+                    fresh track, where a producer who works in eights was pressing
+                    8 every time.
+
+                    ⚠ Local state, seeded once: the control is showing a
+                    preference about the *next* instance, so re-reading it would
+                    be re-reading something nothing else can change. */}
+                <h3>{t('settings.barsHeading')}</h3>
+                <p className="settings__note">{t('settings.barsNote')}</p>
+                <div
+                  className="settings__choices"
+                  role="radiogroup"
+                  aria-label={t('settings.barsHeading')}
+                >
+                  {BAR_CHOICES.map((choice) => (
+                    <button
+                      key={choice}
+                      type="button"
+                      role="radio"
+                      aria-checked={openingBars === choice}
+                      className="settings__choice"
+                      onClick={() => {
+                        setDefaultBars(choice);
+                        setOpeningBars(choice);
+                      }}
+                    >
+                      {choice} {t('stage.bars')}
+                    </button>
+                  ))}
+                </div>
               </section>
             )}
 

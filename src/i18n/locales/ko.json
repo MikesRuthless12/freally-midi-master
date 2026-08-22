@@ -189,9 +189,15 @@
     "datasetHeading": "스타일 데이터셋",
     "datasetOk": "스타일 {{count}}개를 불러왔습니다. 건너뛴 항목은 없습니다.",
     "datasetSkipped": "스타일 {{count}}개를 불러오지 못해 건너뛰었습니다:",
+    "crashPanic": "{{when}}에 Freally MIDI Master가 예기치 않게 멈췄습니다. 보고서를 저장했습니다.",
+    "crashPage": "{{when}}에 이 창이 그리기를 멈췄습니다. 보고서를 저장했습니다.",
+    "crashReveal": "보고서 보기",
+    "crashDismiss": "닫기",
     "motionHeading": "모션",
     "reduceMotion": "모션 줄이기",
-    "reduceMotionHint": "생성 스윙을 짧은 페이드로 바꿉니다. 시스템 설정으로도 같은 효과를 얻습니다 — 시스템에 해당 설정이 없거나 나머지는 움직이게 두고 싶을 때 사용하세요."
+    "reduceMotionHint": "생성 스윙을 짧은 페이드로 바꿉니다. 시스템 설정으로도 같은 효과를 얻습니다 — 시스템에 해당 설정이 없거나 나머지는 움직이게 두고 싶을 때 사용하세요.",
+    "barsHeading": "새 클립",
+    "barsNote": "새 인스턴스가 열리는 길이. 프로젝트는 자기 길이를 유지합니다."
   },
   "about": {
     "title": "정보",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "아티스트 이름",
     "artistNamesBody": "아티스트와 프로듀서 이름은 음악 스타일을 가리키는 설명일 뿐, 그 이상이 아닙니다. 어떠한 제휴, 보증, 저작 관계도 암시하거나 주장하지 않습니다. 모든 패턴은 직접 작성한 스타일 파라미터로 절차적으로 생성되며, 어떤 녹음물의 MIDI·오디오·데이터도 복제하지 않습니다.",
     "creditsHeading": "크레딧",
-    "creditsBody": "타이밍과 벨로시티 통계는 Magenta Groove MIDI Dataset(CC BY 4.0)에서 도출했습니다. Noto Sans, Noto Sans Display, Noto Sans Mono와 CJK·아랍어·히브리어·인도계 문자 등을 지원하는 문자별 Noto 서체는 SIL Open Font License 1.1을 따릅니다. Lucide 아이콘은 ISC를 따릅니다. 프리뷰 킷은 저장소 안에서 합성했으며 서드파티 샘플을 포함하지 않습니다."
+    "creditsBody": "Noto Sans, Noto Sans Display, Noto Sans Mono와 CJK·아랍어·히브리어·인도계 문자 등을 지원하는 문자별 Noto 서체는 SIL Open Font License 1.1을 따릅니다. Lucide 아이콘은 ISC를 따릅니다. 프리뷰 킷은 저장소 안에서 합성했으며 서드파티 샘플을 포함하지 않습니다."
   },
   "common": {
     "close": "닫기"
@@ -427,6 +433,11 @@
     "filter": "이름으로 필터",
     "filterScope": "열어 둔 폴더에서만 검색합니다.",
     "noMatches": "일치하는 항목이 없습니다.",
+    "tags": "태그",
+    "tagAdd": "태그 추가…",
+    "tagRemove": "태그 {{tag}} 제거",
+    "tagFilter": "태그로 거르기",
+    "onlyStarred": "별표만",
     "missing": "{{name}}에 지금 접근할 수 없습니다.",
     "recheck": "다시 확인",
     "pickAFile": "미리 들으려면 샘플을 선택하세요.",
@@ -523,6 +534,8 @@
     "melody": "멜로디 밀도",
     "scales": "음계",
     "scalesHint": "{{name}}이(가) 실제로 쓰는 음계만.",
+    "moods": "무드",
+    "moodsHint": "생성하기 전에 최대 {{count}}개를 고르세요. 그중 하나에 고정된 테이크만 학습합니다.",
     "save": "스타일 저장",
     "delete": "워크플로 삭제",
     "export": "내보내기",
@@ -592,5 +605,8 @@
     "body": "프로젝트는 호스트에서 계속 열려 있습니다. 계속하려면 패널을 다시 불러오세요 — 디스크에 기록된 것은 없습니다.",
     "retry": "패널 다시 불러오기",
     "details": "기술 세부 정보"
+  },
+  "a11y": {
+    "generated": "생성했습니다. {{bars}}마디, {{bpm}} BPM, {{key}}."
   }
 }

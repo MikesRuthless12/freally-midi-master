@@ -1,0 +1,302 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sk8star",
+  "type": "artist",
+  "name": "sk8star",
+  "aliases": [
+    "sk8star",
+    "sk8 star",
+    "skate star"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "atl-swag-rap"
+  ],
+  "era": "2022-present",
+  "genres": [
+    "rap",
+    "trap",
+    "plugg"
+  ],
+  "relatedGenres": [
+    "atl-swag-rap",
+    "plugg",
+    "dark-plugg"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.4 sk8star"
+  ],
+  "notes": "Macon GA, OWay-affiliated, Young Thug co-sign; Richie Souf is the primary producer and that is what the harmony encodes — soulful spacey keys and pads rather than the bell loops the rest of this cohort runs. Southern bounce pocket with elastic triplet flows, warm gliding 808s, moderate hats. ⚠ Bluesy pentatonic toplines: the scale set carries `minor_pentatonic` and `blues` weight that Teezus, on the same base, does not.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 150,
+      "mode": 140
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "blues",
+        "dorian"
+      ],
+      "weights": [
+        3,
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.58
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.56,
+      "tresilloBias": 0.48,
+      "lockTo808": 0.86
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "2a",
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.32,
+          0.5
+        ]
+      },
+      "offGridMs": 6
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.64,
+          0.9
+        ],
+        "ghost": [
+          0.3,
+          0.5
+        ]
+      },
+      "openHat": {
+        "prob": 0.36,
+        "pos": [
+          "2_pre",
+          "4_pre"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "pitchBendProb": 0.05,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32T",
+            "16"
+          ],
+          "weights": [
+            4,
+            2,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.65,
+        "velocityRamp": true,
+        "burstOnly": false
+      }
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.52,
+      "slidesPer4Bars": [
+        2,
+        3
+      ],
+      "register": [
+        21,
+        36
+      ],
+      "distortion": "light"
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "32t"
+      ],
+      "velocityRampRange": [
+        52,
+        108
+      ],
+      "rampJitter": 24,
+      "descendProb": 0.28,
+      "gapProb": 0.2,
+      "grouping": [
+        "strong_weak_weak",
+        "even"
+      ],
+      "pitchWalk": 3
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "v",
+          "iv"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "III",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.44,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "chordDurationBeats": [
+      3,
+      10
+    ],
+    "susSubstitutionProb": 0.22
+  },
+  "melody": {
+    "register": [
+      68,
+      92
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.3,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.5,
+      "arch": 0.28,
+      "descend": 0.22
+    },
+    "chordToneBias": 0.64,
+    "octaveJumpProb": 0.16,
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        3,
+        1
+      ]
+    },
+    "timbreHint": "soulful_keys"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.84,
+    "register": [
+      24,
+      40
+    ],
+    "glideProb": 0.5,
+    "anticipationProb": 0.1
+  }
+}

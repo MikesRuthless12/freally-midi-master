@@ -45,6 +45,7 @@ pub mod recent;
 pub mod roles;
 pub mod shared;
 pub mod state;
+pub mod tags;
 pub mod takes;
 pub mod voice;
 

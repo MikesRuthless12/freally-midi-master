@@ -139,12 +139,9 @@ pub fn saved_folders() -> Vec<String> {
 /// are.
 fn save_folders(folders: &[String]) {
     let Some(path) = library_path() else { return };
-    if let Some(parent) = path.parent() {
-        if let Err(error) = std::fs::create_dir_all(parent) {
-            nih_plug::nih_log!("could not create {parent:?} for the sample library: {error}");
-            return;
-        }
-    }
+    // ⚠ No `create_dir_all` here: `patterns::write_atomic` makes the parent
+    // itself (TASK-089), and doing it twice was the duplication that
+    // consolidation removed from five other stores.
     let library = Library {
         folders: folders.to_vec(),
     };

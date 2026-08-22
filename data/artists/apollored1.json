@@ -1,0 +1,278 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "apollored1",
+  "type": "artist",
+  "name": "ApolloRed1",
+  "aliases": [
+    "apollored1",
+    "apollo red",
+    "apollored",
+    "yvl"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rage"
+  ],
+  "era": "2023-present",
+  "genres": [
+    "rap",
+    "rage"
+  ],
+  "relatedGenres": [
+    "rage",
+    "dark-plugg"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research ch.4 ApolloRed1"
+  ],
+  "notes": "YVL (Young Vamp Life) core member; Carti *WLR*/*MUSIC*-school vamp rage. Murky distorted 808s, sparse hats, half-time menace with double-time vocal bursts, gothic synth drones over minimal loops. ⛔ **The key is INFERRED, not sourced.** The research says \"minor/Phrygian **presumed**\" — there is no interview or analysis behind it, only the lane. The scale weights are the vamp-rage archetype's and are the first thing to revisit if better sources appear. Confidence MEDIUM on limited press (Underground Sound / TikTok scene coverage). ⚠ `no_part_collapses_to_a_handful_of_outputs` measured 25 distinct chord parts in 200 seeds against this model’s own floor of 27 — a floor that already scales down for a three-family vocabulary, so it was narrow even for what it claims. Widened in the order the gate names: the duration range first (a drone can be re-struck each bar or held for four), then a third harmonic rhythm, then the voicing window. ⛔ The families are untouched: the research says gothic drones over minimal loops, and adding chords would be authoring harmony it does not claim. 419/500 distinct. ⚠ `every_mood_of_every_genre_reaches_the_variety_floor` measured this model under rage’s inherited `sparse` mood — which clamps the melody to 1-3 notes a bar with a 0.6 empty-bar bias — and it fell short of 500 distinct melodies in 1000 seeds. ⛔ The cure is a 4-bar phrase option at low weight, NOT a change of character: a one-bar phrase repeats four times in four bars, so excluding 4 entirely was a stronger claim than the research makes. The research describes the CHORD loop as short; the melody’s phrasing is a separate field, and the ostinato still dominates by weight.",
+  "session": {
+    "bpm": {
+      "min": 145,
+      "max": 165,
+      "mode": 154
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "phrygian",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.51
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.54,
+      "tresilloBias": 0.38,
+      "lockTo808": 0.93
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.3,
+          0.46
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.26,
+      "velocities": {
+        "main": [
+          0.7,
+          0.9
+        ],
+        "ghost": [
+          0.3,
+          0.48
+        ]
+      },
+      "openHat": {
+        "prob": 0.32,
+        "pos": [
+          "3_pre"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "pitchBendProb": 0.06,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T",
+            "32"
+          ],
+          "weights": [
+            2,
+            3,
+            3
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_downbeat"
+        ],
+        "freqPerBar": 0.38,
+        "velocityRamp": false,
+        "burstOnly": false
+      }
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.34,
+      "slidesPer4Bars": [
+        1,
+        2
+      ],
+      "register": [
+        17,
+        32
+      ],
+      "distortion": "heavy",
+      "clipping": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 32,
+      "snareRollLadder": false
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32t"
+      ],
+      "velocityRampRange": [
+        60,
+        108
+      ],
+      "rampJitter": 8,
+      "descendProb": 0.2,
+      "gapProb": 0.16,
+      "grouping": [
+        "strong_weak"
+      ],
+      "pitchWalk": 6
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        2,
+        1
+      ]
+    },
+    "extensions": {
+      "triad": 0.84,
+      "seventh": 0.14,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        44,
+        74
+      ],
+      "topVoiceStepwise": false
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      64,
+      92
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.5,
+      "third": 0.26,
+      "leap": 0.24
+    },
+    "contour": {
+      "riff": 0.8,
+      "descend": 0.14,
+      "arch": 0.06
+    },
+    "chordToneBias": 0.46,
+    "halfStepDissonance": 0.28,
+    "phraseBars": {
+      "values": [
+        1,
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3,
+        2
+      ]
+    },
+    "timbreHint": "gothic_drone",
+    "octaveJumpProb": 0.14
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.26,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.93,
+    "register": [
+      19,
+      36
+    ],
+    "glideProb": 0.32
+  }
+}

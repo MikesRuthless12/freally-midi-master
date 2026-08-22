@@ -189,9 +189,15 @@
     "datasetHeading": "Kumpulan gaya",
     "datasetOk": "{{count}} gaya dimuat. Tidak ada yang dilewati.",
     "datasetSkipped": "{{count}} gaya tidak dapat dimuat dan dilewati:",
+    "crashPanic": "Freally MIDI Master berhenti tak terduga pada {{when}}. Laporan tersimpan.",
+    "crashPage": "Jendela ini berhenti tampil pada {{when}}. Laporan tersimpan.",
+    "crashReveal": "Tampilkan laporannya",
+    "crashDismiss": "Tutup",
     "motionHeading": "Gerakan",
     "reduceMotion": "Kurangi gerakan",
-    "reduceMotionHint": "Mengganti sapuan generasi dengan pudar singkat. Pengaturan sistem Anda sudah melakukannya — gunakan ini bila sistem tidak punya pengaturan itu, atau bila Anda ingin sisanya tetap bergerak."
+    "reduceMotionHint": "Mengganti sapuan generasi dengan pudar singkat. Pengaturan sistem Anda sudah melakukannya — gunakan ini bila sistem tidak punya pengaturan itu, atau bila Anda ingin sisanya tetap bergerak.",
+    "barsHeading": "Klip baru",
+    "barsNote": "Panjang saat instansi baru dibuka. Proyek menyimpan panjangnya sendiri."
   },
   "about": {
     "title": "Tentang",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "Nama artis",
     "artistNamesBody": "Nama artis dan produser hanyalah rujukan deskriptif pada sebuah gaya musik, tidak lebih. Tidak ada afiliasi, dukungan, atau kepengarangan yang tersirat maupun diklaim. Setiap pola dibangkitkan secara prosedural dari parameter gaya yang ditulis tangan — tidak ada MIDI, audio, atau data yang disalin dari rekaman mana pun.",
     "creditsHeading": "Kredit",
-    "creditsBody": "Statistik timing dan velocity diturunkan dari Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display dan Noto Sans Mono, beserta keluarga Noto per-aksara yang mencakup CJK, Arab, Ibrani, India dan lainnya, di bawah SIL Open Font License 1.1. Ikon Lucide di bawah ISC. Kit pratinjau disintesis di dalam repositori dan tidak memuat sampel pihak ketiga."
+    "creditsBody": "Noto Sans, Noto Sans Display dan Noto Sans Mono, beserta keluarga Noto per-aksara yang mencakup CJK, Arab, Ibrani, India dan lainnya, di bawah SIL Open Font License 1.1. Ikon Lucide di bawah ISC. Kit pratinjau disintesis di dalam repositori dan tidak memuat sampel pihak ketiga."
   },
   "common": {
     "close": "Tutup"
@@ -427,6 +433,11 @@
     "filter": "Saring menurut nama",
     "filterScope": "Pencarian mencakup folder yang telah Anda buka.",
     "noMatches": "Tidak ada yang cocok di sini.",
+    "tags": "Tag",
+    "tagAdd": "Tambah tag…",
+    "tagRemove": "Hapus tag {{tag}}",
+    "tagFilter": "Saring menurut tag",
+    "onlyStarred": "Hanya berbintang",
     "missing": "{{name}} sedang tidak dapat dijangkau.",
     "recheck": "Periksa lagi",
     "pickAFile": "Pilih sampel untuk mendengarkannya.",
@@ -523,6 +534,8 @@
     "melody": "Kerapatan melodi",
     "scales": "Tangga nada",
     "scalesHint": "Hanya tangga nada yang dipakai {{name}}.",
+    "moods": "Suasana",
+    "moodsHint": "Pilih maksimal {{count}} sebelum membuat. Hanya take yang disematkan ke salah satunya yang dilatih.",
     "save": "Simpan gaya",
     "delete": "Hapus alur kerja",
     "export": "Ekspor",
@@ -592,5 +605,8 @@
     "body": "Proyek Anda masih terbuka di host. Muat ulang panel untuk melanjutkan — tidak ada yang ditulis ke disk.",
     "retry": "Muat ulang panel",
     "details": "Detail teknis"
+  },
+  "a11y": {
+    "generated": "Selesai dibuat. {{bars}} bar, {{bpm}} BPM, {{key}}."
   }
 }

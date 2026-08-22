@@ -1,6 +1,23 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
+ * The port the dev server and the tests agree on.
+ *
+ * ⛔⛔ **1420 is not free on every machine, and the failure does not look like
+ * one.** On the dev box it belongs to the *Freally File Manager* project's own
+ * Vite — and `reuseExistingServer` means Playwright does not fail on the
+ * collision, it **reuses it** and runs all three hundred specs against a
+ * different application. That produced a wall of unexplainable failures in an
+ * earlier `ci:local`, and the cure is a port rather than killing somebody else's
+ * server.
+ *
+ * ⚠ **CI never sets this**, so the default is exactly what the workflow expects
+ * and nothing about the gate's own environment changes. Locally:
+ * `FMM_E2E_PORT=1431 npm run ci:local`.
+ */
+const PORT = Number(process.env.FMM_E2E_PORT ?? 1420);
+
+/**
  * E2E against `vite dev` with IPC served by `src/lib/ipc-mock`.
  *
  * Deliberately no plugin binary: the UI is the thing under test here, and
@@ -35,7 +52,7 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
 
   use: {
-    baseURL: 'http://localhost:1420',
+    baseURL: `http://localhost:${PORT}`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -52,8 +69,10 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:1420',
+    // ⚠ `--strictPort`, so a collision is an error rather than Vite quietly
+    // choosing 1421 while `baseURL` still points at 1420.
+    command: `npm run dev -- --port ${PORT} --strictPort`,
+    url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: { VITE_IPC_MOCK: '1' },

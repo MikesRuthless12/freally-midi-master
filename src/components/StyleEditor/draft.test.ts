@@ -46,6 +46,15 @@ describe('saysNothingOfItsOwn', () => {
     ).toBe(true);
   });
 
+  it('⛔ declaring a mood is nothing to SAVE — it belongs to a training run', () => {
+    // The moods offered are the base's own, so ticking one restates the base —
+    // and `modelFrom` writes none of them: they reach a model only through
+    // `engine::fit`, on a style that was trained rather than saved. A mood
+    // ticked with nothing generated behind it has produced nothing to write.
+    expect(saysNothingOfItsOwn(draft({ moods: ['dark'] }), seeded)).toBe(true);
+    expect(saysNothingOfItsOwn(draft({ moods: ['dark', 'bounce'] }), seeded)).toBe(true);
+  });
+
   it.each([
     ['a moved tempo', { bpmMin: 90 } as Partial<Draft>],
     ['a moved swing', { swing: 0.62 }],
@@ -65,7 +74,7 @@ describe('saysNothingOfItsOwn', () => {
     // nobody has written yet — which is the direction it has to fail in. A
     // slider a producer can move while the dialog says there is nothing to save
     // is the failure the other spelling would have shipped.
-    const excused = new Set(['name', 'basedOn', 'scales']);
+    const excused = new Set(['name', 'basedOn', 'scales', 'moods']);
     for (const key of Object.keys(BLANK) as (keyof Draft)[]) {
       if (excused.has(key)) continue;
       const moved =

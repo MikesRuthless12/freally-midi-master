@@ -10,6 +10,7 @@ import {
   innermostExpanded,
   isInside,
   samePath,
+  stillFilterable,
   useExplorer,
 } from './explorer';
 import { outlineOf } from '../components/Explorer/waveform';
@@ -717,6 +718,55 @@ describe('flattening the tree', () => {
     ).toEqual(['/lib/Samples', '/lib/Samples/Kicks', '/lib/Samples/Kicks/kick-808.wav']);
   });
 
+  it('⛔ a tag filter narrows to files, and a folder name cannot widen it back', () => {
+    // TASK-058C's third bullet: *"filter the tree by tag and by favourite,
+    // composable with the existing type-to-filter."* Composable means both
+    // constraints apply — and a tag filter is a statement about FILES, so a
+    // folder called `Kicks` must not re-admit the untagged files inside it the
+    // way a typed query legitimately does.
+    const expanded = ['/lib/Samples', '/lib/Samples/Kicks'];
+    const only = new Set(['/lib/Samples/clap.wav']);
+
+    expect(
+      flattenTree(root, {
+        expanded,
+        children: library,
+        truncatedIn: [],
+        query: '',
+        only,
+      }).map((row) => row.key),
+    ).toEqual(['/lib/Samples', '/lib/Samples/clap.wav']);
+
+    // ⛔ The half that would have shipped broken. `query: 'kicks'` forces the
+    // whole `Kicks` subtree when the tag filter is off — asserted just above —
+    // and it must NOT while one is on, because `kick-808.wav` does not carry
+    // the tag. The folder survives only if something under it did, and here
+    // nothing does.
+    expect(
+      flattenTree(root, {
+        expanded,
+        children: library,
+        truncatedIn: [],
+        query: 'kicks',
+        only,
+      }).map((row) => row.key),
+      // Nothing survives, so `flattenTree` falls back to the root alone — which
+      // is what the no-matches line beside the box is for.
+    ).toEqual(['/lib/Samples']);
+
+    // And the two really do compose rather than one winning: a query that names
+    // the tagged file keeps it.
+    expect(
+      flattenTree(root, {
+        expanded,
+        children: library,
+        truncatedIn: [],
+        query: 'clap',
+        only,
+      }).map((row) => row.key),
+    ).toEqual(['/lib/Samples', '/lib/Samples/clap.wav']);
+  });
+
   it('leaves the root on screen when nothing matches, rather than going blank', () => {
     // ⚠ An empty panel reads as the library having gone. The root is the tab the
     // producer is standing on, and the no-matches line beside the box is what
@@ -971,5 +1021,28 @@ describe('reading the notes out of a sample', () => {
     });
     await useExplorer.getState().select('/lib/second.wav');
     expect(useExplorer.getState().audioSplit).toBeNull();
+  });
+});
+
+describe('stillFilterable', () => {
+  /**
+   * ⛔ **The stranding case.** The chip is gone, so the filter it stood for has
+   * to go with it — otherwise every row is hidden and there is nothing on screen
+   * left to press to bring them back.
+   */
+  it('drops a pressed tag whose last file was untagged', () => {
+    expect(stillFilterable(['808', 'vocal'], ['vocal'])).toEqual(['vocal']);
+  });
+
+  /**
+   * ⚠ `vocabularyOf` keeps the first spelling it saw, so the chip's text and the
+   * pressed text can differ in case for the same tag.
+   */
+  it('keeps a pressed tag the vocabulary spells differently', () => {
+    expect(stillFilterable(['Vocal'], ['vocal'])).toEqual(['Vocal']);
+  });
+
+  it('is empty when the vocabulary is', () => {
+    expect(stillFilterable(['808'], [])).toEqual([]);
   });
 });

@@ -160,7 +160,17 @@ pub fn apply(model: &StyleModel, name: &str) -> Result<StyleModel, String> {
     );
 
     let base = serde_json::to_value(model).map_err(|error| error.to_string())?;
-    let merged = deep_merge(base, &overrides);
+    let mut merged = deep_merge(base, &overrides);
+    // ⛔ **The third door the companion rule has to be at** (TASK-172). A mode is
+    // a child of the model in every sense that matters — its arrays replace, so
+    // a mode stating its own `kick.anchors` must not keep the model's
+    // `secondaryAnchor` beside them. Nine mode blocks author `anchors`, and four
+    // of them sit on a kick that declares a secondary: `blake-shelton`'s
+    // *traditional* mode reproduced the exact case TASK-172 was opened for.
+    // ⚠ `inherit` owns the rule; this calls it rather than repeating it, because
+    // a rule installed at one of three doors is the failure this repo has
+    // already recorded four times in one branch.
+    crate::dataset::inherit::drop_orphaned_companions(&mut merged, &overrides);
 
     serde_json::from_value(merged)
         .map_err(|error| format!("mode `{name}` produced a model that will not parse: {error}"))

@@ -132,16 +132,16 @@ pub fn accept() -> Result<(), String> {
     let path =
         path().ok_or("this platform has no per-user data directory to record acceptance in")?;
 
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)
-            .map_err(|error| format!("could not create {parent:?}: {error}"))?;
-    }
-
     let record = Record {
         accepted_version: Some(VERSION.to_owned()),
     };
     let text = serde_json::to_string_pretty(&record).map_err(|error| error.to_string())?;
-    fs::write(&path, text).map_err(|error| format!("could not write {path:?}: {error}"))?;
+    // ⛔ Through `write_atomic`, which makes the folder and renames into place
+    // (TASK-089). A plain `fs::write` truncates first, so a crash between the
+    // truncate and the write left a zero-length file — and `accepted()` reads
+    // that as *never accepted*, putting the licence back in front of a producer
+    // who had already agreed to it.
+    crate::patterns::write_atomic(&path, &text)?;
 
     // After the write, never before: a failed write must not leave this process
     // believing an acceptance that is not on disk and will not survive a reload.
@@ -158,14 +158,9 @@ pub fn decline() -> Result<(), String> {
     let path =
         path().ok_or("this platform has no per-user data directory to record the decision in")?;
 
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)
-            .map_err(|error| format!("could not create {parent:?}: {error}"))?;
-    }
-
     let text =
         serde_json::to_string_pretty(&Record::default()).map_err(|error| error.to_string())?;
-    fs::write(&path, text).map_err(|error| format!("could not write {path:?}: {error}"))?;
+    crate::patterns::write_atomic(&path, &text)?;
 
     // ⛔ Cleared *before* returning, so the very next command through the RPC
     // boundary is refused. This is the only thing that revokes the memo in

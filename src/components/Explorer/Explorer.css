@@ -411,6 +411,63 @@
   font-size: var(--text-micro);
 }
 
+/* ── Tags (TASK-058C) ───────────────────────────────────────────────────── */
+/* ⚠ **Both rows wrap.** A producer's own vocabulary has no width limit, and a
+   rail that is 280px by default would otherwise put a horizontal scrollbar
+   between them and the chip they are reaching for. */
+.browser__tagfilter,
+.browser__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2) var(--space-1);
+}
+
+.browser__tagslabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-text-3);
+  font-size: var(--text-micro);
+}
+
+.browser__tagchip {
+  padding: 1px var(--space-1);
+  border-radius: var(--radius-control);
+  font-size: var(--text-micro);
+  line-height: 1.5;
+}
+
+/* A tag ON the selected file reads as a label rather than as a control — it is
+   the `×` beside it that is pressable, not the chip. */
+.browser__tagchip--held {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-2);
+}
+
+.browser__tagremove {
+  display: inline-flex;
+  padding: 0;
+  color: var(--color-text-3);
+}
+
+.browser__tagadd {
+  flex: 1 1 6rem;
+  min-width: 4rem;
+  padding: 1px var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+}
+
 /* ── A library folder that is not there right now ───────────────────────── */
 /* ⚠ The tab keeps its place — an unplugged drive has not left the library, and
    `merge_folders` says so — but it must not look like a folder you can open. */

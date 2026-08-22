@@ -1,0 +1,284 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "untiljapan",
+  "type": "artist",
+  "name": "UntilJapan",
+  "aliases": [
+    "untiljapan",
+    "until japan",
+    "dark outside"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "cloud-rap"
+  ],
+  "era": "2023-present",
+  "genres": [
+    "rap",
+    "cloud rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "cloud-rap",
+    "atl-swag-rap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.4 UntilJapan"
+  ],
+  "notes": "Clayton County GA, Dark Outside collective; broke out with a Clams Casino production. Dreamlike half-time — soft kicks, washed snares, restrained 808s, and an ambient harmonic wash rather than a progression. ⚠ The lowest tempo range in this batch by design: 120-145 against a cohort that mostly sits at 150+.",
+  "session": {
+    "bpm": {
+      "min": 120,
+      "max": 145,
+      "mode": 132
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "aeolian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.42,
+      "tresilloBias": 0.3,
+      "lockTo808": 0.9
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": false,
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.26,
+          0.4
+        ]
+      },
+      "offGridMs": 8
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.28,
+      "velocities": {
+        "main": [
+          0.55,
+          0.76
+        ],
+        "ghost": [
+          0.24,
+          0.42
+        ]
+      },
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "3_pre"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0.03,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "16"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.25,
+        "velocityRamp": false,
+        "burstOnly": true
+      }
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.28,
+      "slidesPer4Bars": [
+        0,
+        2
+      ],
+      "register": [
+        24,
+        39
+      ],
+      "distortion": "none"
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "velocityRampRange": [
+        40,
+        84
+      ],
+      "rampJitter": 24,
+      "descendProb": 0.36,
+      "gapProb": 0.4,
+      "grouping": [
+        "even"
+      ],
+      "pitchWalk": 1
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.42,
+      "ninth": 0.18
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        55,
+        83
+      ],
+      "topVoiceStepwise": true
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "susSubstitutionProb": 0.24
+  },
+  "melody": {
+    "register": [
+      69,
+      92
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.64,
+      "third": 0.26,
+      "leap": 0.1
+    },
+    "contour": {
+      "arch": 0.4,
+      "descend": 0.36,
+      "riff": 0.24
+    },
+    "chordToneBias": 0.68,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "airy_pad"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.3,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.26
+  }
+}

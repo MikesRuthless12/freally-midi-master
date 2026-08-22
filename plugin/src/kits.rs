@@ -154,9 +154,6 @@ fn save_in(dir: &Path, name: &str, lanes: BTreeMap<Lane, String>) -> Result<KitS
         }
     }
 
-    fs::create_dir_all(dir)
-        .map_err(|error| format!("could not create {}: {error}", dir.display()))?;
-
     let kit = Kit {
         name: name.to_owned(),
         lanes,

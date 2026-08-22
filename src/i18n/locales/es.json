@@ -189,9 +189,15 @@
     "datasetHeading": "Conjunto de estilos",
     "datasetOk": "{{count}} estilos cargados. No se omitió nada.",
     "datasetSkipped": "No se pudieron cargar {{count}} estilos y se omitieron:",
+    "crashPanic": "Freally MIDI Master se detuvo de forma inesperada el {{when}}. Se guardó un informe.",
+    "crashPage": "Esta ventana dejó de dibujarse el {{when}}. Se guardó un informe.",
+    "crashReveal": "Muéstrame los informes",
+    "crashDismiss": "Descartar",
     "motionHeading": "Movimiento",
     "reduceMotion": "Reducir el movimiento",
-    "reduceMotionHint": "Sustituye el barrido de generación por un fundido corto. Tu ajuste del sistema ya hace esto — usa este cuando el sistema no tenga ese ajuste, o cuando quieras que todo lo demás siga en movimiento."
+    "reduceMotionHint": "Sustituye el barrido de generación por un fundido corto. Tu ajuste del sistema ya hace esto — usa este cuando el sistema no tenga ese ajuste, o cuando quieras que todo lo demás siga en movimiento.",
+    "barsHeading": "Clips nuevos",
+    "barsNote": "La duración con la que abre una instancia nueva. Cada proyecto conserva la suya."
   },
   "about": {
     "title": "Acerca de",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "Nombres de artistas",
     "artistNamesBody": "Los nombres de artistas y productores son referencias descriptivas a un estilo musical, nada más. No se implica ni se reclama ninguna afiliación, respaldo ni autoría. Cada patrón se genera de forma procedural a partir de parámetros de estilo escritos a mano: no se copia ningún MIDI, audio ni dato de ninguna grabación.",
     "creditsHeading": "Créditos",
-    "creditsBody": "Estadísticas de timing y velocity derivadas del Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display y Noto Sans Mono, junto con familias Noto por escritura que cubren CJK, árabe, hebreo, índico y más, bajo la SIL Open Font License 1.1. Iconos Lucide bajo ISC. Los kits de previsualización se sintetizan dentro del propio repositorio y no contienen samples de terceros."
+    "creditsBody": "Noto Sans, Noto Sans Display y Noto Sans Mono, junto con familias Noto por escritura que cubren CJK, árabe, hebreo, índico y más, bajo la SIL Open Font License 1.1. Iconos Lucide bajo ISC. Los kits de previsualización se sintetizan dentro del propio repositorio y no contienen samples de terceros."
   },
   "common": {
     "close": "Cerrar"
@@ -427,6 +433,11 @@
     "filter": "Filtrar por nombre",
     "filterScope": "Se buscan las carpetas que has abierto.",
     "noMatches": "Aquí no coincide nada.",
+    "tags": "Etiquetas",
+    "tagAdd": "Añadir etiqueta…",
+    "tagRemove": "Quitar la etiqueta {{tag}}",
+    "tagFilter": "Filtrar por etiqueta",
+    "onlyStarred": "Solo destacados",
     "missing": "{{name}} no está disponible ahora mismo.",
     "recheck": "Comprobar de nuevo",
     "pickAFile": "Elige un sample para escucharlo.",
@@ -523,6 +534,8 @@
     "melody": "Densidad de melodía",
     "scales": "Escalas",
     "scalesHint": "Solo las escalas en las que graba {{name}}.",
+    "moods": "Estados de ánimo",
+    "moodsHint": "Elige hasta {{count}} antes de generar. Solo se entrena con tomas fijadas a uno de ellos.",
     "save": "Guardar estilo",
     "delete": "Eliminar flujo",
     "export": "Exportar",
@@ -592,5 +605,8 @@
     "body": "Tu proyecto sigue abierto en el anfitrión. Vuelve a cargar el panel para continuar: no se ha escrito nada en el disco.",
     "retry": "Recargar el panel",
     "details": "Detalle técnico"
+  },
+  "a11y": {
+    "generated": "Generado. {{bars}} compases, {{bpm}} BPM, {{key}}."
   }
 }

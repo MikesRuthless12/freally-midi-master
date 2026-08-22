@@ -8,7 +8,9 @@ import {
   innermostExpanded,
   isInside,
   samePath,
+  stillFilterable,
   useExplorer,
+  vocabularyOf,
 } from '../../state/explorer';
 import { useKit } from '../../state/kit';
 import { useSession } from '../../state/session';
@@ -17,6 +19,7 @@ import { Favourites } from './Favourites';
 import { Recent } from './Recent';
 import { FileTree } from './FileTree';
 import { PreviewPlayer } from './PreviewPlayer';
+import { TagFilter, TagRow } from './Tags';
 import type { Lane } from '../../lib/ipc-types';
 import './Explorer.css';
 
@@ -48,6 +51,7 @@ export function ExplorerPanel() {
   const error = useExplorer((s) => s.error);
   const refresh = useExplorer((s) => s.refresh);
   const loadFavourites = useExplorer((s) => s.loadFavourites);
+  const loadTags = useExplorer((s) => s.loadTags);
   const loadRecent = useExplorer((s) => s.loadRecent);
   const addFolder = useExplorer((s) => s.addFolder);
   const removeFolder = useExplorer((s) => s.removeFolder);
@@ -90,11 +94,15 @@ export function ExplorerPanel() {
   // thread, for a list that only changes when somebody presses a star. Starring
   // hands the fresh list straight back, so this is the only other moment it can
   // have changed under us.
+  // ⚠ **And the tags, for exactly the same reason** (TASK-058C): the store is a
+  // file read and a JSON parse, `setTags` hands the fresh one back, and this is
+  // the only other moment it can have changed under us.
   useEffect(() => {
     void refresh();
     void loadFavourites();
+    void loadTags();
     void loadRecent();
-  }, [refresh, loadFavourites, loadRecent]);
+  }, [refresh, loadFavourites, loadTags, loadRecent]);
 
   /**
    * The lane `Ctrl`+arrow will put the selected sample on, or `null`.
@@ -154,6 +162,63 @@ export function ExplorerPanel() {
   const [filter, setFilter] = useState('');
 
   /**
+   * The tag chips and the star, as filters (TASK-058C).
+   *
+   * ⚠ **Component state beside `filter`, and for the same reason it is:** a
+   * collapsed panel is unmounted, so a tag filter left on would come back with
+   * the tree narrowed and nothing on screen saying why.
+   */
+  const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [onlyStarred, setOnlyStarred] = useState(false);
+  const tags = useExplorer((s) => s.tags);
+  const starred = useExplorer((s) => s.starred);
+
+  /**
+   * A filter can only narrow while its chip is on screen to un-press.
+   *
+   * ⛔⛔ **Derived, not synced, and without it the panel strands itself.**
+   * `TagFilter` returns `null` once the vocabulary and the star set are both
+   * empty — but the pressed state lives here and survived that. Filter by `808`,
+   * open the only file carrying it, remove the chip: the vocabulary empties, the
+   * chip row unmounts, `only` was still a non-null empty set, and the tree
+   * collapsed to the root saying "nothing here matches" with **nothing on screen
+   * to un-press**. The only way out was to collapse the whole panel.
+   *
+   * ⚠ **An effect that cleared the state would have been the wrong shape** —
+   * `react-hooks` refuses a synchronous `setState` in one, and rightly: this is
+   * a value that can be computed, not two states to keep in step.
+   */
+  const filterable = useMemo(() => vocabularyOf(tags), [tags]);
+  const liveTags = useMemo(
+    () => stillFilterable(activeTags, filterable),
+    [activeTags, filterable],
+  );
+  const liveStarred = onlyStarred && starred.size > 0;
+  /**
+   * The paths a tag or star filter admits, or `null` when neither is on.
+   *
+   * ⛔ **Tags are ANDed and the star is another AND.** Two tags means "both",
+   * which is what a producer narrowing a library expects — an OR would widen
+   * the list as they clicked more chips, which reads as the filter being broken.
+   */
+  const only = useMemo(() => {
+    if (liveTags.length === 0 && !liveStarred) return null;
+    const paths = liveStarred ? [...starred] : Object.keys(tags);
+    return new Set(
+      paths.filter((path) => {
+        if (liveStarred && !starred.has(path)) return false;
+        // ⚠ **Case-insensitive, because the vocabulary folds case and this used
+        // not to.** `vocabularyOf` dedupes `Vocal` and `vocal` to one chip
+        // keeping the first spelling, but `tags::clean` only dedupes *within* a
+        // file — so file A can hold `Vocal` and file B `vocal`, and an exact
+        // match hid file B behind a chip whose text is visibly one of its tags.
+        const held = (tags[path] ?? []).map((tag) => tag.toLowerCase());
+        return liveTags.every((tag) => held.includes(tag.toLowerCase()));
+      }),
+    );
+  }, [liveTags, liveStarred, tags, starred]);
+
+  /**
    * Every line the tree draws, flattened (TASK-058).
    *
    * ⛔⛔ **Computed once, here, and handed to both readers.** `FileTree` draws a
@@ -174,7 +239,7 @@ export function ExplorerPanel() {
         ? []
         : flattenTree(
             { name: shownName, path: shownPath, isDir: true, kind: 'dir' },
-            { expanded, children, truncatedIn, query: filter },
+            { expanded, children, truncatedIn, query: filter, only },
           ),
     // ⛔⛔ **Keyed on the root's PATH, not on the root object.** `refresh` sets
     // `roots` to the reply's array, and the folder-dialog poll calls it every
@@ -182,7 +247,7 @@ export function ExplorerPanel() {
     // memo that depended on it would re-walk every expanded folder, thousands of
     // rows at a time, for the whole minute somebody spends in a file picker.
     // The path and the name are all `flattenTree` reads of the root.
-    [shownPath, shownName, expanded, children, truncatedIn, filter],
+    [shownPath, shownName, expanded, children, truncatedIn, filter, only],
   );
 
   /**
@@ -470,12 +535,31 @@ export function ExplorerPanel() {
           />
         </div>
       )}
+      {/* ⛔ **Composable with the box above it** (TASK-058C): a tag chip narrows
+          what the typed filter is narrowing, and never widens it. */}
+      {roots.length > 0 && !isMissing && (
+        <TagFilter
+          active={liveTags}
+          onlyStarred={liveStarred}
+          onToggleTag={(tag) =>
+            setActiveTags((held) =>
+              held.includes(tag) ? held.filter((on) => on !== tag) : [...held, tag],
+            )
+          }
+          onToggleStarred={() => setOnlyStarred((on) => !on)}
+        />
+      )}
+
       {/* ⚠ **Two lines, because they answer two questions.** The scope says
           what the filter can reach; the second says this particular query
           reached nothing. `rows.length <= 1` is the no-match case by
           construction — `flattenTree` keeps the root row so the panel does not
-          go blank, and nothing else survives. */}
-      {filter.trim() !== '' && !isMissing && (
+          go blank, and nothing else survives.
+          ⚠ **A tag chip counts as a filter for this line too.** Narrowing to a
+          tag with no match in the folders that have been read is the same
+          "nothing here" a typed query produces, and it needs the same sentence
+          or the tree just goes empty. */}
+      {(filter.trim() !== '' || only !== null) && !isMissing && (
         <p className="browser__scope">
           {t('explorer.filterScope')}
           {rows.length <= 1 && ` ${t('explorer.noMatches')}`}
@@ -506,6 +590,11 @@ export function ExplorerPanel() {
       {/* ⚠ **Between the tree and the transport**, so it is the thing a producer
           drops to when they know what they are after — and above the player, so
           clicking a favourite and hearing it are next to each other. */}
+      {/* ⛔ **The selected file's tags, beside the thing that describes it**
+          (TASK-058C). The star is the per-row gesture; a tag is an edit, and an
+          edit belongs where the producer can see what they are editing. */}
+      <TagRow />
+
       <Favourites />
       <Recent />
 

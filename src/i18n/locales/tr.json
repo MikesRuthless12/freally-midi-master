@@ -189,9 +189,15 @@
     "datasetHeading": "Stil veri kümesi",
     "datasetOk": "{{count}} stil yüklendi. Hiçbiri atlanmadı.",
     "datasetSkipped": "{{count}} stil yüklenemedi ve atlandı:",
+    "crashPanic": "Freally MIDI Master {{when}} tarihinde beklenmedik şekilde durdu. Bir rapor kaydedildi.",
+    "crashPage": "Bu pencere {{when}} tarihinde çizmeyi bıraktı. Bir rapor kaydedildi.",
+    "crashReveal": "Raporları göster",
+    "crashDismiss": "Kapat",
     "motionHeading": "Hareket",
     "reduceMotion": "Hareketi azalt",
-    "reduceMotionHint": "Üretim taramasını kısa bir geçişle değiştirir. Sistem ayarınız bunu zaten yapar — sistemde böyle bir ayar yoksa veya diğer her şeyin hareketli kalmasını istiyorsanız kullanın."
+    "reduceMotionHint": "Üretim taramasını kısa bir geçişle değiştirir. Sistem ayarınız bunu zaten yapar — sistemde böyle bir ayar yoksa veya diğer her şeyin hareketli kalmasını istiyorsanız kullanın.",
+    "barsHeading": "Yeni klipler",
+    "barsNote": "Yeni bir örneğin açılış uzunluğu. Proje kendi uzunluğunu korur."
   },
   "about": {
     "title": "Hakkında",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "Sanatçı adları",
     "artistNamesBody": "Sanatçı ve prodüktör adları bir müzik tarzına yapılan tanımlayıcı göndermelerden ibarettir. Hiçbir bağlantı, onay ya da sahiplik ima edilmez veya iddia edilmez. Her kalıp, elle yazılmış tarz parametrelerinden yordamsal olarak üretilir; hiçbir kayıttan MIDI, ses ya da veri kopyalanmaz.",
     "creditsHeading": "Teşekkürler",
-    "creditsBody": "Zamanlama ve velocity istatistikleri Magenta Groove MIDI Dataset'ten (CC BY 4.0) türetilmiştir. Noto Sans, Noto Sans Display ve Noto Sans Mono ile CJK, Arapça, İbranice, Hint yazıları ve daha fazlasını kapsayan yazı sistemine özel Noto aileleri SIL Open Font License 1.1 kapsamındadır. Lucide simgeleri ISC kapsamındadır. Önizleme kitleri deponun içinde sentezlenir ve üçüncü taraf sample içermez."
+    "creditsBody": "Noto Sans, Noto Sans Display ve Noto Sans Mono ile CJK, Arapça, İbranice, Hint yazıları ve daha fazlasını kapsayan yazı sistemine özel Noto aileleri SIL Open Font License 1.1 kapsamındadır. Lucide simgeleri ISC kapsamındadır. Önizleme kitleri deponun içinde sentezlenir ve üçüncü taraf sample içermez."
   },
   "common": {
     "close": "Kapat"
@@ -427,6 +433,11 @@
     "filter": "Ada göre filtrele",
     "filterScope": "Açtığınız klasörlerde arama yapılır.",
     "noMatches": "Burada eşleşen bir şey yok.",
+    "tags": "Etiketler",
+    "tagAdd": "Etiket ekle…",
+    "tagRemove": "{{tag}} etiketini kaldır",
+    "tagFilter": "Etikete göre süz",
+    "onlyStarred": "Yalnızca yıldızlılar",
     "missing": "{{name}} şu anda erişilebilir değil.",
     "recheck": "Yeniden denetle",
     "pickAFile": "Dinlemek için bir örnek seçin.",
@@ -523,6 +534,8 @@
     "melody": "Melodi yoğunluğu",
     "scales": "Diziler",
     "scalesHint": "Yalnızca {{name}} adlı sanatçının kaydettiği diziler.",
+    "moods": "Ruh halleri",
+    "moodsHint": "Üretmeden önce en fazla {{count}} tane seçin. Yalnızca bunlardan birine sabitlenmiş kayıtlarla eğitilir.",
     "save": "Tarzı kaydet",
     "delete": "İş akışını sil",
     "export": "Dışa aktar",
@@ -592,5 +605,8 @@
     "body": "Projeniz ana uygulamada hâlâ açık. Devam etmek için paneli yeniden yükleyin — diske hiçbir şey yazılmadı.",
     "retry": "Paneli yeniden yükle",
     "details": "Teknik ayrıntı"
+  },
+  "a11y": {
+    "generated": "Üretildi. {{bars}} ölçü, {{bpm}} BPM, {{key}}."
   }
 }

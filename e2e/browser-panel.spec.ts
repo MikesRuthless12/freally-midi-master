@@ -613,3 +613,71 @@ test('a .mid can be kept to train on, and the style editor counts its parts', as
   await page.getByRole('button', { name: /Original Workflow/ }).click();
   await expect(dialog.locator('.styleeditor__kept')).toHaveText('0 / 30 kept');
 });
+
+/**
+ * Tags — the half of TASK-058C that favourites left behind (2026-08-22).
+ *
+ * ⛔ **What only a browser can show**, and it is the same argument this file's
+ * header makes: `plugin/src/tags.rs` proves the store's rules from Rust — the
+ * remote refusal, the normalisation, the bounds — and `explorer.test.ts` proves
+ * the tree filter composes. Neither of them can tell you the two are wired to
+ * each other, which is the class of defect this whole panel was.
+ */
+test('a tag is added, completes against the ones in use, and comes off again', async ({
+  page,
+}) => {
+  await browserRow(page, 'Samples').click();
+  await browserRow(page, 'kick-808.wav').click();
+
+  // ⚠ **`combobox`, not `textbox`** — an `<input list=…>` takes the combobox
+  // role implicitly, which is the completion this control is for.
+  const add = page.getByRole('combobox', { name: 'Add a tag…' });
+  await add.fill('808');
+  await add.press('Enter');
+  await expect(page.locator('.browser__tagchip--held')).toHaveText(/808/);
+
+  // ⚠ The field clears itself, or the next tag is typed onto the end of the
+  // last one — which reads as the first tag having failed.
+  await expect(add).toHaveValue('');
+
+  // ⛔ **The vocabulary is what the `Add…` field completes against**, and a
+  // `datalist` is the platform's own control for that. Asserting the option
+  // exists is asserting the completion source, which is the part this page owns.
+  await expect(page.locator('datalist option[value="808"]')).toHaveCount(1);
+
+  // A second file can carry the same tag, and the vocabulary does not double up.
+  await browserRow(page, 'clap-01.wav').click();
+  await add.fill('808');
+  await add.press('Enter');
+  await expect(page.locator('datalist option[value="808"]')).toHaveCount(1);
+
+  await page.getByRole('button', { name: 'Remove the tag 808' }).click();
+  await expect(page.locator('.browser__tagchip--held')).toHaveCount(0);
+});
+
+test('⛔ a tag chip filters the tree, and composes with the typed filter', async ({ page }) => {
+  await browserRow(page, 'Samples').click();
+  await browserRow(page, 'clap-01.wav').click();
+
+  const add = page.getByRole('combobox', { name: 'Add a tag…' });
+  await add.fill('layer');
+  await add.press('Enter');
+  await expect(page.locator('.browser__tagchip--held')).toHaveText(/layer/);
+
+  // Untagged rows are still on screen while no chip is pressed.
+  await expect(browserRow(page, 'kick-808.wav')).toBeVisible();
+
+  const chip = page
+    .getByRole('group', { name: 'Filter by tag' })
+    .getByRole('button', { name: 'layer', exact: true });
+  await chip.click();
+  await expect(chip).toHaveAttribute('aria-pressed', 'true');
+
+  // ⛔ The assertion that matters is the negative one: the untagged file is gone.
+  await expect(browserRow(page, 'clap-01.wav')).toBeVisible();
+  await expect(browserRow(page, 'kick-808.wav')).toBeHidden();
+
+  // ⚠ And the tag filter says so in the same line a typed query does, or the
+  // tree narrowing to nothing looks like the library having gone.
+  await expect(page.locator('.browser__scope')).toBeVisible();
+});

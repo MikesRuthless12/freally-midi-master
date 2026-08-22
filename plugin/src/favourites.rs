@@ -29,8 +29,10 @@
 //!
 //! ## ⛔⛔ Revealing a file launches a process out of somebody's DAW
 //!
-//! That is a capability nothing else in this plugin has, and the page supplies
-//! the path. Two guards, both structural:
+//! ⚠ **One of two places that does** — `crash::reveal` opens the crash folder
+//! (TASK-093). The difference is what makes this one the dangerous half: **the
+//! page supplies the path here** and cannot there, where the folder is computed.
+//! Two guards, both structural:
 //!
 //! 1. **Only a path that is already starred can be revealed.** The page cannot
 //!    name an arbitrary string; it can only ask for one of its own entries, and
@@ -100,10 +102,6 @@ pub fn list() -> Vec<Favourite> {
 
 fn write(favourites: &[Favourite]) -> Result<(), String> {
     let path = path_of_store().ok_or("this platform has no per-user data directory")?;
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|error| format!("could not create {parent:?}: {error}"))?;
-    }
     let text = serde_json::to_string_pretty(&Stored {
         favourites: favourites.to_vec(),
     })

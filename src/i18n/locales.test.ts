@@ -175,6 +175,45 @@ describe('locale catalogs', () => {
     expect(en.size).toBeGreaterThan(50);
   });
 
+  it('⛔ says none of the five words the voice guide forbids (TASK-089)', () => {
+    // ⛔⛔ **A hard rule, quoted from `docs/product-vision.md` § Voice & Tone:**
+    // *"never use the words 'leverage,' 'unlock,' 'empower,' 'solution,' or
+    // 'AI-powered' anywhere a user can see."* The second half of that sentence
+    // is why this is a test rather than a review note — "anywhere a user can
+    // see" is 18 catalogs and ~900 strings, which nobody re-reads.
+    //
+    // ⚠ **English only, and that is the honest scope.** The rule is about the
+    // register of English startup copy; the equivalent in Japanese is not a word
+    // list this repo can hold, and a transliteration gate would fail on ordinary
+    // Polish. What it does catch is the way these words actually arrive: someone
+    // writes one in `en.json` and seventeen translators render it faithfully.
+    // ⛔⛔ **`unlocked` is exempt, and finding out why is the reason this test
+    // is worth having.** The first cut banned the stem and immediately caught
+    // `kit.randomize: "Re-roll every unlocked pad from this folder"` — which is
+    // correct copy. This product has *locks*: TASK-044 put one on every lane and
+    // every region, `L` toggles them, and "unlocked" is the state of one. The
+    // guide is banning the startup verb — *unlock your creative potential* — not
+    // the adjective for a padlock the producer can see on screen.
+    //
+    // ⚠ So the rule is the verb and its gerund, never the past participle. A
+    // hypothetical "unlocked potential" would slip through, and that is the
+    // trade: a gate that fires on real copy gets switched off, and one nobody
+    // switches off catches the way this actually goes wrong.
+    const banned = [
+      /\bleverag(e|es|ed|ing)\b/,
+      /\bunlock(s|ing)?\b/,
+      /\bempower(s|ed|ing)?\b/,
+      /\bsolutions?\b/,
+      /\bai[ -]powered\b/,
+    ];
+    const bad: string[] = [];
+    for (const [key, value] of en) {
+      const text = value.toLowerCase();
+      if (banned.some((word) => word.test(text))) bad.push(`${key}: "${value}"`);
+    }
+    expect(bad, `the voice guide forbids these words:\n  ${bad.join('\n  ')}`).toEqual([]);
+  });
+
   it('defines every key the components actually ask for', () => {
     // The gap this closes: parity only compares locales *to en*, so a key the
     // code uses and no catalog defines is invisible to it — every locale agrees

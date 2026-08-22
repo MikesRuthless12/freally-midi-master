@@ -12,6 +12,95 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed — an inherited `secondaryAnchor` ate a child's whole kick budget, 2026-08-22
+
+⛔⛔ **129 shipped models now generate a different kick, and it is for your ears.**
+`drums.kick.anchors` is an array, so a child authoring its own replaces the
+parent's — but `secondaryAnchor` is a separate scalar beside it, so it survived
+that replacement and was unioned back in. A model saying *"my anchors are 1 and
+3"* was given 1, 2& and 3.
+
+Where that filled the child's density budget, every kick hit became guaranteed
+and the lane stopped varying. Measured on `darius-rucker`: over his own
+`country-pop` base he writes **92 distinct kick shapes in 200 seeds**; swapped
+onto `rnb-2000s`, whose `secondaryAnchor` is `"2&"`, **4**. Every other lane was
+identical either way.
+
+- **The rule**: a child that authors `anchors` and not `secondaryAnchor` no
+  longer inherits one. A child that authors neither still inherits both — which
+  is what an inherited-tier model wants — and a child that authors both keeps its
+  own.
+- **34 genres** author the field and **282 models** author their own anchors with
+  a budget an added secondary would fill, so this was never one model's problem.
+- ⚠ **The direction is toward the research**: a model now plays the anchors its
+  own entry states. But "one fewer kick on 2&" is audible and no test can accept
+  it — see the listening queue.
+- The golden snapshots are untouched: they cover `trap`, `rage` and `uk-drill`,
+  and `trap` authors its own secondary while the other two inherit none.
+
+### Fixed — the About screen credited a dataset the product does not use, 2026-08-22
+
+In all eighteen languages it said *"Timing and velocity statistics derived from
+the Magenta Groove MIDI Dataset (CC BY 4.0)"*, and `docs/credits.md` said GMD had
+*"informed the humanizer's constants"*. **Neither is true.**
+`engine/src/humanize.rs` is hand-authored from the published technique research,
+there is no `data/humanize/`, and `tools/groovestats` has never been written. GMD
+is a *permitted* source the research plans to use — that is TASK-078, unstarted.
+
+Removed from the About pane and from `docs/credits.md`, which now records why.
+CC-BY asks for attribution when you *use* the work; attributing something you do
+not use is a false statement about where the product's numbers came from.
+
+### Added — tags in the File Explorer, and the crash folder is finally offered
+
+- **Tags** (TASK-058C's remaining half). Add and remove them on the selected file
+  with completion against the tags already in use, and filter the tree by tag or
+  by star — composable with the typed filter. ⛔ A folder never satisfies a tag
+  filter on its own name: a tag filter is a statement about *files*, so a folder
+  called `808s` must not re-admit the untagged files inside it.
+- **The crash folder is offered rather than hidden** (TASK-093). The panic hook
+  and the error boundary have both been writing reports that nothing ever read.
+  Settings → General now names the newest one and opens the folder.
+- **A generation is announced to screen readers** (TASK-095). Pressing Generate
+  produced nothing a reader could perceive — the grid is a canvas and everything
+  else was visual.
+- **New clips open at your own length** (TASK-090). A preference for a *new*
+  instance; a project keeps the length the host restored.
+- **The moods are declared before training, not inferred after it** (TASK-040T).
+  `trainFromKept` read them back off `keptTakes`, which answers *"what did you
+  generate"* rather than *"what is this workflow"* — a style trained on twenty
+  dark takes and one bounce recorded itself as both, and a producer who pinned
+  nothing got "no particular mood" however deliberate they had been. Declaring
+  them narrows the kept set, so the `18 / 30 kept` readout cannot disagree with
+  what is sent. ⚠ A take generated on "the artist's" carries `mood: null` and
+  drops out once anything is declared: the engine picked a mode from the seed but
+  does not record which, so counting it would be a guess presented as provenance.
+- **Fourteen more underground artists** (TASK-079) — rage, opium and jerk, taking
+  the roster to **1,317 models**. Two of the sixteen in the batch already had
+  entries and were revised rather than added.
+
+### Added — three gates that close holes nothing was watching
+
+- **No alias may be another model's own name** (TASK-087). At 1,317 models this
+  needed enforcing by something other than care. ⚠ It fails on one kind of
+  collision only: a crew or scene tag naming several models — `griselda`,
+  `swishahouse`, `dipset` — is a legitimate way to reach a group of people.
+- **No `std::net` in our own Rust** (TASK-096), as a `clippy.toml`. Every
+  dependency check in `check-denylist.mjs` is blind to a socket opened through
+  `std`: it links nothing and resolves nothing new in `Cargo.lock`.
+  `disallowed-types` and `disallowed-methods` are default-on `style` lints that
+  do nothing until configured, so this rides the existing
+  `cargo clippy --workspace --all-targets -- -D warnings` on all three OSes with
+  no new CI step. ⚠ **A source-text scan was written first and thrown away** —
+  it resolved nothing, so `use std::net as n` passed clean; it needed a
+  hand-maintained root list that already missed the vendored webview crate; and
+  it had to skip comment lines to let itself be documented. Clippy also gives
+  `#[allow(…, reason = "…")]` at the call site as the exemption, which is where
+  the web side's one `fetch` exemption already lives.
+- **The five words the voice guide forbids** (TASK-089). ⛔ The first run caught
+  *correct* copy — `"Re-roll every unlocked pad"` — so the rule is the startup
+  verb and its gerund, never the past participle: this product has locks.
+
 ### Added — thirteen more parameters the dataset authored and no code read, 2026-08-18
 
 The second pass over `engine/tests/authored_keys.rs`'s debt register. Thirteen

@@ -302,8 +302,6 @@ fn save_in(dir: &Path, raw: Value) -> Result<RosterEntry, String> {
 fn write_model(dir: &Path, id: &str, raw: &Value) -> Result<(), String> {
     let text = serde_json::to_string_pretty(raw)
         .map_err(|error| format!("could not serialise the model: {error}"))?;
-    fs::create_dir_all(dir)
-        .map_err(|error| format!("could not create {}: {error}", dir.display()))?;
     crate::patterns::write_atomic(&dir.join(format!("{id}.json")), &text)
 }
 

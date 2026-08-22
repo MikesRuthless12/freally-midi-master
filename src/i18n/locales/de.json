@@ -189,9 +189,15 @@
     "datasetHeading": "Stil-Datensatz",
     "datasetOk": "{{count}} Stile geladen. Nichts wurde übersprungen.",
     "datasetSkipped": "{{count}} Stile konnten nicht geladen werden und wurden übersprungen:",
+    "crashPanic": "Freally MIDI Master ist am {{when}} unerwartet beendet worden. Ein Bericht wurde gespeichert.",
+    "crashPage": "Dieses Fenster hat am {{when}} aufgehört zu zeichnen. Ein Bericht wurde gespeichert.",
+    "crashReveal": "Berichte anzeigen",
+    "crashDismiss": "Ausblenden",
     "motionHeading": "Bewegung",
     "reduceMotion": "Bewegung reduzieren",
-    "reduceMotionHint": "Ersetzt den Generierungs-Sweep durch eine kurze Blende. Die Systemeinstellung tut das bereits — nutze dies, wenn das System keine solche Einstellung hat oder alles andere in Bewegung bleiben soll."
+    "reduceMotionHint": "Ersetzt den Generierungs-Sweep durch eine kurze Blende. Die Systemeinstellung tut das bereits — nutze dies, wenn das System keine solche Einstellung hat oder alles andere in Bewegung bleiben soll.",
+    "barsHeading": "Neue Clips",
+    "barsNote": "Wie lang eine neue Instanz startet. Ein Projekt behält seine eigene Länge."
   },
   "about": {
     "title": "Über",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "Künstlernamen",
     "artistNamesBody": "Künstler- und Produzentennamen sind beschreibende Verweise auf einen Musikstil, mehr nicht. Es wird keine Verbindung, Befürwortung oder Urheberschaft angedeutet oder beansprucht. Jedes Pattern wird prozedural aus handgeschriebenen Stilparametern erzeugt — es werden keine MIDI-, Audio- oder sonstigen Daten aus einer Aufnahme kopiert.",
     "creditsHeading": "Danksagungen",
-    "creditsBody": "Timing- und Velocity-Statistiken abgeleitet aus dem Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display und Noto Sans Mono, mit schriftspezifischen Noto-Familien für Chinesisch, Japanisch, Koreanisch, Arabisch, Hebräisch, indische Schriften und mehr, unter der SIL Open Font License 1.1. Lucide-Icons unter ISC. Vorschau-Kits werden im Repository selbst synthetisiert und enthalten keine Samples von Dritten."
+    "creditsBody": "Noto Sans, Noto Sans Display und Noto Sans Mono, mit schriftspezifischen Noto-Familien für Chinesisch, Japanisch, Koreanisch, Arabisch, Hebräisch, indische Schriften und mehr, unter der SIL Open Font License 1.1. Lucide-Icons unter ISC. Vorschau-Kits werden im Repository selbst synthetisiert und enthalten keine Samples von Dritten."
   },
   "common": {
     "close": "Schließen"
@@ -427,6 +433,11 @@
     "filter": "Nach Name filtern",
     "filterScope": "Es werden die von Ihnen geöffneten Ordner durchsucht.",
     "noMatches": "Hier passt nichts.",
+    "tags": "Tags",
+    "tagAdd": "Tag hinzufügen…",
+    "tagRemove": "Tag {{tag}} entfernen",
+    "tagFilter": "Nach Tag filtern",
+    "onlyStarred": "Nur markierte",
     "missing": "{{name}} ist derzeit nicht erreichbar.",
     "recheck": "Erneut prüfen",
     "pickAFile": "Wählen Sie ein Sample, um es anzuhören.",
@@ -523,6 +534,8 @@
     "melody": "Melodiedichte",
     "scales": "Tonleitern",
     "scalesHint": "Nur die Tonleitern, in denen {{name}} aufnimmt.",
+    "moods": "Stimmungen",
+    "moodsHint": "Wähle vor dem Generieren bis zu {{count}} aus. Trainiert wird nur mit Takes, die auf eine davon festgelegt sind.",
     "save": "Stil speichern",
     "delete": "Workflow löschen",
     "export": "Exportieren",
@@ -592,5 +605,8 @@
     "body": "Dein Projekt ist im Host weiterhin geöffnet. Lade das Panel neu, um fortzufahren — es wurde nichts auf die Festplatte geschrieben.",
     "retry": "Panel neu laden",
     "details": "Technische Details"
+  },
+  "a11y": {
+    "generated": "Erzeugt. {{bars}} Takte, {{bpm}} BPM, {{key}}."
   }
 }

@@ -189,9 +189,15 @@
     "datasetHeading": "Zbiór stylów",
     "datasetOk": "Wczytano {{count}} stylów. Nic nie zostało pominięte.",
     "datasetSkipped": "Nie udało się wczytać {{count}} stylów i zostały pominięte:",
+    "crashPanic": "Freally MIDI Master zatrzymał się nieoczekiwanie {{when}}. Zapisano raport.",
+    "crashPage": "To okno przestało się rysować {{when}}. Zapisano raport.",
+    "crashReveal": "Pokaż raporty",
+    "crashDismiss": "Odrzuć",
     "motionHeading": "Ruch",
     "reduceMotion": "Ogranicz ruch",
-    "reduceMotionHint": "Zastępuje przeciągnięcie podczas generowania krótkim przejściem. Ustawienie systemu już to robi — użyj tego, gdy system go nie ma lub gdy reszta ma się nadal poruszać."
+    "reduceMotionHint": "Zastępuje przeciągnięcie podczas generowania krótkim przejściem. Ustawienie systemu już to robi — użyj tego, gdy system go nie ma lub gdy reszta ma się nadal poruszać.",
+    "barsHeading": "Nowe klipy",
+    "barsNote": "Długość, z jaką otwiera się nowa instancja. Projekt zachowuje własną."
   },
   "about": {
     "title": "O programie",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "Nazwiska artystów",
     "artistNamesBody": "Nazwiska artystów i producentów to wyłącznie opisowe odniesienia do stylu muzycznego, nic więcej. Nie sugerujemy ani nie twierdzimy, że istnieje jakakolwiek współpraca, poparcie czy współautorstwo. Każdy wzorzec powstaje proceduralnie z ręcznie napisanych parametrów stylu — żadne MIDI, audio ani dane nie są kopiowane z jakiegokolwiek nagrania.",
     "creditsHeading": "Podziękowania",
-    "creditsBody": "Statystyki czasu i velocity pochodzą z Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display i Noto Sans Mono, wraz z rodzinami Noto dla poszczególnych pism — CJK, arabskiego, hebrajskiego, indyjskich i innych — na licencji SIL Open Font License 1.1. Ikony Lucide na licencji ISC. Zestawy podglądowe są syntezowane w repozytorium i nie zawierają próbek innych firm."
+    "creditsBody": "Noto Sans, Noto Sans Display i Noto Sans Mono, wraz z rodzinami Noto dla poszczególnych pism — CJK, arabskiego, hebrajskiego, indyjskich i innych — na licencji SIL Open Font License 1.1. Ikony Lucide na licencji ISC. Zestawy podglądowe są syntezowane w repozytorium i nie zawierają próbek innych firm."
   },
   "common": {
     "close": "Zamknij"
@@ -427,6 +433,11 @@
     "filter": "Filtruj według nazwy",
     "filterScope": "Przeszukiwane są otwarte przez Ciebie foldery.",
     "noMatches": "Nic tu nie pasuje.",
+    "tags": "Etykiety",
+    "tagAdd": "Dodaj etykietę…",
+    "tagRemove": "Usuń etykietę {{tag}}",
+    "tagFilter": "Filtruj po etykiecie",
+    "onlyStarred": "Tylko oznaczone",
     "missing": "{{name}} jest teraz niedostępny.",
     "recheck": "Sprawdź ponownie",
     "pickAFile": "Wybierz sampel, aby go odsłuchać.",
@@ -523,6 +534,8 @@
     "melody": "Gęstość melodii",
     "scales": "Skale",
     "scalesHint": "Tylko skale, w których nagrywa {{name}}.",
+    "moods": "Nastroje",
+    "moodsHint": "Wybierz maksymalnie {{count}} przed generowaniem. Trenowane są tylko ujęcia przypięte do jednego z nich.",
     "save": "Zapisz styl",
     "delete": "Usuń przepływ",
     "export": "Eksportuj",
@@ -592,5 +605,8 @@
     "body": "Twój projekt jest nadal otwarty w hoście. Załaduj panel ponownie, aby kontynuować — nic nie zostało zapisane na dysku.",
     "retry": "Załaduj panel ponownie",
     "details": "Szczegóły techniczne"
+  },
+  "a11y": {
+    "generated": "Wygenerowano. {{bars}} taktów, {{bpm}} BPM, {{key}}."
   }
 }

@@ -89,6 +89,123 @@ fn every_model_sits_in_the_folder_its_type_names() {
     );
 }
 
+/// Every model on disk — genres, artists and producers — as `(id, name, aliases)`.
+fn every_model_identity() -> Vec<(String, String, Vec<String>)> {
+    let mut out = vec![];
+    for dir in ["genres", "artists", "producers"] {
+        let root = data_dir().join(dir);
+        let mut paths: Vec<PathBuf> = fs::read_dir(&root)
+            .unwrap_or_else(|e| panic!("data/{dir} is required: {e}"))
+            .filter_map(Result::ok)
+            .map(|e| e.path())
+            .filter(|p| p.extension().is_some_and(|x| x == "json"))
+            .collect();
+        paths.sort();
+        for path in paths {
+            let text = fs::read_to_string(&path).unwrap();
+            let model: serde_json::Value = serde_json::from_str(&text)
+                .unwrap_or_else(|e| panic!("{} is not JSON: {e}", path.display()));
+            let aliases = model["aliases"]
+                .as_array()
+                .map(|list| {
+                    list.iter()
+                        .filter_map(|a| a.as_str().map(str::to_owned))
+                        .collect()
+                })
+                .unwrap_or_default();
+            out.push((
+                model["id"].as_str().unwrap_or_default().to_owned(),
+                model["name"].as_str().unwrap_or_default().to_owned(),
+                aliases,
+            ));
+        }
+    }
+    out
+}
+
+/// An alias, an id or a name reduced to what a search would compare.
+///
+/// Lowercased with every run of non-alphanumerics collapsed to one space, so
+/// `Shock G`, `shock-g` and `shock  g` are one string. This is the same
+/// flattening `lib/fuzzy.ts` applies on the page; it is repeated here rather
+/// than shared because the two live in different languages and the *rule* —
+/// punctuation does not distinguish two names — is what has to agree, not the
+/// implementation.
+fn searchable(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut gap = false;
+    for c in text.chars() {
+        if c.is_ascii_alphanumeric() {
+            if gap && !out.is_empty() {
+                out.push(' ');
+            }
+            gap = false;
+            out.extend(c.to_lowercase());
+        } else {
+            gap = true;
+        }
+    }
+    out
+}
+
+#[test]
+fn no_alias_is_another_model_s_own_name() {
+    // ⛔⛔ **TASK-087 — the protocol's rule, as a gate**: *"No alias may resolve to two
+    // models. Collisions are a defect, not a ranking problem — if `"x"` matches
+    // both XXXTENTACION and an artist literally named X, one of them must give
+    // it up."* At 1,317 models it needs enforcing by something other than care.
+    //
+    // ⛔ **But this deliberately fails on ONE kind of collision, and the
+    // narrowing is the whole design.** A raw "no alias appears twice" gate finds
+    // 98 hits, and most are correct: `griselda` really does name four models,
+    // `swishahouse` seven, and `dipset` four. A crew, a label or a scene is a
+    // legitimate way to reach a group of people, and forbidding it would make
+    // the roster *worse* to search while claiming to fix it.
+    //
+    // What is never legitimate is an alias that is some OTHER model's own id or
+    // name. Then two models answer to one person's name, the ranking decides
+    // which, and the answer a producer gets depends on tier weighting rather
+    // than on who they typed. Those 33 were removed on 2026-08-22 — mostly
+    // group models carrying a member's name (`dru-hill` → `sisqo`,
+    // `digital-underground` → `shock g`) and its mirror. **The relationship is
+    // real; `aliases` is the wrong field for it**, and where it is worth keeping
+    // it now lives in `notes`.
+    //
+    // ⚠ **Judgement calls are left alone on purpose.** `diamond` names both
+    // Crime Mob's Diamond and Diamond D, and neither model *is* `diamond` — so
+    // this gate is silent, because a build should not fail on a question only a
+    // person can answer.
+    let models = every_model_identity();
+    let mut owned: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+    for (id, name, _) in &models {
+        owned.insert(searchable(id), id.clone());
+        if !name.is_empty() {
+            owned.insert(searchable(name), id.clone());
+        }
+    }
+
+    let mut bad: Vec<String> = vec![];
+    for (id, _, aliases) in &models {
+        for alias in aliases {
+            if let Some(owner) = owned.get(&searchable(alias)) {
+                if owner != id {
+                    bad.push(format!(
+                        "`{id}` claims \"{alias}\", which is `{owner}`'s own name"
+                    ));
+                }
+            }
+        }
+    }
+    assert!(
+        bad.is_empty(),
+        "an alias must not be another model's own name — {} found:\n  {}\n\
+         Remove it from the model that is not that person; put the relationship \
+         in `notes` if it is worth keeping.",
+        bad.len(),
+        bad.join("\n  ")
+    );
+}
+
 /// Every shipped model file: `data/_defaults.json` plus `data/genres/*.json`.
 fn shipped_models() -> Vec<(PathBuf, String)> {
     let root = data_dir();

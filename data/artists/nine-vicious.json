@@ -1,0 +1,291 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "nine-vicious",
+  "type": "artist",
+  "name": "Nine Vicious",
+  "aliases": [
+    "nine vicious",
+    "9 vicious",
+    "ninevicious"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "rage"
+  ],
+  "era": "2022-present",
+  "genres": [
+    "rap",
+    "rage",
+    "cloud rap"
+  ],
+  "relatedGenres": [
+    "rage",
+    "cloud-rap",
+    "atl-swag-rap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.4 Nine Vicious"
+  ],
+  "notes": "YSL-school melodic weirdness over a rage low end — plugg-ish sparse kicks with rage 808 heat, mid-density hats with triplet stumbles, and an elastic swag-rap pocket rather than a driving one. ⚠ The research is explicit that the BEAT is harmonically minimal and the vocal melody carries, so the chord block is deliberately static and the slide-heavy bass moves under it: the movement is in the bass, not in the harmony.",
+  "session": {
+    "bpm": {
+      "min": 135,
+      "max": 160,
+      "mode": 146
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        2,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.6,
+      "tresilloBias": 0.42,
+      "lockTo808": 0.92
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.32,
+          0.5
+        ]
+      },
+      "offGridMs": 6
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.48,
+      "velocities": {
+        "main": [
+          0.68,
+          0.9
+        ],
+        "ghost": [
+          0.32,
+          0.52
+        ]
+      },
+      "openHat": {
+        "prob": 0.34,
+        "pos": [
+          "2_pre",
+          "4_pre"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "pitchBendProb": 0.08,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32",
+            "16"
+          ],
+          "weights": [
+            4,
+            2,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.55,
+        "velocityRamp": true,
+        "burstOnly": false
+      }
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.6,
+      "slidesPer4Bars": [
+        2,
+        4
+      ],
+      "register": [
+        19,
+        34
+      ],
+      "distortion": "medium"
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "32nd",
+        "32t"
+      ],
+      "velocityRampRange": [
+        50,
+        112
+      ],
+      "rampJitter": 18,
+      "descendProb": 0.18,
+      "gapProb": 0.22,
+      "grouping": [
+        "strong_weak_weak",
+        "even"
+      ],
+      "pitchWalk": 5
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "III"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.3,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "chordDurationBeats": [
+      4,
+      14
+    ],
+    "susSubstitutionProb": 0.2
+  },
+  "melody": {
+    "register": [
+      70,
+      94
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.55,
+      "third": 0.3,
+      "leap": 0.15
+    },
+    "contour": {
+      "riff": 0.62,
+      "arch": 0.2,
+      "descend": 0.18
+    },
+    "chordToneBias": 0.55,
+    "octaveJumpProb": 0.2,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "timbreHint": "warbled_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.85,
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0.62,
+    "anticipationProb": 0.14
+  }
+}

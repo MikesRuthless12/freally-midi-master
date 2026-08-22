@@ -182,6 +182,11 @@ fn merge_ancestors(
             .get(ancestor)
             .ok_or_else(|| DatasetError::UnknownParent(ancestor.clone()))?;
         merged = deep_merge(merged, model);
+        // ⛔ Per STEP, not once at the end (TASK-172). A genre that states its
+        // own `anchors` over a parent genre that states a `secondaryAnchor` is
+        // THIS merge, not `child_over`'s — `trap-soul` over `trap` is exactly
+        // that, and it is extended by 70 models.
+        drop_orphaned_companions(&mut merged, model);
     }
     Ok(merged)
 }
@@ -219,7 +224,86 @@ fn child_over(
         out.remove("extends");
     }
 
+    drop_orphaned_companions(&mut merged, model);
+
     Ok(merged)
+}
+
+/// Keys that are part of the array beside them, and must go when it is replaced
+/// (TASK-172).
+///
+/// Each row is `(block path, the array, the companions it owns)`.
+///
+/// ⛔⛔ **The hazard, in one sentence.** An array in a child *replaces* the
+/// parent's — that is `deep_merge`'s rule and it is what lets a model narrow
+/// what it inherits. A **scalar sibling that means the same thing** does not:
+/// it survives the replacement and is read back alongside the child's list. So
+/// a model saying *"my anchors are 1 and 3"* was given 1, 2& and 3, because
+/// `drums::anchor_ticks` unions `secondaryAnchor` into `anchors`.
+///
+/// ▶ **Measured before it was changed.** `darius-rucker` authors
+/// `anchors: ["1", "3"]` with `densityPerBar: [2, 3]`; over `rnb-2000s`, whose
+/// `secondaryAnchor` is `"2&"`, all three hits became guaranteed and the kick
+/// fell from **92 distinct shapes in 200 seeds to 4** — every other lane
+/// unchanged.
+///
+/// ⛔ **Authorised by the owner on 2026-08-22**, on the condition that the
+/// result *"ends up still sounding and adhering to the artist/producer's
+/// genre/db that i researched"* — which is the direction this moves.
+///
+/// ⛔⛔ **ONE ROW, AND THAT IS DELIBERATE.** A review of this fix found at least
+/// five more pairs with the same shape — `percs.lanes` + `tambourine`,
+/// `arrangement…parts` + `addLayers`, `chords.progressionFamilies` +
+/// `maxChords` (**395 models**), `hihat.rolls.vocab` + `burstOnly`,
+/// `bass808.slidePositions` + `slidesPer4Bars`. Every one is a candidate and
+/// **none of them is authorised**: adding a row here changes what shipped models
+/// generate, and that is the owner's call and his ears. They are written up in
+/// the roadmap under TASK-172 with their counts. **This table is the mechanism;
+/// the rows are a product decision.**
+const COMPANIONS: &[(&str, &str, &[&str])] = &[("/drums/kick", "anchors", &["secondaryAnchor"])];
+
+/// Drop companions the child orphaned by replacing their array.
+///
+/// ⛔⛔ **Applied at EVERY merge step, which the first cut was not.** It lived
+/// only in [`child_over`], and a review found two live holes: `trap-soul`
+/// authors `anchors: ["1"]` over `trap`'s `secondaryAnchor: "3"` and is extended
+/// by **70 models** — a genre-over-genre merge, which goes through
+/// [`merge_ancestors`] and never reached the rule — and
+/// [`crate::dataset::modes::apply`] merges a mode's overrides with a bare
+/// `deep_merge`, where **nine mode blocks** author `anchors` and four of them sit
+/// on a kick that declares a secondary. `blake-shelton`'s *traditional* mode
+/// reproduced the headline case exactly. A rule installed at one of three doors
+/// is the failure this repo already records four times in one branch.
+///
+/// ⚠ **The over-model's own authorship decides, never the accumulated base.**
+/// A child that authors the companion itself keeps it — it has answered the
+/// question — and one that authors neither inherits both, which is what an
+/// inherited-tier model wants.
+pub(crate) fn drop_orphaned_companions(merged: &mut Value, over: &Value) {
+    for (block, array, companions) in COMPANIONS {
+        // ⚠ A JSON Pointer, which this crate already uses — `validate.rs` reads
+        // `model.pointer("/session/bpm")`. A hand-rolled key walk needed two
+        // mutable borrows of the same value and did not compile.
+        let Some(authored) = over.pointer(block) else {
+            continue;
+        };
+        if authored.get(array).is_none() {
+            continue;
+        }
+        let orphaned: Vec<&str> = companions
+            .iter()
+            .copied()
+            .filter(|companion| authored.get(companion).is_none())
+            .collect();
+        if orphaned.is_empty() {
+            continue;
+        }
+        if let Some(Value::Object(target)) = merged.pointer_mut(block) {
+            for companion in orphaned {
+                target.remove(companion);
+            }
+        }
+    }
 }
 
 /// [`resolve`], reusing an ancestor merge an earlier model already paid for.
@@ -755,5 +839,192 @@ mod tests {
             Err(DatasetError::UnknownParent(id)) => assert_eq!(id, "nobody"),
             other => panic!("expected the model to be reported, got {other:?}"),
         }
+    }
+}
+
+#[cfg(test)]
+mod companions {
+    use super::*;
+    use serde_json::json;
+
+    fn registry(child: Value) -> BTreeMap<String, Value> {
+        BTreeMap::from([
+            (
+                "parent".to_owned(),
+                json!({
+                    "id": "parent",
+                    "type": "genre",
+                    "name": "Parent",
+                    "drums": { "kick": { "anchors": ["1"], "secondaryAnchor": "2&" } }
+                }),
+            ),
+            ("child".to_owned(), child),
+        ])
+    }
+
+    fn kick(resolved: &Value) -> &Value {
+        &resolved["drums"]["kick"]
+    }
+
+    #[test]
+    fn a_child_that_states_its_own_anchors_does_not_inherit_a_second_one() {
+        // ⛔ TASK-172. `anchors` is an array and replaces; `secondaryAnchor` is a
+        // scalar beside it and used to survive, so a model saying "1 and 3" got
+        // 1, 2& and 3 — and where that filled its density budget the kick
+        // stopped varying at all.
+        let registry = registry(json!({
+            "id": "child",
+            "type": "artist",
+            "name": "Child",
+            "extends": ["parent"],
+            "drums": { "kick": { "anchors": ["1", "3"] } }
+        }));
+        let resolved = resolve("child", &registry).expect("it resolves");
+        assert_eq!(kick(&resolved)["anchors"], json!(["1", "3"]));
+        assert!(
+            kick(&resolved).get("secondaryAnchor").is_none(),
+            "the parent's secondary anchor must not survive the child's own list: {:?}",
+            kick(&resolved)
+        );
+    }
+
+    #[test]
+    fn a_child_that_states_neither_inherits_both() {
+        // The inherited-tier case, and the reason this is not simply "never
+        // inherit it": a model with no drum deltas wants its genre's whole kick
+        // grammar, secondary anchor included.
+        let registry = registry(json!({
+            "id": "child",
+            "type": "artist",
+            "name": "Child",
+            "extends": ["parent"],
+            "session": { "bpm": { "min": 90, "max": 100 } }
+        }));
+        let resolved = resolve("child", &registry).expect("it resolves");
+        assert_eq!(kick(&resolved)["anchors"], json!(["1"]));
+        assert_eq!(kick(&resolved)["secondaryAnchor"], json!("2&"));
+    }
+
+    #[test]
+    fn a_child_that_states_both_keeps_both() {
+        // It has answered the question, so nothing is dropped — including when
+        // it authors a *different* secondary from its parent's.
+        let registry = registry(json!({
+            "id": "child",
+            "type": "artist",
+            "name": "Child",
+            "extends": ["parent"],
+            "drums": { "kick": { "anchors": ["1", "3"], "secondaryAnchor": "4&" } }
+        }));
+        let resolved = resolve("child", &registry).expect("it resolves");
+        assert_eq!(kick(&resolved)["secondaryAnchor"], json!("4&"));
+    }
+
+    #[test]
+    fn a_swap_applies_the_same_rule_as_a_plain_resolve() {
+        // ⚠ `resolve_over` is the path this was found on — "Darius Rucker, but
+        // in R&B" — and it reaches `child_over` the same way, so the rule must
+        // hold there or the fix misses the case that produced it.
+        let mut registry = registry(json!({
+            "id": "child",
+            "type": "artist",
+            "name": "Child",
+            "extends": ["other"],
+            "drums": { "kick": { "anchors": ["1", "3"] } }
+        }));
+        registry.insert(
+            "other".to_owned(),
+            json!({ "id": "other", "type": "genre", "name": "Other" }),
+        );
+        let resolved = resolve_over("child", Some("parent"), &registry).expect("it resolves");
+        assert!(kick(&resolved).get("secondaryAnchor").is_none());
+    }
+}
+
+#[cfg(test)]
+mod companion_doors {
+    //! The rule has to hold at every merge, not just the last one (TASK-172).
+    //!
+    //! ⛔ These exist because the first cut installed it in `child_over` alone
+    //! and a review found two live holes in the shipped dataset: `trap-soul`
+    //! authors `anchors` over `trap`'s `secondaryAnchor` and is extended by 70
+    //! models, and `blake-shelton`'s *traditional* mode does the same thing to
+    //! its own model. One test per door.
+    use super::*;
+    use serde_json::json;
+
+    fn kick(resolved: &Value) -> &Value {
+        &resolved["drums"]["kick"]
+    }
+
+    #[test]
+    fn a_genre_over_a_genre_drops_it_too() {
+        // The `trap-soul` over `trap` shape: the child here is a grandparent of
+        // whatever finally resolves, so `child_over` never sees it.
+        let registry = BTreeMap::from([
+            (
+                "grand".to_owned(),
+                json!({ "id": "grand", "type": "genre", "name": "Grand",
+                        "drums": { "kick": { "anchors": ["1"], "secondaryAnchor": "3" } } }),
+            ),
+            (
+                "middle".to_owned(),
+                json!({ "id": "middle", "type": "genre", "name": "Middle",
+                        "extends": ["grand"],
+                        "drums": { "kick": { "anchors": ["1", "4"] } } }),
+            ),
+            (
+                "leaf".to_owned(),
+                json!({ "id": "leaf", "type": "artist", "name": "Leaf",
+                        "extends": ["middle"],
+                        "session": { "bpm": { "min": 90, "max": 100 } } }),
+            ),
+        ]);
+        let resolved = resolve("leaf", &registry).expect("it resolves");
+        assert_eq!(kick(&resolved)["anchors"], json!(["1", "4"]));
+        assert!(
+            kick(&resolved).get("secondaryAnchor").is_none(),
+            "the grandparent's secondary must not reach the leaf: {:?}",
+            kick(&resolved)
+        );
+    }
+
+    #[test]
+    fn a_mode_that_states_its_own_anchors_drops_it_as_well() {
+        // `blake-shelton`'s *traditional*: the model declares a secondary, the
+        // mode declares its own anchors, and `modes::apply` merges with a bare
+        // `deep_merge` that never reached `child_over`.
+        let model: crate::StyleModel = serde_json::from_value(json!({
+            "id": "m", "type": "artist", "name": "M",
+            "drums": { "kick": { "anchors": ["1"], "secondaryAnchor": "2&" } },
+            "modes": [{ "name": "traditional", "weight": 1,
+                        "drums": { "kick": { "anchors": ["1", "3"] } } }]
+        }))
+        .expect("the fixture parses");
+
+        let applied = crate::dataset::modes::apply(&model, "traditional").expect("it applies");
+        let value = serde_json::to_value(&applied).expect("it serialises");
+        assert_eq!(kick(&value)["anchors"], json!(["1", "3"]));
+        assert!(
+            kick(&value).get("secondaryAnchor").is_none(),
+            "the model's secondary must not survive the mode's own list: {:?}",
+            kick(&value)
+        );
+    }
+
+    #[test]
+    fn a_mode_that_states_neither_leaves_the_model_alone() {
+        // A mood that only changes the melody must not disturb the kick.
+        let model: crate::StyleModel = serde_json::from_value(json!({
+            "id": "m", "type": "artist", "name": "M",
+            "drums": { "kick": { "anchors": ["1"], "secondaryAnchor": "2&" } },
+            "modes": [{ "name": "sparse", "weight": 1,
+                        "melody": { "densityPerBar": [1, 3] } }]
+        }))
+        .expect("the fixture parses");
+
+        let applied = crate::dataset::modes::apply(&model, "sparse").expect("it applies");
+        let value = serde_json::to_value(&applied).expect("it serialises");
+        assert_eq!(kick(&value)["secondaryAnchor"], json!("2&"));
     }
 }
