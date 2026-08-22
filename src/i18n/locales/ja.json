@@ -189,9 +189,15 @@
     "datasetHeading": "スタイルデータセット",
     "datasetOk": "{{count}} 件のスタイルを読み込みました。スキップはありません。",
     "datasetSkipped": "{{count}} 件のスタイルを読み込めず、スキップしました:",
+    "crashPanic": "{{when}} に Freally MIDI Master が予期せず停止しました。レポートを保存しています。",
+    "crashPage": "{{when}} にこのウィンドウの描画が止まりました。レポートを保存しています。",
+    "crashReveal": "レポートを表示",
+    "crashDismiss": "閉じる",
     "motionHeading": "モーション",
     "reduceMotion": "モーションを減らす",
-    "reduceMotionHint": "生成時のスイープを短いフェードに置き換えます。システム設定でも同じことができます — システムにその設定がない場合や、ほかは動いていてよい場合に使ってください。"
+    "reduceMotionHint": "生成時のスイープを短いフェードに置き換えます。システム設定でも同じことができます — システムにその設定がない場合や、ほかは動いていてよい場合に使ってください。",
+    "barsHeading": "新しいクリップ",
+    "barsNote": "新しいインスタンスが開く長さ。プロジェクトは自身の長さを保ちます。"
   },
   "about": {
     "title": "情報",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "アーティスト名",
     "artistNamesBody": "アーティスト名やプロデューサー名は音楽的なスタイルを指す記述的な参照であり、それ以上の意味はありません。提携・推奨・著作関係を示唆するものでも主張するものでもありません。すべてのパターンは手作業で書かれたスタイルパラメーターからプロシージャルに生成され、いかなる録音物からもMIDI・音声・データを複製していません。",
     "creditsHeading": "クレジット",
-    "creditsBody": "タイミングとベロシティの統計は Magenta Groove MIDI Dataset (CC BY 4.0) に基づいています。Noto Sans、Noto Sans Display、Noto Sans Mono、および CJK・アラビア文字・ヘブライ文字・インド系文字などをカバーする文字体系別の Noto ファミリーは SIL Open Font License 1.1 のもとで使用しています。Lucide のアイコンは ISC のもとで使用しています。プレビュー用キットはリポジトリ内で合成したもので、サードパーティのサンプルは含みません。"
+    "creditsBody": "Noto Sans、Noto Sans Display、Noto Sans Mono、および CJK・アラビア文字・ヘブライ文字・インド系文字などをカバーする文字体系別の Noto ファミリーは SIL Open Font License 1.1 のもとで使用しています。Lucide のアイコンは ISC のもとで使用しています。プレビュー用キットはリポジトリ内で合成したもので、サードパーティのサンプルは含みません。"
   },
   "common": {
     "close": "閉じる"
@@ -599,5 +605,8 @@
     "body": "プロジェクトはホストで開いたままです。パネルを再読み込みして続行してください。ディスクには何も書き込まれていません。",
     "retry": "パネルを再読み込み",
     "details": "技術的な詳細"
+  },
+  "a11y": {
+    "generated": "生成しました。{{bars}} 小節、{{bpm}} BPM、{{key}}。"
   }
 }

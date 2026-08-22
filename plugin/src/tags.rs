@@ -122,10 +122,6 @@ fn clean(tags: &[String]) -> Vec<String> {
 
 fn write(tagged: &[Tagged]) -> Result<(), String> {
     let path = path_of_store().ok_or("this platform has no per-user data directory")?;
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|error| format!("could not create {parent:?}: {error}"))?;
-    }
     let text = serde_json::to_string_pretty(&Stored {
         tagged: tagged.to_vec(),
     })
@@ -204,7 +200,8 @@ mod tests {
 
     #[test]
     fn something_that_is_not_a_sample_or_a_midi_file_cannot_be_tagged() {
-        let error = set("C:/notes.txt", &["drums".into()]).expect_err("a text file is not taggable");
+        let error =
+            set("C:/notes.txt", &["drums".into()]).expect_err("a text file is not taggable");
         assert!(error.contains("can use"), "{error}");
     }
 
@@ -247,7 +244,10 @@ mod tests {
         })
         .expect("it serialises");
         let back: Stored = serde_json::from_str(&text).expect("and reads back");
-        assert_eq!(back.tagged[0].tags, vec!["drums".to_owned(), "808".to_owned()]);
+        assert_eq!(
+            back.tagged[0].tags,
+            vec!["drums".to_owned(), "808".to_owned()]
+        );
 
         let empty: Stored = serde_json::from_str("{}").expect("an older file still reads");
         assert!(empty.tagged.is_empty());

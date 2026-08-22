@@ -1,0 +1,306 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "slayr",
+  "type": "artist",
+  "name": "Slayr",
+  "aliases": [
+    "slayr",
+    "half blood"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "rage"
+  ],
+  "era": "2021-present",
+  "genres": [
+    "rap",
+    "rage",
+    "digicore"
+  ],
+  "relatedGenres": [
+    "rage",
+    "digicore",
+    "edm-rage"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.4 Slayr"
+  ],
+  "notes": "Maximalist rage with video-game-soundtrack DNA (Sonic, Kingdom Hearts). Dense crowd-pleasing drums — energetic kick runs, fill-heavy transitions (`smallEveryBars` 2, the tightest in this batch), bright crashes, punchy distorted 808s. ⚠ Brighter and more harmonically mobile than Opium-core: the scale set carries relative-major lifts and the melody is arpeggiated, which is what separates it from Homixide Gang two entries up on the same base.",
+  "session": {
+    "bpm": {
+      "min": 150,
+      "max": 170,
+      "mode": 158
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian",
+        "lydian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        5,
+        9
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.62,
+      "tresilloBias": 0.35,
+      "lockTo808": 0.9
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "ghost": {
+        "prob": 0.22,
+        "pos": [
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.34,
+          0.55
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.7,
+      "velocities": {
+        "main": [
+          0.72,
+          0.98
+        ],
+        "ghost": [
+          0.36,
+          0.58
+        ]
+      },
+      "openHat": {
+        "prob": 0.4,
+        "pos": [
+          "1_pre",
+          "2_pre",
+          "3_pre"
+        ],
+        "perBar": [
+          2,
+          3
+        ]
+      },
+      "pitchBendProb": 0.12,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32T",
+            "32",
+            "16T",
+            "64"
+          ],
+          "weights": [
+            4,
+            3,
+            2,
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 1.1,
+        "velocityRamp": true,
+        "burstOnly": false
+      }
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.5,
+      "slidesPer4Bars": [
+        2,
+        3
+      ],
+      "register": [
+        21,
+        38
+      ],
+      "distortion": "heavy",
+      "clipping": true
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd",
+        "32t",
+        "64th"
+      ],
+      "velocityRampRange": [
+        44,
+        127
+      ],
+      "rampJitter": 12,
+      "descendProb": 0.16,
+      "gapProb": 0.12,
+      "grouping": [
+        "even",
+        "strong_weak_weak"
+      ],
+      "pitchWalk": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.26,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        84
+      ],
+      "topVoiceStepwise": false
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      74,
+      102
+    ],
+    "densityPerBar": [
+      7,
+      14
+    ],
+    "intervals": {
+      "step": 0.46,
+      "third": 0.34,
+      "leap": 0.2
+    },
+    "contour": {
+      "arch": 0.42,
+      "riff": 0.34,
+      "descend": 0.24
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.34,
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        4,
+        1
+      ]
+    },
+    "timbreHint": "bright_saw_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.72,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.8,
+    "register": [
+      26,
+      45
+    ],
+    "glideProb": 0.4,
+    "anticipationProb": 0.12
+  }
+}

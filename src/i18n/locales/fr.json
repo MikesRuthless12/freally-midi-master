@@ -189,9 +189,15 @@
     "datasetHeading": "Jeu de styles",
     "datasetOk": "{{count}} styles chargés. Rien n’a été ignoré.",
     "datasetSkipped": "{{count}} styles n’ont pas pu être chargés et ont été ignorés :",
+    "crashPanic": "Freally MIDI Master s’est arrêté de façon inattendue le {{when}}. Un rapport a été enregistré.",
+    "crashPage": "Cette fenêtre a cessé de s’afficher le {{when}}. Un rapport a été enregistré.",
+    "crashReveal": "Afficher les rapports",
+    "crashDismiss": "Ignorer",
     "motionHeading": "Animations",
     "reduceMotion": "Réduire les animations",
-    "reduceMotionHint": "Remplace le balayage de génération par un fondu court. Le réglage système le fait déjà — utilisez ceci si le système ne le propose pas, ou si vous voulez garder le reste animé."
+    "reduceMotionHint": "Remplace le balayage de génération par un fondu court. Le réglage système le fait déjà — utilisez ceci si le système ne le propose pas, ou si vous voulez garder le reste animé.",
+    "barsHeading": "Nouveaux clips",
+    "barsNote": "La longueur d’ouverture d’une nouvelle instance. Un projet garde la sienne."
   },
   "about": {
     "title": "À propos",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "Noms d’artistes",
     "artistNamesBody": "Les noms d’artistes et de producteurs sont des références descriptives à un style musical, rien de plus. Aucune affiliation, approbation ou paternité n’est sous-entendue ni revendiquée. Chaque motif est généré de façon procédurale à partir de paramètres de style écrits à la main — aucun MIDI, audio ou donnée n’est copié d’un enregistrement.",
     "creditsHeading": "Crédits",
-    "creditsBody": "Statistiques de timing et de vélocité dérivées du Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display et Noto Sans Mono, avec des familles Noto par écriture couvrant le chinois, le japonais, le coréen, l’arabe, l’hébreu, les écritures indiennes et bien d’autres, sous SIL Open Font License 1.1. Icônes Lucide sous ISC. Les kits de prévisualisation sont synthétisés dans le dépôt et ne contiennent aucun échantillon tiers."
+    "creditsBody": "Noto Sans, Noto Sans Display et Noto Sans Mono, avec des familles Noto par écriture couvrant le chinois, le japonais, le coréen, l’arabe, l’hébreu, les écritures indiennes et bien d’autres, sous SIL Open Font License 1.1. Icônes Lucide sous ISC. Les kits de prévisualisation sont synthétisés dans le dépôt et ne contiennent aucun échantillon tiers."
   },
   "common": {
     "close": "Fermer"
@@ -599,5 +605,8 @@
     "body": "Votre projet est toujours ouvert dans l'hôte. Rechargez le panneau pour continuer — rien n'a été écrit sur le disque.",
     "retry": "Recharger le panneau",
     "details": "Détail technique"
+  },
+  "a11y": {
+    "generated": "Généré. {{bars}} mesures, {{bpm}} BPM, {{key}}."
   }
 }

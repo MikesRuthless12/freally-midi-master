@@ -1005,6 +1005,11 @@ const handlers: Record<string, Handler> = {
   // ⚠ It genuinely mutates, for the reason `droppedSamples` gives — a mock that
   // answered a constant would let a spec press the star and have nothing to
   // assert.
+  // No crash folder in a browser, and a mock that invented one would put a
+  // notice about a crash that never happened in front of every gallery
+  // screenshot. `null` is what a healthy install answers, which is the state
+  // every other spec is written against.
+  crashes_pending: () => null,
   favourites_list: () => [...starred.values()],
   tags_list: () => [...tagged.entries()].map(([path, tags]) => ({ path, tags })),
   tags_set: (args?: InvokeArgs) => {

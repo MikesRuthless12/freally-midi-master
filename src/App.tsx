@@ -7,6 +7,7 @@ import { AboutModal } from './components/Settings/About';
 import { SettingsModal } from './components/Settings/Settings';
 import { ShortcutsModal } from './components/Shortcuts/Shortcuts';
 import { TransportBar } from './components/layout/TransportBar';
+import { Announcer } from './components/layout/Announcer';
 import { isTypingTarget } from './lib/keyboard';
 import { useDrag } from './state/drag';
 import { subscribeToPreview, useExplorer } from './state/explorer';
@@ -302,6 +303,10 @@ function Studio() {
       data-right-rail={rightRailOpen ? 'open' : 'closed'}
       data-stage={stageOpen ? 'open' : 'closed'}
     >
+      {/* ⛔ Mounted always and outside every panel: a live region has to be in
+          the DOM before its text arrives, and one that unmounts with a collapsed
+          rail would go quiet exactly when the producer collapsed something. */}
+      <Announcer />
       <LeftRail />
       {stageOpen && <CenterStage />}
       {rightRailOpen && <RightRail />}

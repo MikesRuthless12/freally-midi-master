@@ -1,0 +1,40 @@
+# The offline guarantee, enforced by the compiler rather than by a text scan
+# (TASK-096).
+#
+# ⛔⛔ Every dependency check in `scripts/check-denylist.mjs` is blind to a socket
+# opened through `std`: it links nothing, resolves nothing new in `Cargo.lock`,
+# and would sail past every rule in that file while making the product's central
+# claim false. `disallowed_types` and `disallowed_methods` are default-on `style`
+# lints that do nothing until configured, so this rides the existing
+# `cargo clippy --workspace --all-targets -- -D warnings` on all three OSes with
+# no new CI step.
+#
+# ▶ **Why this and not a source scan.** A text scan was written first and thrown
+# away: it resolved nothing, so `use std::net as n`, an aliased import or a
+# re-export all passed clean; it needed a hand-maintained list of roots that
+# already missed `plugin/vendor/nih-plug-webview` — a workspace member that ships
+# inside the plugin and is exactly where a socket would arrive; and it had to
+# skip comment lines to let itself be documented, which meant a banned name in a
+# string false-positived. Clippy resolves the path and `--workspace` has no list
+# to fall behind.
+#
+# ⚠ **The exemption mechanism is the point.** If a genuinely offline use ever
+# exists — a loopback transport inside one process, say — it is
+# `#[allow(clippy::disallowed_types, reason = "…")]` at the call site, which is
+# where a reader needs it. The web side already works this way:
+# `no-restricted-globals` bans `fetch` in `eslint.config.js`, with one
+# documented exemption in `src/lib/ipc-plugin.ts` where `freally://` is a custom
+# protocol served by the same binary.
+
+disallowed-types = [
+  { path = "std::net::TcpStream", reason = "this product never opens a socket — PRD § 7" },
+  { path = "std::net::TcpListener", reason = "this product never opens a socket — PRD § 7" },
+  { path = "std::net::UdpSocket", reason = "this product never opens a socket — PRD § 7" },
+  { path = "std::net::SocketAddr", reason = "this product never opens a socket — PRD § 7" },
+  { path = "std::net::SocketAddrV4", reason = "this product never opens a socket — PRD § 7" },
+  { path = "std::net::SocketAddrV6", reason = "this product never opens a socket — PRD § 7" },
+]
+
+disallowed-methods = [
+  { path = "std::net::ToSocketAddrs::to_socket_addrs", reason = "no name resolution — PRD § 7" },
+]

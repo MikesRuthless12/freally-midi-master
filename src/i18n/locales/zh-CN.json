@@ -189,9 +189,15 @@
     "datasetHeading": "风格数据集",
     "datasetOk": "已加载 {{count}} 个风格，没有跳过任何内容。",
     "datasetSkipped": "有 {{count}} 个风格无法加载，已跳过：",
+    "crashPanic": "Freally MIDI Master 于 {{when}} 意外停止，已保存一份报告。",
+    "crashPage": "此窗口于 {{when}} 停止绘制，已保存一份报告。",
+    "crashReveal": "显示报告",
+    "crashDismiss": "忽略",
     "motionHeading": "动效",
     "reduceMotion": "减少动效",
-    "reduceMotionHint": "把生成扫光换成短暂淡入。系统设置本身也能做到 — 当系统没有该设置，或你希望其他动效保留时使用。"
+    "reduceMotionHint": "把生成扫光换成短暂淡入。系统设置本身也能做到 — 当系统没有该设置，或你希望其他动效保留时使用。",
+    "barsHeading": "新片段",
+    "barsNote": "新实例打开时的长度。项目保留自己的长度。"
   },
   "about": {
     "title": "关于",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "艺人名称",
     "artistNamesBody": "艺人和制作人的名字只是对某种音乐风格的描述性指代，仅此而已。不暗示也不主张任何隶属、认可或署名关系。每条音型都由手工编写的风格参数程序化生成 —— 不从任何录音中复制 MIDI、音频或数据。",
     "creditsHeading": "鸣谢",
-    "creditsBody": "时值与力度统计取自 Magenta Groove MIDI Dataset（CC BY 4.0）。Noto Sans、Noto Sans Display 和 Noto Sans Mono，以及涵盖中日韩、阿拉伯文、希伯来文、印度系文字等的各书写系统 Noto 字族，依据 SIL Open Font License 1.1 授权。Lucide 图标依据 ISC 授权。预览鼓组在仓库内合成，不含任何第三方采样。"
+    "creditsBody": "Noto Sans、Noto Sans Display 和 Noto Sans Mono，以及涵盖中日韩、阿拉伯文、希伯来文、印度系文字等的各书写系统 Noto 字族，依据 SIL Open Font License 1.1 授权。Lucide 图标依据 ISC 授权。预览鼓组在仓库内合成，不含任何第三方采样。"
   },
   "common": {
     "close": "关闭"
@@ -599,5 +605,8 @@
     "body": "你的工程仍在宿主中打开。重新加载面板即可继续 — 磁盘上没有写入任何内容。",
     "retry": "重新加载面板",
     "details": "技术详情"
+  },
+  "a11y": {
+    "generated": "已生成。{{bars}} 小节，{{bpm}} BPM，{{key}}。"
   }
 }

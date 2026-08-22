@@ -189,9 +189,15 @@
     "datasetHeading": "Stijlendataset",
     "datasetOk": "{{count}} stijlen geladen. Er is niets overgeslagen.",
     "datasetSkipped": "{{count}} stijlen konden niet worden geladen en zijn overgeslagen:",
+    "crashPanic": "Freally MIDI Master is op {{when}} onverwacht gestopt. Er is een rapport bewaard.",
+    "crashPage": "Dit venster stopte op {{when}} met tekenen. Er is een rapport bewaard.",
+    "crashReveal": "Toon de rapporten",
+    "crashDismiss": "Sluiten",
     "motionHeading": "Beweging",
     "reduceMotion": "Beweging beperken",
-    "reduceMotionHint": "Vervangt de generatie-sweep door een korte fade. Je systeeminstelling doet dit al — gebruik dit als het systeem die instelling niet heeft, of als de rest wel mag bewegen."
+    "reduceMotionHint": "Vervangt de generatie-sweep door een korte fade. Je systeeminstelling doet dit al — gebruik dit als het systeem die instelling niet heeft, of als de rest wel mag bewegen.",
+    "barsHeading": "Nieuwe clips",
+    "barsNote": "Hoe lang een nieuwe instantie opent. Een project houdt zijn eigen lengte."
   },
   "about": {
     "title": "Over",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "Artiestennamen",
     "artistNamesBody": "Namen van artiesten en producers zijn beschrijvende verwijzingen naar een muziekstijl, niets meer. Er wordt geen verband, goedkeuring of auteurschap gesuggereerd of geclaimd. Elk patroon wordt procedureel gegenereerd uit met de hand geschreven stijlparameters — er wordt geen MIDI, audio of data uit welke opname dan ook gekopieerd.",
     "creditsHeading": "Met dank aan",
-    "creditsBody": "Timing- en velocitystatistieken afgeleid van de Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display en Noto Sans Mono, met Noto-families per schrift voor CJK, Arabisch, Hebreeuws, Indische schriften en meer, onder de SIL Open Font License 1.1. Lucide-pictogrammen onder ISC. Previewkits worden in de repo zelf gesynthetiseerd en bevatten geen samples van derden."
+    "creditsBody": "Noto Sans, Noto Sans Display en Noto Sans Mono, met Noto-families per schrift voor CJK, Arabisch, Hebreeuws, Indische schriften en meer, onder de SIL Open Font License 1.1. Lucide-pictogrammen onder ISC. Previewkits worden in de repo zelf gesynthetiseerd en bevatten geen samples van derden."
   },
   "common": {
     "close": "Sluiten"
@@ -599,5 +605,8 @@
     "body": "Je project staat nog open in de host. Laad het paneel opnieuw om verder te gaan — er is niets naar de schijf geschreven.",
     "retry": "Paneel opnieuw laden",
     "details": "Technische details"
+  },
+  "a11y": {
+    "generated": "Gegenereerd. {{bars}} maten, {{bpm}} BPM, {{key}}."
   }
 }

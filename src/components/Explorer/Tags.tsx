@@ -1,9 +1,25 @@
-import { useId, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 
 import { Tag, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useExplorer, vocabularyOf } from '../../state/explorer';
+
+/**
+ * Every tag in use, sorted — memoised.
+ *
+ * ⚠ **Memoised, for the reason TASK-158E measured on `lib/fuzzy`**: typing in
+ * the filter box re-renders this panel on every keystroke, and walking 500
+ * tagged files times twelve tags each per character is the same shape of cost
+ * that gate found at 5.5 ms a keystroke over 590 roster entries.
+ *
+ * ⚠ A hook rather than two copies: both controls below need the same list, and
+ * the note above is the kind that gets updated in one copy and not the other.
+ */
+function useVocabulary(): string[] {
+  const tags = useExplorer((s) => s.tags);
+  return useMemo(() => vocabularyOf(tags), [tags]);
+}
 
 /**
  * Tags on the selected file, and a filter over them — the half of TASK-058C
@@ -40,9 +56,8 @@ export function TagFilter({
   onToggleStarred: () => void;
 }) {
   const { t } = useTranslation();
-  const tags = useExplorer((s) => s.tags);
   const starred = useExplorer((s) => s.starred);
-  const vocabulary = vocabularyOf(tags);
+  const vocabulary = useVocabulary();
 
   if (vocabulary.length === 0 && starred.size === 0) return null;
 
@@ -93,23 +108,36 @@ export function TagRow() {
   const setTags = useExplorer((s) => s.setTags);
   const [draft, setDraft] = useState('');
   const listId = useId();
+  const vocabulary = useVocabulary();
 
   if (selected === null) return null;
 
   const held = tags[selected] ?? [];
-  const vocabulary = vocabularyOf(tags);
+
+  /**
+   * The file's tags as of *now*, not as of this render.
+   *
+   * ⛔⛔ **Both writes send a whole list, so a stale one is a lost update.**
+   * Mousedown on a chip's `×` fires blur *before* click: `add()` sent
+   * `[...held, tag]` and the remove handler then sent `held.filter(…)` computed
+   * from the same render's `held` — which did not contain the tag just typed.
+   * Last write won and the tag vanished with no error. Reading the store at the
+   * moment of the write is what makes the two orderings agree.
+   */
+  const nowHeld = () => useExplorer.getState().tags[selected] ?? [];
 
   const add = () => {
     const tag = draft.trim();
+    const current = nowHeld();
     // ⚠ Refused silently rather than with a message: an empty box and a
     // duplicate are both "you already have this", and the chip is on screen
     // saying so. The plugin normalises anyway — this only avoids the round trip.
-    if (tag === '' || held.some((on) => on.toLowerCase() === tag.toLowerCase())) {
+    if (tag === '' || current.some((on) => on.toLowerCase() === tag.toLowerCase())) {
       setDraft('');
       return;
     }
     setDraft('');
-    void setTags(selected, [...held, tag]);
+    void setTags(selected, [...current, tag]);
   };
 
   return (
@@ -126,7 +154,12 @@ export function TagRow() {
             type="button"
             className="btn-ghost browser__tagremove"
             aria-label={t('explorer.tagRemove', { tag })}
-            onClick={() => void setTags(selected, held.filter((on) => on !== tag))}
+            onClick={() =>
+              void setTags(
+                selected,
+                nowHeld().filter((on) => on !== tag),
+              )
+            }
           >
             <X size={10} aria-hidden="true" />
           </button>

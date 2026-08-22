@@ -189,9 +189,15 @@
     "datasetHeading": "Dataset degli stili",
     "datasetOk": "{{count}} stili caricati. Non è stato saltato nulla.",
     "datasetSkipped": "Non è stato possibile caricare {{count}} stili, che sono stati saltati:",
+    "crashPanic": "Freally MIDI Master si è interrotto in modo imprevisto il {{when}}. È stato salvato un rapporto.",
+    "crashPage": "Questa finestra ha smesso di disegnare il {{when}}. È stato salvato un rapporto.",
+    "crashReveal": "Mostra i rapporti",
+    "crashDismiss": "Ignora",
     "motionHeading": "Movimento",
     "reduceMotion": "Riduci il movimento",
-    "reduceMotionHint": "Sostituisce la spazzata di generazione con una breve dissolvenza. L’impostazione di sistema lo fa già — usa questa quando il sistema non ce l’ha, o quando vuoi che il resto resti in movimento."
+    "reduceMotionHint": "Sostituisce la spazzata di generazione con una breve dissolvenza. L’impostazione di sistema lo fa già — usa questa quando il sistema non ce l’ha, o quando vuoi che il resto resti in movimento.",
+    "barsHeading": "Nuovi clip",
+    "barsNote": "La durata con cui si apre una nuova istanza. Un progetto mantiene la sua."
   },
   "about": {
     "title": "Informazioni",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "Nomi degli artisti",
     "artistNamesBody": "I nomi di artisti e produttori sono riferimenti descrittivi a uno stile musicale, nulla di più. Non si sottintende né si rivendica alcuna affiliazione, approvazione o paternità. Ogni pattern è generato in modo procedurale da parametri di stile scritti a mano — nessun MIDI, audio o dato è copiato da alcuna registrazione.",
     "creditsHeading": "Crediti",
-    "creditsBody": "Statistiche di timing e velocity derivate dal Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display e Noto Sans Mono, con le famiglie Noto per singola scrittura che coprono CJK, arabo, ebraico, indiano e altre, sotto SIL Open Font License 1.1. Icone Lucide sotto ISC. I kit di anteprima sono sintetizzati nel repository e non contengono campioni di terze parti."
+    "creditsBody": "Noto Sans, Noto Sans Display e Noto Sans Mono, con le famiglie Noto per singola scrittura che coprono CJK, arabo, ebraico, indiano e altre, sotto SIL Open Font License 1.1. Icone Lucide sotto ISC. I kit di anteprima sono sintetizzati nel repository e non contengono campioni di terze parti."
   },
   "common": {
     "close": "Chiudi"
@@ -599,5 +605,8 @@
     "body": "Il tuo progetto è ancora aperto nell'host. Ricarica il pannello per continuare: non è stato scritto nulla sul disco.",
     "retry": "Ricarica il pannello",
     "details": "Dettaglio tecnico"
+  },
+  "a11y": {
+    "generated": "Generato. {{bars}} battute, {{bpm}} BPM, {{key}}."
   }
 }

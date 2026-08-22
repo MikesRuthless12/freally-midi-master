@@ -9,11 +9,26 @@ copied into the product. See `docs/legal/disclaimer.md`.*
 
 ## Datasets
 
-- **Magenta Groove MIDI Dataset (GMD)** and **Expanded Groove MIDI Dataset (E-GMD)**
-  — Google Magenta. Aggregate timing and velocity statistics (microtiming deviation
-  distributions, swing ratios, velocity spreads by drum voice) informed the
-  humanizer's constants. Licensed CC BY 4.0.
-  https://magenta.withgoogle.com/datasets/groove
+⛔⛔ **NONE, TODAY — AND THIS SECTION USED TO SAY OTHERWISE** (corrected
+2026-08-22, TASK-091). It credited the Magenta Groove MIDI Dataset for having
+*"informed the humanizer's constants"*, and the About screen quoted that as
+*"Timing and velocity statistics derived from the Magenta Groove MIDI Dataset
+(CC BY 4.0)"* in all eighteen languages. **Neither is true yet.**
+`engine/src/humanize.rs` is hand-authored from the published technique research
+below — its own header says *"research ch. 1 cross-genre constants"* — there is
+no `data/humanize/`, and `tools/groovestats` has never been written.
+
+▶ **GMD is a *permitted* source, not a used one.** `docs/style-research.md`
+lists it as commercial-safe under CC-BY 4.0 and describes what to extract in the
+future tense: *"extract per-genre swing ratios, per-instrument timing offsets,
+velocity distributions, ghost-note probabilities; ship derived statistics with
+attribution."* That is **TASK-078**, which is unstarted.
+
+⚠ **Removing the credit is the correct direction, not a shortcut.** CC-BY asks
+for attribution when you *use* the work; attributing something you do not use is
+a false statement about where the product's numbers came from — and precise
+provenance is the whole of this product's legal position. ▶ **When TASK-078
+lands, this section comes back**, with the attribution CC-BY then requires.
 
 ## Published technique research
 

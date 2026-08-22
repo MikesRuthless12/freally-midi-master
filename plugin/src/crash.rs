@@ -179,7 +179,7 @@ mod tests {
     ///
     /// ⛔ **No environment variable is touched, and that is the point** — see
     /// [`write_in`]. The name is the test's, so parallel cases cannot collide.
-    fn temp(name: &str) -> PathBuf {
+    pub(super) fn temp(name: &str) -> PathBuf {
         let dir = std::env::temp_dir().join(format!("fmm-crash-test-{name}"));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).expect("temp dir");
@@ -242,5 +242,159 @@ mod tests {
                 .contains("the newest"),
             "pruning dropped the report it had just written"
         );
+    }
+}
+
+/// The newest crash report, and whether the producer has already been shown it
+/// (TASK-093).
+///
+/// ⛔⛔ **The half of the entry that was missing**: the panic hook and the page's
+/// error boundary have both written reports since this module landed, and
+/// **nothing ever read the folder**. A crash log nobody is told about is a crash
+/// log nobody attaches to a bug report — which is the whole reason it is written.
+///
+/// ⚠ **Offered in Settings rather than as a dialog on open**, and that is the
+/// product's own rule rather than timidity. `product-vision.md`'s brand
+/// anti-patterns forbid a first-run modal outright, and the PRD says *"never
+/// modal for recoverable errors"*. A crash that already happened is the most
+/// recoverable state there is: the producer is looking at a working plugin. So
+/// it waits where they will be when they go looking for it.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Pending {
+    /// Seconds since the epoch, parsed out of the filename.
+    ///
+    /// ⚠ **From the NAME, not from the mtime** — the same reason `prune` sorts
+    /// by name: a folder copied between machines or restored from a backup has
+    /// mtimes that say when it was copied.
+    pub at: u64,
+    /// `panic` or `page`, so the notice can say which half fell over.
+    pub kind: String,
+}
+
+/// Split `crash-<at>-<kind>[-n].log` into its stamp and kind.
+fn parse_name(name: &str) -> Option<(u64, String)> {
+    let rest = name.strip_prefix("crash-")?.strip_suffix(".log")?;
+    let (at, kind) = rest.split_once('-')?;
+    // A repeated stamp appends `-1`, `-2`… — the kind is what comes before it.
+    let kind = kind.split_once('-').map_or(kind, |(kind, _)| kind);
+    Some((at.parse().ok()?, kind.to_owned()))
+}
+
+/// The newest report written **after** `since`, or `None`.
+///
+/// `since` is the stamp the page last acknowledged. Zero means "never
+/// acknowledged", which is what a fresh install and a producer who has never
+/// dismissed the notice both look like.
+pub fn pending(since: u64) -> Option<Pending> {
+    pending_in(&crash_dir()?, since)
+}
+
+fn pending_in(dir: &std::path::Path, since: u64) -> Option<Pending> {
+    std::fs::read_dir(dir)
+        .ok()?
+        .flatten()
+        .filter_map(|entry| parse_name(entry.file_name().to_str()?))
+        .filter(|(at, _)| *at > since)
+        .max_by_key(|(at, _)| *at)
+        .map(|(at, kind)| Pending { at, kind })
+}
+
+/// Show the crash folder in the OS file manager.
+///
+/// ⛔⛔ **The path is this module's, never the page's.** `favourites::reveal`
+/// takes a path and has to bound it to something already starred, because the
+/// page supplies it; here there is nothing to bound — the only folder that can
+/// be opened is the one [`crash_dir`] computes. That is a strictly smaller
+/// surface than `favourites::reveal`, and it is the reason this does not go
+/// through it.
+///
+/// ⚠ **There are TWO process-launching commands in this plugin now, not one** —
+/// this and `favourites::reveal`. Both `favourites.rs`'s header and
+/// `editor.rs`'s note used to say "the one command", and anything hardening how
+/// this plugin spawns has to harden both.
+pub fn reveal() -> Result<(), String> {
+    let dir = crash_dir().ok_or("this platform has no per-user data directory")?;
+    if !dir.is_dir() {
+        return Err("there are no crash reports to show".into());
+    }
+    open_folder(&dir)
+}
+
+/// Hand a folder to the OS file manager.
+///
+/// ⚠ **One function with a `cfg!` table, not three `#[cfg]` bodies.**
+/// `favourites::reveal_in_shell` genuinely needs three, because *selecting* a
+/// file differs per platform — `/select,`, `-R`, and a `.parent()` hop on Linux
+/// where there is no portable reveal. **Opening a folder does not**: all three
+/// take the path as the only argument, so three bodies would differ by a program
+/// name and a noun, and only the one for the host would be compiled or
+/// lint-checked on any given CI leg.
+///
+/// ⚠ Explorer answers non-zero even when it succeeds, so only whether the
+/// process *started* is checked — the same note `favourites` carries.
+fn open_folder(dir: &std::path::Path) -> Result<(), String> {
+    let (program, manager) = if cfg!(target_os = "windows") {
+        ("explorer", "Explorer")
+    } else if cfg!(target_os = "macos") {
+        ("open", "Finder")
+    } else {
+        ("xdg-open", "the file manager")
+    };
+    std::process::Command::new(program)
+        .arg(dir)
+        .spawn()
+        .map(|_| ())
+        .map_err(|error| format!("could not open {manager}: {error}"))
+}
+
+#[cfg(test)]
+mod pending_tests {
+    use super::*;
+
+    // ⚠ **One `temp` for the whole file** — the sibling module's, made
+    // `pub(super)`. Two would be two naming schemes for one rule, and the rule
+    // (`%APPDATA%` is process-global, so no test may touch it) is the part that
+    // matters and is documented once, on `write_in`.
+    use super::tests::temp;
+
+    #[test]
+    fn the_newest_report_is_the_one_offered() {
+        let dir = temp("newest");
+        for (at, kind) in [(10u64, "panic"), (30, "page"), (20, "panic")] {
+            std::fs::write(dir.join(format!("crash-{at}-{kind}.log")), "x").unwrap();
+        }
+        let found = pending_in(&dir, 0).expect("something is pending");
+        assert_eq!(found.at, 30);
+        assert_eq!(found.kind, "page");
+    }
+
+    #[test]
+    fn a_report_the_producer_has_already_seen_is_not_offered_again() {
+        // ⛔ The whole point of `since`: without it the notice returns on every
+        // editor open forever, which trains people to ignore it.
+        let dir = temp("acked");
+        std::fs::write(dir.join("crash-30-panic.log"), "x").unwrap();
+        assert!(pending_in(&dir, 30).is_none(), "30 is not newer than 30");
+        assert!(pending_in(&dir, 29).is_some(), "but 30 is newer than 29");
+    }
+
+    #[test]
+    fn a_repeated_stamp_still_reports_its_kind() {
+        // `write_in` steps the name when a panic cascades inside one second, so
+        // `crash-30-panic-1.log` has to parse as a panic rather than as `panic-1`.
+        let dir = temp("stepped");
+        std::fs::write(dir.join("crash-30-panic-1.log"), "x").unwrap();
+        assert_eq!(pending_in(&dir, 0).expect("pending").kind, "panic");
+    }
+
+    #[test]
+    fn a_folder_with_nothing_in_it_is_not_a_crash() {
+        assert!(pending_in(&temp("empty"), 0).is_none());
+        // And neither is a folder holding something that is not a report.
+        let dir = temp("junk");
+        std::fs::write(dir.join("notes.txt"), "x").unwrap();
+        std::fs::write(dir.join("crash-nope-panic.log"), "x").unwrap();
+        assert!(pending_in(&dir, 0).is_none());
     }
 }

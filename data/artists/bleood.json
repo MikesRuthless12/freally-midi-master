@@ -1,0 +1,284 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "bleood",
+  "type": "artist",
+  "name": "Bleood",
+  "aliases": [
+    "bleood",
+    "m4ri",
+    "deffici1e"
+  ],
+  "tier": "standard",
+  "extends": [
+    "jerk"
+  ],
+  "era": "2021-present",
+  "genres": [
+    "rap",
+    "jerk"
+  ],
+  "relatedGenres": [
+    "jerk",
+    "dark-plugg"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research ch.4 Bleood"
+  ],
+  "notes": "Jerk-adjacent abrasive alt-rap with a dark-plugg edge — heavy autotune, ear-piercing synths, distorted bass. Jerked snare clusters over a distorted bass carpet and lo-fi crushed hats; the melody is texture-first, a piercing high-register line over drones. ⚠ Confidence MEDIUM: the research draws on Music Fandom, MusicBrainz and 1c34 references rather than an interview, so the drums are the well-attested half and the harmony is the archetype's. ⛔ **129 distinct harmonies in 1000 seeds — by far the worst in the batch, and the fix is deliberately NOT more chords.** The research says the harmony is thin and lo-fi, 1-2 chords, and that is kept: what widened is how LONG a chord is held (2-16 beats, so a stab and a drone are both in range), the harmonic rhythm, and the voicing window. A model can be harmonically static without writing the same eight bars for every eighth seed — those are different claims, and only the second one is a defect. ⚠ The widest voicing window in the batch (46-84), which is what the research asks for anyway — *piercing high-register synth lines over drones* — plus a fourth two-chord family. Both were needed: this model measured 129 distinct harmonies in 1000 seeds on the first cut and the duration and rhythm widening only reached 404 of the required 500. ⛔ It stays a 1-2 chord model, which is what the research claims; what changed is how many different ways those chords can be voiced and ordered. ⚠  rebalanced from 0.80 triad to 0.50/0.34/0.16 — the research says *dissonance tolerated*, and a four-fifths-triad chord block was the least characterful thing in the model as well as the last thing holding its harmony count down. ⚠ And a sus substitution at 0.22, which took it over the 500 floor. A suspended voicing over a drone is the vowel-pad sound this lane actually makes, and it adds a chord QUALITY without adding a progression the research does not claim.",
+  "session": {
+    "bpm": {
+      "min": 140,
+      "max": 165,
+      "mode": 152
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "phrygian",
+        "natural_minor",
+        "locrian"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.66,
+      "tresilloBias": 0.32,
+      "lockTo808": 0.92
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "ghost": {
+        "prob": 0.38,
+        "pos": [
+          "2e",
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.32,
+          0.54
+        ]
+      },
+      "offGridMs": 18
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.42,
+      "velocities": {
+        "main": [
+          0.58,
+          0.84
+        ],
+        "ghost": [
+          0.26,
+          0.46
+        ]
+      },
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "4_pre"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0.09,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "16"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.42,
+        "velocityRamp": false,
+        "burstOnly": true
+      }
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.3,
+      "slidesPer4Bars": [
+        1,
+        2
+      ],
+      "register": [
+        19,
+        34
+      ],
+      "distortion": "heavy",
+      "clipping": true
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd",
+        "16t"
+      ],
+      "velocityRampRange": [
+        56,
+        120
+      ],
+      "rampJitter": 26,
+      "descendProb": 0.12,
+      "gapProb": 0.36,
+      "grouping": [
+        "even",
+        "strong_weak"
+      ],
+      "pitchWalk": 7
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "v"
+        ],
+        "weight": 2
+      }
+    ],
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        2,
+        1
+      ]
+    },
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.34,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        84
+      ],
+      "topVoiceStepwise": false
+    },
+    "chordDurationBeats": [
+      2,
+      16
+    ],
+    "susSubstitutionProb": 0.22
+  },
+  "melody": {
+    "register": [
+      79,
+      103
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.48,
+      "third": 0.26,
+      "leap": 0.26
+    },
+    "contour": {
+      "riff": 0.7,
+      "descend": 0.18,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.42,
+    "halfStepDissonance": 0.34,
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        2,
+        4
+      ]
+    },
+    "timbreHint": "piercing_lead"
+  },
+  "countermelody": {
+    "registerOffset": -19,
+    "densityRatio": 0.3,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.94,
+    "register": [
+      21,
+      38
+    ],
+    "glideProb": 0.28
+  }
+}

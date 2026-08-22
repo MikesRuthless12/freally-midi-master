@@ -1,0 +1,287 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "fake-mink",
+  "type": "artist",
+  "name": "Fake Mink",
+  "aliases": [
+    "fakemink",
+    "fake mink",
+    "mink"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "jerk"
+  ],
+  "era": "2020-present",
+  "genres": [
+    "rap",
+    "jerk",
+    "uk rap"
+  ],
+  "relatedGenres": [
+    "jerk",
+    "uk-underground",
+    "cloud-rap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.4 Fake Mink (fakemink)"
+  ],
+  "notes": "London self-producer, UK jerk-tagged but self-rejecting the label — mellow cloud-jerk. Soft-knock snares in the \"Headlines\" Drake-school placement over a jerk-ish stutter, mellow hats, restrained subby bass rather than a distorted 808. ⚠ **Its low end is the gentlest in this batch on purpose**: `distortion: none` and a low `slideProb` are what separate a UK cloud-jerk from the US rage cohort it is filed beside. ⚠ Harmony is sample-led and minor/major ambivalent, so the scale weights do not commit to minor. ⚠ Tagged `uk rap` rather than a bare `uk`: a one-word country tag scored above the genre model named `uk-drill` in `lib/fuzzy`, so searching \"uk\" answered an artist instead of the lane.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 155,
+      "mode": 142
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian",
+        "mixolydian"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.52,
+      "tresilloBias": 0.34,
+      "lockTo808": 0.9
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": false,
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.26,
+          0.44
+        ]
+      },
+      "offGridMs": 14
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.54,
+          0.78
+        ],
+        "ghost": [
+          0.24,
+          0.42
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4_pre"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0.02,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.3,
+        "velocityRamp": false,
+        "burstOnly": true
+      }
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.16,
+      "slidesPer4Bars": [
+        0,
+        1
+      ],
+      "register": [
+        24,
+        38
+      ],
+      "distortion": "none"
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 32,
+      "snareRollLadder": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "velocityRampRange": [
+        42,
+        88
+      ],
+      "rampJitter": 20,
+      "descendProb": 0.34,
+      "gapProb": 0.32,
+      "grouping": [
+        "even",
+        "strong_weak_weak"
+      ],
+      "pitchWalk": 1
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "extensions": {
+      "triad": 0.44,
+      "seventh": 0.42,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        55,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "chordDurationBeats": [
+      4,
+      12
+    ],
+    "susSubstitutionProb": 0.2
+  },
+  "melody": {
+    "register": [
+      69,
+      91
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.26,
+      "leap": 0.08
+    },
+    "contour": {
+      "descend": 0.4,
+      "arch": 0.34,
+      "riff": 0.26
+    },
+    "chordToneBias": 0.7,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "hazy_pad"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.28,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      26,
+      42
+    ],
+    "glideProb": 0.2
+  }
+}

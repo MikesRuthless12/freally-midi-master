@@ -189,9 +189,15 @@
     "datasetHeading": "Bộ dữ liệu phong cách",
     "datasetOk": "Đã tải {{count}} phong cách. Không có mục nào bị bỏ qua.",
     "datasetSkipped": "Không thể tải {{count}} phong cách và đã bỏ qua:",
+    "crashPanic": "Freally MIDI Master đã dừng đột ngột vào {{when}}. Một báo cáo đã được lưu.",
+    "crashPage": "Cửa sổ này ngừng vẽ vào {{when}}. Một báo cáo đã được lưu.",
+    "crashReveal": "Xem các báo cáo",
+    "crashDismiss": "Bỏ qua",
     "motionHeading": "Chuyển động",
     "reduceMotion": "Giảm chuyển động",
-    "reduceMotionHint": "Thay quét tạo nhịp bằng một hiệu ứng mờ ngắn. Cài đặt hệ thống đã làm điều này — dùng khi hệ thống không có tùy chọn đó, hoặc khi bạn muốn giữ chuyển động ở nơi khác."
+    "reduceMotionHint": "Thay quét tạo nhịp bằng một hiệu ứng mờ ngắn. Cài đặt hệ thống đã làm điều này — dùng khi hệ thống không có tùy chọn đó, hoặc khi bạn muốn giữ chuyển động ở nơi khác.",
+    "barsHeading": "Clip mới",
+    "barsNote": "Độ dài khi mở một phiên bản mới. Dự án giữ độ dài riêng của nó."
   },
   "about": {
     "title": "Giới thiệu",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "Tên nghệ sĩ",
     "artistNamesBody": "Tên nghệ sĩ và nhà sản xuất chỉ là cách mô tả một phong cách âm nhạc, không hơn. Không ngụ ý hay tuyên bố bất kỳ sự liên kết, chứng thực hay quyền tác giả nào. Mọi mẫu đều được sinh theo thủ tục từ các tham số phong cách do con người soạn thủ công — không sao chép MIDI, âm thanh hay dữ liệu từ bất kỳ bản thu nào.",
     "creditsHeading": "Ghi công",
-    "creditsBody": "Thống kê về thời điểm và lực đánh nốt lấy từ Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display và Noto Sans Mono, cùng các họ Noto riêng cho từng hệ chữ gồm Trung – Nhật – Hàn, Ả Rập, Do Thái, Ấn Độ và nhiều hệ khác, theo SIL Open Font License 1.1. Biểu tượng Lucide theo ISC. Bộ trống nghe thử được tổng hợp ngay trong kho mã và không chứa mẫu âm thanh của bên thứ ba."
+    "creditsBody": "Noto Sans, Noto Sans Display và Noto Sans Mono, cùng các họ Noto riêng cho từng hệ chữ gồm Trung – Nhật – Hàn, Ả Rập, Do Thái, Ấn Độ và nhiều hệ khác, theo SIL Open Font License 1.1. Biểu tượng Lucide theo ISC. Bộ trống nghe thử được tổng hợp ngay trong kho mã và không chứa mẫu âm thanh của bên thứ ba."
   },
   "common": {
     "close": "Đóng"
@@ -599,5 +605,8 @@
     "body": "Dự án của bạn vẫn đang mở trong host. Hãy tải lại bảng điều khiển để tiếp tục — chưa có gì được ghi xuống đĩa.",
     "retry": "Tải lại bảng điều khiển",
     "details": "Chi tiết kỹ thuật"
+  },
+  "a11y": {
+    "generated": "Đã tạo. {{bars}} ô nhịp, {{bpm}} BPM, {{key}}."
   }
 }

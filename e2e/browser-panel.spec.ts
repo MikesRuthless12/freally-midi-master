@@ -655,9 +655,7 @@ test('a tag is added, completes against the ones in use, and comes off again', a
   await expect(page.locator('.browser__tagchip--held')).toHaveCount(0);
 });
 
-test('⛔ a tag chip filters the tree, and composes with the typed filter', async ({
-  page,
-}) => {
+test('⛔ a tag chip filters the tree, and composes with the typed filter', async ({ page }) => {
   await browserRow(page, 'Samples').click();
   await browserRow(page, 'clap-01.wav').click();
 

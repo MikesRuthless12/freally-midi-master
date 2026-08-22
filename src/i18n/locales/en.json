@@ -189,9 +189,15 @@
     "datasetHeading": "Style dataset",
     "datasetOk": "{{count}} styles loaded. Nothing was skipped.",
     "datasetSkipped": "{{count}} styles could not be loaded and were skipped:",
+    "crashPanic": "Freally MIDI Master stopped unexpectedly on {{when}}. A report was saved.",
+    "crashPage": "This window stopped drawing on {{when}}. A report was saved.",
+    "crashReveal": "Show me the reports",
+    "crashDismiss": "Dismiss",
     "motionHeading": "Motion",
     "reduceMotion": "Reduce motion",
-    "reduceMotionHint": "Replaces the generation sweep with a short fade. Your system setting already does this — use this when the system offers no such setting, or when you want everything else to keep moving."
+    "reduceMotionHint": "Replaces the generation sweep with a short fade. Your system setting already does this — use this when the system offers no such setting, or when you want everything else to keep moving.",
+    "barsHeading": "New clips",
+    "barsNote": "How long a new instance opens at. A project keeps its own length."
   },
   "about": {
     "title": "About",
@@ -203,7 +209,7 @@
     "artistNamesHeading": "Artist names",
     "artistNamesBody": "Artist and producer names are descriptive references to a musical style, nothing more. No affiliation, endorsement, or authorship is implied or claimed. Every pattern is generated procedurally from hand-authored style parameters — no MIDI, audio, or data is copied from any recording.",
     "creditsHeading": "Credits",
-    "creditsBody": "Timing and velocity statistics derived from the Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display and Noto Sans Mono, with per-script Noto families covering CJK, Arabic, Hebrew, Indic and more, under the SIL Open Font License 1.1. Lucide icons under ISC. Preview kits are synthesized in-repo and contain no third-party samples."
+    "creditsBody": "Noto Sans, Noto Sans Display and Noto Sans Mono, with per-script Noto families covering CJK, Arabic, Hebrew, Indic and more, under the SIL Open Font License 1.1. Lucide icons under ISC. Preview kits are synthesized in-repo and contain no third-party samples."
   },
   "common": {
     "close": "Close"
@@ -599,5 +605,8 @@
     "body": "Your project is still open in the host. Reload the panel to carry on — nothing has been written to disk.",
     "retry": "Reload the panel",
     "details": "Technical detail"
+  },
+  "a11y": {
+    "generated": "Generated. {{bars}} bars, {{bpm}} BPM, {{key}}."
   }
 }

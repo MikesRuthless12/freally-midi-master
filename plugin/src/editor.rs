@@ -1017,6 +1017,24 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             );
         }
 
+        // ── The crash folder, offered rather than hidden (TASK-093) ──────
+        //
+        // ⛔ **Read-only, and the page cannot name a path on either call.**
+        // `crashes_pending` takes a stamp the page last acknowledged and
+        // `crashes_reveal` takes nothing at all — the folder is
+        // `crash::crash_dir()`'s, so unlike `favourites_reveal` there is no
+        // producer-supplied path to bound.
+        "crashes_pending" => {
+            let since = request.args["since"].as_u64().unwrap_or(0);
+            return Some(
+                serde_json::to_value(crate::crash::pending(since)).map_err(|e| e.to_string()),
+            );
+        }
+
+        "crashes_reveal" => {
+            return Some(crate::crash::reveal().map(|()| Value::Null));
+        }
+
         // Tags — the other half of TASK-058C (2026-08-22).
         //
         // ⚠ **The whole store, not one file's tags.** The entry asks to filter
@@ -1038,11 +1056,10 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         // permanent. An empty list is `tags::set`'s remove.
         "tags_set" => {
             let path = request.args["path"].as_str().unwrap_or_default();
-            let tags: Vec<String> =
-                match serde_json::from_value(request.args["tags"].clone()) {
-                    Ok(tags) => tags,
-                    Err(error) => return Some(Err(format!("that is not a tag list: {error}"))),
-                };
+            let tags: Vec<String> = match serde_json::from_value(request.args["tags"].clone()) {
+                Ok(tags) => tags,
+                Err(error) => return Some(Err(format!("that is not a tag list: {error}"))),
+            };
             if !tags.is_empty() && !shared.explorer.contains(std::path::Path::new(path)) {
                 return Some(Err("that file is not in your sample library".into()));
             }
@@ -1118,8 +1135,9 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         // `favourites::add` cannot take it — it has no reference to the library —
         // so a star is only allowed on a file the browser would actually list.
         // Without this the page could star any local path and then use `reveal`
-        // to launch a shell at it, which is the one command in this plugin that
-        // starts a process.
+        // to launch a shell at it. ⚠ This and `crashes_reveal` are the TWO
+        // commands in this plugin that start a process; `crashes_reveal` needs
+        // no containment because the page cannot name its target.
         "favourites_add" => {
             let path = request.args["path"].as_str().unwrap_or_default();
             if !shared.explorer.contains(std::path::Path::new(path)) {

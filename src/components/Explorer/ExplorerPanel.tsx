@@ -9,6 +9,7 @@ import {
   isInside,
   samePath,
   useExplorer,
+  vocabularyOf,
 } from '../../state/explorer';
 import { useKit } from '../../state/kit';
 import { useSession } from '../../state/session';
@@ -172,6 +173,30 @@ export function ExplorerPanel() {
   const starred = useExplorer((s) => s.starred);
 
   /**
+   * A filter can only narrow while its chip is on screen to un-press.
+   *
+   * ⛔⛔ **Derived, not synced, and without it the panel strands itself.**
+   * `TagFilter` returns `null` once the vocabulary and the star set are both
+   * empty — but the pressed state lives here and survived that. Filter by `808`,
+   * open the only file carrying it, remove the chip: the vocabulary empties, the
+   * chip row unmounts, `only` was still a non-null empty set, and the tree
+   * collapsed to the root saying "nothing here matches" with **nothing on screen
+   * to un-press**. The only way out was to collapse the whole panel.
+   *
+   * ⚠ **An effect that cleared the state would have been the wrong shape** —
+   * `react-hooks` refuses a synchronous `setState` in one, and rightly: this is
+   * a value that can be computed, not two states to keep in step.
+   */
+  const filterable = useMemo(() => vocabularyOf(tags), [tags]);
+  const liveTags = useMemo(
+    () =>
+      activeTags.filter((tag) =>
+        filterable.some((known) => known.toLowerCase() === tag.toLowerCase()),
+      ),
+    [activeTags, filterable],
+  );
+  const liveStarred = onlyStarred && starred.size > 0;
+  /**
    * The paths a tag or star filter admits, or `null` when neither is on.
    *
    * ⛔ **Tags are ANDed and the star is another AND.** Two tags means "both",
@@ -179,16 +204,21 @@ export function ExplorerPanel() {
    * the list as they clicked more chips, which reads as the filter being broken.
    */
   const only = useMemo(() => {
-    if (activeTags.length === 0 && !onlyStarred) return null;
-    const paths = onlyStarred ? [...starred] : Object.keys(tags);
+    if (liveTags.length === 0 && !liveStarred) return null;
+    const paths = liveStarred ? [...starred] : Object.keys(tags);
     return new Set(
       paths.filter((path) => {
-        if (onlyStarred && !starred.has(path)) return false;
-        const held = tags[path] ?? [];
-        return activeTags.every((tag) => held.includes(tag));
+        if (liveStarred && !starred.has(path)) return false;
+        // ⚠ **Case-insensitive, because the vocabulary folds case and this used
+        // not to.** `vocabularyOf` dedupes `Vocal` and `vocal` to one chip
+        // keeping the first spelling, but `tags::clean` only dedupes *within* a
+        // file — so file A can hold `Vocal` and file B `vocal`, and an exact
+        // match hid file B behind a chip whose text is visibly one of its tags.
+        const held = (tags[path] ?? []).map((tag) => tag.toLowerCase());
+        return liveTags.every((tag) => held.includes(tag.toLowerCase()));
       }),
     );
-  }, [activeTags, onlyStarred, tags, starred]);
+  }, [liveTags, liveStarred, tags, starred]);
 
   /**
    * Every line the tree draws, flattened (TASK-058).
@@ -511,8 +541,8 @@ export function ExplorerPanel() {
           what the typed filter is narrowing, and never widens it. */}
       {roots.length > 0 && !isMissing && (
         <TagFilter
-          active={activeTags}
-          onlyStarred={onlyStarred}
+          active={liveTags}
+          onlyStarred={liveStarred}
           onToggleTag={(tag) =>
             setActiveTags((held) =>
               held.includes(tag) ? held.filter((on) => on !== tag) : [...held, tag],

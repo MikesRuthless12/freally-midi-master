@@ -292,10 +292,12 @@ fn save_in(
         return Err("this pattern has no notes in it".to_owned());
     }
 
+    // ⛔ **The one caller that still creates the directory itself, and it has
+    // to.** `write_atomic` makes the parent now (TASK-089) — but that is too
+    // late here: `free_stem` below asks the directory what is already in it, and
+    // a directory that does not exist answers "nothing".
     fs::create_dir_all(dir)
         .map_err(|error| format!("could not create {}: {error}", dir.display()))?;
-    // ⚠ After `create_dir_all`, because `free_stem` asks the directory what is
-    // already in it and a directory that does not exist answers "nothing".
     let stem = free_stem(dir, name);
 
     let saved = SavedPattern {
@@ -323,7 +325,21 @@ fn save_in(
 /// pattern, recoverable by hand.
 /// `pub(crate)` for [`crate::models`], which writes a producer's own style model
 /// and needs exactly this dance rather than a second copy of it.
+///
+/// ⛔ **It creates the parent folder itself** (TASK-089). Five callers had the
+/// same four lines immediately above the call, four of them formatting the path
+/// with `{parent:?}` — so a first save on a fresh machine could answer the
+/// producer with `could not create "\\\\?\\C:\\Users\\...": Access is denied.
+/// (os error 5)`: a Rust Debug string, doubled backslashes and an OS errno, in a
+/// product whose voice guide's example of what NOT to say is *"Error 0x80042:
+/// Unsupported codec encountered during import operation."* One writer, one
+/// message, and `.display()` rather than `{:?}` so the path reads the way the
+/// producer's own file manager writes it.
 pub(crate) fn write_atomic(path: &Path, text: &str) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|error| format!("could not make room in {}: {error}", parent.display()))?;
+    }
     let temporary = path.with_extension("json.tmp");
     fs::write(&temporary, text)
         .map_err(|error| format!("could not write {}: {error}", temporary.display()))?;

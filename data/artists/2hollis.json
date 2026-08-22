@@ -1,0 +1,293 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "2hollis",
+  "type": "artist",
+  "name": "2hollis",
+  "aliases": [
+    "2hollis",
+    "hollis",
+    "two hollis",
+    "drippysoup"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "edm-rage"
+  ],
+  "era": "2018-present",
+  "genres": [
+    "rap",
+    "rage",
+    "electronic"
+  ],
+  "relatedGenres": [
+    "edm-rage",
+    "rage",
+    "techno"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.4 2hollis"
+  ],
+  "notes": "Fully self-produced EDM/electroclash-rage — four-on-the-floor and electro kick sections alternating with trap grids, aggressive sidechain pump, crisp EDM claps against trap snares. ⛔ **The research says the low end is a reese/FM growl rather than an 808, and `reese_sustain` is exactly the rhythm this engine cannot use**: `bass.rs` emits one note per chord on it (TASK-162), so a growl authored that way is one held note for the whole clip. It is written as `independent_riff` over a fast arpeggiated register instead, which is what the growl actually plays; the timbre is the sound designer's half, not the generator's. ⚠ The 808 is kept sparse rather than absent — the model still has to write a low part. ⚠ The countermelody is deliberately sparse and NOT `fillGapsOnly`: a 16th-note arp melody leaves no gaps, so a gap-filling counter wrote nothing at all and `coverage.rs` caught the model promising a part it does not write.",
+  "session": {
+    "bpm": {
+      "min": 126,
+      "max": 155,
+      "mode": 142
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.3,
+      "tresilloBias": 0.15,
+      "lockTo808": 0.7
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.3,
+          0.45
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.62,
+      "velocities": {
+        "main": [
+          0.7,
+          0.92
+        ],
+        "ghost": [
+          0.34,
+          0.5
+        ]
+      },
+      "openHat": {
+        "prob": 0.5,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      },
+      "pitchBendProb": 0.02,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "16"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.6,
+        "velocityRamp": true,
+        "burstOnly": false
+      }
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "short",
+      "slideProb": 0.12,
+      "slidesPer4Bars": [
+        0,
+        1
+      ],
+      "register": [
+        24,
+        40
+      ],
+      "distortion": "medium"
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd",
+        "16th"
+      ],
+      "velocityRampRange": [
+        40,
+        124
+      ],
+      "rampJitter": 6,
+      "descendProb": 0.05,
+      "gapProb": 0.08,
+      "grouping": [
+        "even"
+      ],
+      "pitchWalk": 0
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "VI",
+          "VII",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.25,
+      "ninth": 0.05
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        55,
+        86
+      ],
+      "topVoiceStepwise": false
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      72,
+      100
+    ],
+    "densityPerBar": [
+      8,
+      16
+    ],
+    "intervals": {
+      "step": 0.44,
+      "third": 0.34,
+      "leap": 0.22
+    },
+    "contour": {
+      "arch": 0.4,
+      "riff": 0.36,
+      "descend": 0.24
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.3,
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        3,
+        1
+      ]
+    },
+    "timbreHint": "supersaw"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.55,
+    "register": [
+      33,
+      50
+    ],
+    "glideProb": 0.2
+  }
+}

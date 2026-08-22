@@ -1,0 +1,288 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "glokk40spazz",
+  "type": "artist",
+  "name": "Glokk40Spazz",
+  "aliases": [
+    "glokk40spazz",
+    "glokk40spaz",
+    "glokk",
+    "glokk 40",
+    "baby whoa"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "dark-plugg"
+  ],
+  "era": "2022-present",
+  "genres": [
+    "rap",
+    "plugg",
+    "memphis"
+  ],
+  "relatedGenres": [
+    "dark-plugg",
+    "plugg",
+    "memphis-rap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.4 Glokk40Spazz"
+  ],
+  "notes": "Dark plugg flagship — Memphis menace over a plugg chassis. Plugg triplet hats THINNED rather than carpeted, clap on 3, rubbery 808 glides kept restrained, sparse open-hat accents. Eerie soft bells and boys-choir vowel pads over 2-4 bar hypnotic loops, and the harmony is often DYADS rather than chords: `extensions.triad` runs high and the families are two-chord, because a third voice is not what this lane plays. ⚠ `chordDurationBeats` widened 4-12 → 3-14 after `an_artist_can_reach_a_different_harmony_for_practically_every_seed` measured 495 distinct harmonies against a floor of 500. A dark plugg loop holds a chord for anything from most of a bar to three and a half; the families and the harmonic rhythm are untouched, so what the model PLAYS is unchanged. ⚠ The voicing window widened to 45-77 after the harmony-variety gate measured 495 distinct in 1000 seeds against a floor of 500. It changes WHERE the same dyads sit, not which ones — which is the cure that leaves a lane whose whole character is two-note hypnotic loops intact.",
+  "session": {
+    "bpm": {
+      "min": 135,
+      "max": 155,
+      "mode": 144
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.55,
+      "tresilloBias": 0.5,
+      "lockTo808": 0.95
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": false,
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.3,
+          0.46
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.32,
+      "velocities": {
+        "main": [
+          0.62,
+          0.82
+        ],
+        "ghost": [
+          0.3,
+          0.46
+        ]
+      },
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "3_pre"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0.06,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32T"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.35,
+        "velocityRamp": false,
+        "burstOnly": true
+      }
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.42,
+      "slidesPer4Bars": [
+        1,
+        2
+      ],
+      "register": [
+        24,
+        40
+      ],
+      "distortion": "light"
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "32t"
+      ],
+      "velocityRampRange": [
+        48,
+        96
+      ],
+      "rampJitter": 14,
+      "descendProb": 0.22,
+      "gapProb": 0.28,
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "pitchWalk": 3
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "extensions": {
+      "triad": 0.82,
+      "seventh": 0.16,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "chordDurationBeats": [
+      3,
+      14
+    ]
+  },
+  "melody": {
+    "register": [
+      72,
+      96
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.3,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.72,
+      "descend": 0.2,
+      "arch": 0.08
+    },
+    "chordToneBias": 0.66,
+    "octaveJumpProb": 0.1,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "glass_bell"
+  },
+  "countermelody": {
+    "registerOffset": -14,
+    "densityRatio": 0.34,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.92,
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.45
+  }
+}

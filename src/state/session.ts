@@ -69,6 +69,47 @@ type HostSessionInfo = {
  */
 export const BAR_CHOICES = [4, 8] as const;
 
+/** The clip length a *new* instance opens at (TASK-090). */
+const DEFAULT_BARS_KEY = 'freally.defaultBars';
+
+/**
+ * What `bars` starts at, from the producer's own preference.
+ *
+ * ⛔ **Only for a NEW instance, and the distinction is the whole feature.** A
+ * project's `bars` is document state: the host restores it, `restore` writes it
+ * back, and this must never override that. What it decides is the one case
+ * nothing else answers — dropping a fresh plugin on a fresh track, where a
+ * producer who works in eights had to press 8 every single time.
+ *
+ * ⚠ **Two callers and no cache**: the store reads it once when it is created,
+ * and the Settings control reads it to show what is stored. Memoising would put
+ * a second copy of a preference between the producer and the one thing that
+ * writes it.
+ */
+export function defaultBars(): number {
+  // ⚠ Through `readStored`, not a hand-rolled try/catch. `state/storage`'s own
+  // header records why it exists — three modules each carried a copy of the
+  // private-mode guard, and *"that tolerance is exactly the kind of thing that
+  // gets hardened in one copy and forgotten in the other two."*
+  const stored = readStored(
+    DEFAULT_BARS_KEY,
+    (v): v is string => (BAR_CHOICES as readonly number[]).includes(Number(v)),
+    '4',
+  );
+  return Number(stored);
+}
+
+/**
+ * Remember the clip length new instances should open at.
+ *
+ * ⚠ Its own tiny writer rather than a store action, because nothing in the
+ * session store reads it after startup: this is a preference about the *next*
+ * instance, and putting it in `useSession` would imply it changes this one.
+ */
+export function setDefaultBars(bars: number): void {
+  writeStored(DEFAULT_BARS_KEY, String(bars));
+}
+
 /**
  * Snapshot fields that are **not** read out of this store.
  *
@@ -1883,7 +1924,7 @@ export const useSession = create<SessionState>((set, get) => ({
   selectedId: null,
   patterns: {},
   editedParts: [],
-  bars: 4,
+  bars: defaultBars(),
   seed: '',
   songSeed: '',
   // Nothing has been chosen, so nothing is held: the first Generate rolls.
