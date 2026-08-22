@@ -207,7 +207,13 @@ test('the stage: Generate, Generate all, the tab ✕, Clear all, bars', async ({
   await expect(bars.getByRole('button')).toHaveCount(2);
   await bars.getByRole('button', { name: '8' }).click();
   await page.getByRole('button', { name: 'Generate', exact: true }).click();
-  await expect(page.getByText(/8 bars/)).toBeVisible();
+  // ⛔ **The grid's own readout, not the page's.** `getByText(/8 bars/)` used to
+  // be unambiguous; TASK-095's live region now says *"Generated. 8 bars, 140
+  // BPM, …"* on the same page, and two matches is a strict-mode violation. It
+  // went red on ubuntu and green on macOS in one run — the announcer had simply
+  // not rendered yet there, so an unscoped locator here is a race whichever way
+  // it lands. The readout this test means is the drum grid's.
+  await expect(page.locator('.grid__meta')).toHaveText(/^8 bars/);
   await feature(page, 'Stage', 'Bars 4 and 8', 'only two choices, and 8 gives an 8-bar clip');
 });
 
