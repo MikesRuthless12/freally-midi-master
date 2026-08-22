@@ -57,7 +57,11 @@
     "playLane": "播放 {{lane}}",
     "padLane": "鼓垫 {{at}} 音轨",
     "useSelected": "将所选样本放到 {{lane}}",
-    "editPad": "编辑 {{lane}} 的声音"
+    "editPad": "编辑 {{lane}} 的声音",
+    "addMany": "添加样本…",
+    "imported": "已将 {{count}} 个放到打击垫",
+    "notPlaced": "未放置",
+    "dismissImport": "完成"
   },
   "sections": {
     "genres": "曲风",
@@ -574,7 +578,14 @@
     "fadeIn": "淡入",
     "fadeOut": "淡出",
     "noWaveform": "此打击垫播放内置采样，因此没有可绘制的文件。",
-    "envelopeShape": "起音 {{attack}} 毫秒、衰减 {{decay}} 毫秒、延持 {{sustain}} dB、释音 {{release}} 毫秒"
+    "envelopeShape": "起音 {{attack}} 毫秒、衰减 {{decay}} 毫秒、延持 {{sustain}} dB、释音 {{release}} 毫秒",
+    "detectedRoot": "采样于 {{note}}（{{cents}} 音分）",
+    "rootUnsure": "— 不确定",
+    "cannotHold": "该样本没有可延续的稳定段，因此长音符会在文件结束时停止。",
+    "storeB": "存为 B",
+    "showB": "显示 B",
+    "showA": "显示 A",
+    "keepB": "保留 B"
   },
   "crash": {
     "title": "窗口中的某些功能已停止运行",

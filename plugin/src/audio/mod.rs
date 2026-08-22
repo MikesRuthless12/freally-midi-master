@@ -33,6 +33,7 @@ pub mod pitch;
 pub mod render;
 pub mod resample;
 pub mod sampler;
+pub mod sustain;
 
 use std::collections::BTreeMap;
 use std::sync::{Arc, OnceLock};

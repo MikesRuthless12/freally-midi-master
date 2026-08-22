@@ -826,6 +826,20 @@ impl Shared {
         self.one_shots.assign(lane, &self.kits, &self.session)
     }
 
+    /// Ask for a whole selection and place each file by its name (TASK-049).
+    ///
+    /// Here for the reason [`Self::assign_one_shot`] is: a batch touches the
+    /// same three things one assignment does, and it must not be able to reach
+    /// two of them.
+    pub fn add_one_shots(&self) -> Result<(), String> {
+        self.one_shots.add_many(&self.kits, &self.session)
+    }
+
+    /// Put a whole kit back, exactly as an undo step recorded it (TASK-050A).
+    pub fn set_one_shots(&self, pairs: Vec<(Lane, String, bool)>) -> Result<(), String> {
+        self.one_shots.set_all(pairs, &self.kits, &self.session)
+    }
+
     /// The kit the preview is playing right now, one-shots included.
     ///
     /// ⚠ **Resolved from this instance's own session**, so two tracks on two

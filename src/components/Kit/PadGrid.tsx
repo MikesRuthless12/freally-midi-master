@@ -35,7 +35,9 @@ export function PadGrid() {
   const { t } = useTranslation();
   const lanes = useKit((s) => s.lanes);
   const loaded = useKit((s) => s.loaded);
-  const assigning = useKit((s) => s.assigning);
+  // ⚠ **Anything holding the plugin dialog slot**, not just a per-lane
+  // assignment: a batch import holds it too, and it belongs to no lane.
+  const busy = useKit((s) => s.assigning !== null || s.importing);
   const refresh = useKit((s) => s.refresh);
   const editPad = useKit((s) => s.editPad);
   const assign = useKit((s) => s.assign);
@@ -43,7 +45,7 @@ export function PadGrid() {
   const mutedLanes = useSession((s) => s.mutedLanes);
   const setLaneMuted = useSession((s) => s.setLaneMuted);
   const soloedLanes = useSession((s) => s.soloedLanes);
-  const dropOn = useExplorer((s) => s.dropOn);
+  const dropSample = useKit((s) => s.drop);
   // ⚠ **Audio only**, and asked of `selectedKind` rather than inferred. This read
   // `midiSplit === null`, which is also true for the whole window between
   // clicking a `.mid` and its split arriving — **and permanently if that split
@@ -202,8 +204,7 @@ export function PadGrid() {
               // ⛔ **…and its editor opens** (TASK-059), which also brings the
               // KIT panel on screen — this pad is on the stage and the editor
               // is drawn in the rail, so `editPad` shows the panel too.
-              void dropOn(lane, path).then((landed) => {
-                void refresh();
+              void dropSample(lane, path).then((landed) => {
                 // ⛔ **Only when it landed.** `dropOn` reports its own refusal through
                 // `error` — a sample outside the library, say — and opening an editor
                 // over a lane that still reads "Shipped" would be a panel describing a
@@ -291,7 +292,7 @@ export function PadGrid() {
             <button
               type="button"
               className="pad__roll"
-              disabled={assigning !== null}
+              disabled={busy}
               aria-label={t('kit.randomizeOne', { lane: name })}
               title={t('kit.randomizeOne', { lane: name })}
               onClick={() => void randomize(lane)}
@@ -309,7 +310,7 @@ export function PadGrid() {
               <button
                 type="button"
                 className="pad__clear"
-                disabled={assigning !== null}
+                disabled={busy}
                 aria-label={t('kit.clearOne', { lane: name })}
                 title={t('kit.clearOne', { lane: name })}
                 onClick={() => void clear(lane)}
@@ -331,12 +332,11 @@ export function PadGrid() {
               <button
                 type="button"
                 className="pad__use"
-                disabled={assigning !== null}
+                disabled={busy}
                 aria-label={t('kit.useSelected', { lane: name })}
                 title={t('kit.useSelected', { lane: name })}
                 onClick={() =>
-                  void dropOn(lane, selectedSample).then((landed) => {
-                    void refresh();
+                  void dropSample(lane, selectedSample).then((landed) => {
                     // ⛔ **Only when it landed.** `dropOn` reports its own refusal through
                     // `error` — a sample outside the library, say — and opening an editor
                     // over a lane that still reads "Shipped" would be a panel describing a

@@ -57,7 +57,11 @@
     "playLane": "{{lane}} afspelen",
     "padLane": "Baan van pad {{at}}",
     "useSelected": "Geselecteerde sample op {{lane}} zetten",
-    "editPad": "Het geluid van {{lane}} bewerken"
+    "editPad": "Het geluid van {{lane}} bewerken",
+    "addMany": "Samples toevoegen…",
+    "imported": "{{count}} op de pads gezet",
+    "notPlaced": "Niet geplaatst",
+    "dismissImport": "Klaar"
   },
   "sections": {
     "genres": "Genres",
@@ -574,7 +578,14 @@
     "fadeIn": "Invloeien",
     "fadeOut": "Uitvloeien",
     "noWaveform": "Dit pad speelt een ingebouwd sample, dus er is geen bestand om te tekenen.",
-    "envelopeShape": "Aanzet {{attack}} ms, afname {{decay}} ms, houdniveau {{sustain}} dB, uitsterven {{release}} ms"
+    "envelopeShape": "Aanzet {{attack}} ms, afname {{decay}} ms, houdniveau {{sustain}} dB, uitsterven {{release}} ms",
+    "detectedRoot": "Gesampled op {{note}} ({{cents}} cent)",
+    "rootUnsure": "— onzeker",
+    "cannotHold": "Deze sample heeft geen stabiel deel om aan te houden, dus een lange noot eindigt met het bestand.",
+    "storeB": "B opslaan",
+    "showB": "B tonen",
+    "showA": "A tonen",
+    "keepB": "B houden"
   },
   "crash": {
     "title": "Er werkt iets in het venster niet meer",

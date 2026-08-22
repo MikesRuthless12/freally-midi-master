@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dices, Play, SlidersHorizontal, X } from 'lucide-react';
+import { Dices, FolderPlus, Play, SlidersHorizontal, X } from 'lucide-react';
 
 import { canSound, useKit } from '../../state/kit';
 import { SAMPLE_TYPE, droppedSample } from '../../lib/dnd';
 import { auditionLane } from '../DrumGrid/audition';
 import { PadEditor } from './PadEditor';
 import { SavedKits } from './SavedKits';
-import { useExplorer } from '../../state/explorer';
 import { useSession } from '../../state/session';
 import { padsOf, useUi } from '../../state/ui';
 import type { Lane } from '../../lib/ipc-types';
@@ -43,12 +42,18 @@ export function KitPanel() {
   const allLanes = useKit((s) => s.lanes);
   const loaded = useKit((s) => s.loaded);
   const assigning = useKit((s) => s.assigning);
+  // ⚠ **Anything holding the plugin dialog slot**, not just a per-lane
+  // assignment: a batch import holds it too, and it belongs to no lane.
+  const busy = useKit((s) => s.assigning !== null || s.importing);
   const error = useKit((s) => s.error);
   const refresh = useKit((s) => s.refresh);
   const assign = useKit((s) => s.assign);
   const clear = useKit((s) => s.clear);
   const randomize = useKit((s) => s.randomize);
-  const dropOn = useExplorer((s) => s.dropOn);
+  const addMany = useKit((s) => s.addMany);
+  const imported = useKit((s) => s.imported);
+  const dismissImport = useKit((s) => s.dismissImport);
+  const dropSample = useKit((s) => s.drop);
   // Which row the pointer is currently over, so the target is visible before
   // the producer lets go. Local: it is a property of this gesture, not of the
   // kit, and nothing outside this panel can act on it.
@@ -144,12 +149,27 @@ export function KitPanel() {
       <button
         type="button"
         className="btn-ghost kit-dice"
-        disabled={assigning !== null}
+        disabled={busy}
         aria-label={t('kit.randomize')}
         title={t('kit.randomize')}
         onClick={() => void randomize(null)}
       >
         <Dices size={14} aria-hidden="true" /> {t('kit.randomize')}
+      </button>
+      {/* ⛔ **A whole pack in one dialog** (TASK-049). Each file lands on the
+          pad its own name names — `roles::guess`, which shipped in 2026-08-09
+          with nothing calling it. Beside the dice because both fill several
+          pads at once; the difference is that this one is the producer's own
+          selection rather than a draw from the folder being browsed. */}
+      <button
+        type="button"
+        className="btn-ghost kit-dice"
+        disabled={busy}
+        aria-label={t('kit.addMany')}
+        title={t('kit.addMany')}
+        onClick={() => void addMany()}
+      >
+        <FolderPlus size={14} aria-hidden="true" /> {t('kit.addMany')}
       </button>
 
       <ul className="kit-lanes" aria-label={t('kit.lanesLabel')}>
@@ -205,8 +225,7 @@ export function KitPanel() {
                 // "imports, assigns, and opens the per-one-shot editor". A
                 // sample that lands with no way to shape it is where this
                 // stopped before the editor existed.
-                void dropOn(entry.lane, path).then((landed) => {
-                  void refresh();
+                void dropSample(entry.lane, path).then((landed) => {
                   // ⛔ **Only when it landed.** `dropOn` reports its own refusal through
                   // `error` — a sample outside the library, say — and opening an editor
                   // over a lane that still reads "Shipped" would be a panel describing a
@@ -222,7 +241,7 @@ export function KitPanel() {
                 // has to be: two native dialogs from one plugin is a window a
                 // producer cannot explain, and the plugin refuses the second
                 // one anyway.
-                disabled={assigning !== null}
+                disabled={busy}
                 onClick={() => void assign(entry.lane)}
               >
                 <span className="kit-lane__name">{t(`lanes.${entry.lane}`)}</span>
@@ -268,7 +287,7 @@ export function KitPanel() {
               <button
                 type="button"
                 className="kit-lane__dice"
-                disabled={assigning !== null}
+                disabled={busy}
                 aria-label={t('kit.randomizeOne', { lane: t(`lanes.${entry.lane}`) })}
                 title={t('kit.randomizeOne', { lane: t(`lanes.${entry.lane}`) })}
                 onClick={() => void randomize(entry.lane)}
@@ -303,7 +322,7 @@ export function KitPanel() {
                 <button
                   type="button"
                   className="kit-lane__clear"
-                  disabled={assigning !== null}
+                  disabled={busy}
                   aria-label={t('kit.clearOne', { lane: t(`lanes.${entry.lane}`) })}
                   title={entry.path ?? undefined}
                   onClick={() => void clear(entry.lane)}
@@ -332,6 +351,34 @@ export function KitPanel() {
         <p className="kit-error" role="alert">
           {error}
         </p>
+      )}
+
+      {/* ⛔ **What the batch did, per file** (TASK-049). `role="status"` rather
+          than `role="alert"`: eighteen of twenty landing is a result, not an
+          emergency, and a screen reader that interrupts for a working import is
+          the same over-reporting the `Cancelled` rule exists to avoid. */}
+      {imported && (
+        <div className="kit-import" role="status">
+          <p className="kit-import__count">{t('kit.imported', { count: imported.loaded })}</p>
+          {imported.refused.length > 0 && (
+            <>
+              <p className="kit-import__heading">{t('kit.notPlaced')}</p>
+              <ul className="kit-import__refused">
+                {imported.refused.map((one) => (
+                  // ⚠ Keyed by name AND reason: a batch may well contain two
+                  // files of the same name from two folders, refused for two
+                  // different reasons.
+                  <li key={`${one.name}:${one.reason}`}>
+                    <b>{one.name}</b> — {one.reason}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          <button type="button" className="btn-ghost" onClick={dismissImport}>
+            {t('kit.dismissImport')}
+          </button>
+        </div>
       )}
     </>
   );

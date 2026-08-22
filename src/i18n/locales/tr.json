@@ -57,7 +57,11 @@
     "playLane": "{{lane}} çal",
     "padLane": "Pad {{at}} kanalı",
     "useSelected": "Seçili örneği {{lane}} kanalına koy",
-    "editPad": "{{lane}} sesini düzenle"
+    "editPad": "{{lane}} sesini düzenle",
+    "addMany": "Örnek ekle…",
+    "imported": "{{count}} pad üzerine yerleştirildi",
+    "notPlaced": "Yerleştirilmedi",
+    "dismissImport": "Tamam"
   },
   "sections": {
     "genres": "Türler",
@@ -574,7 +578,14 @@
     "fadeIn": "Yavaşça aç",
     "fadeOut": "Yavaşça kıs",
     "noWaveform": "Bu pad yerleşik bir örnek çalıyor, bu yüzden çizilecek bir dosya yok.",
-    "envelopeShape": "Atak {{attack}} ms, düşüş {{decay}} ms, sürdürme {{sustain}} dB, bırakma {{release}} ms"
+    "envelopeShape": "Atak {{attack}} ms, düşüş {{decay}} ms, sürdürme {{sustain}} dB, bırakma {{release}} ms",
+    "detectedRoot": "{{note}} notasında örneklendi ({{cents}} sent)",
+    "rootUnsure": "— belirsiz",
+    "cannotHold": "Bu örnekte tutulacak sabit bir bölüm yok, bu yüzden uzun bir nota dosyayla birlikte biter.",
+    "storeB": "B olarak kaydet",
+    "showB": "B göster",
+    "showA": "A göster",
+    "keepB": "B kalsın"
   },
   "crash": {
     "title": "Penceredeki bir şey çalışmayı durdurdu",

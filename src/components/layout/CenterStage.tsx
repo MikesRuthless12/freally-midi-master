@@ -16,7 +16,6 @@ import { SessionSwitchPrompt } from '../SessionChips/SessionChips';
 import { TransportControls } from './TransportBar';
 import { VariationNav } from '../VariationNav';
 import { MIDI_TYPE, SAMPLE_TYPE, droppedMidi, droppedSample } from '../../lib/dnd';
-import { useExplorer } from '../../state/explorer';
 import { useKit } from '../../state/kit';
 import { PadGrid } from '../Kit/PadGrid';
 import { useTranslation } from 'react-i18next';
@@ -319,8 +318,7 @@ export function CenterStage() {
   const generateAll = useSession((s) => s.generateAll);
   const clearAll = useSession((s) => s.clearAll);
   const playhead = useSession((s) => s.playhead);
-  const dropOn = useExplorer((s) => s.dropOn);
-  const refreshKit = useKit((s) => s.refresh);
+  const dropSample = useKit((s) => s.drop);
 
   const song = useSong((s) => s.song);
   const songGenerating = useSong((s) => s.generating);
@@ -430,7 +428,7 @@ export function CenterStage() {
           event.preventDefault();
           // Refreshed after, because the Kit rail's row for this lane is the
           // only thing on screen that names what landed.
-          void dropOn(dropTarget, path).then(() => refreshKit());
+          void dropSample(dropTarget, path);
         }}
       >
         {/* The ripple wraps whatever the stage is showing, so it sweeps the

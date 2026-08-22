@@ -57,7 +57,11 @@
     "playLane": "Odtwórz {{lane}}",
     "padLane": "Ścieżka padu {{at}}",
     "useSelected": "Umieść wybraną próbkę na {{lane}}",
-    "editPad": "Edytuj brzmienie {{lane}}"
+    "editPad": "Edytuj brzmienie {{lane}}",
+    "addMany": "Dodaj sample…",
+    "imported": "{{count}} umieszczono na padach",
+    "notPlaced": "Nie umieszczono",
+    "dismissImport": "Gotowe"
   },
   "sections": {
     "genres": "Gatunki",
@@ -574,7 +578,14 @@
     "fadeIn": "Wyciszenie na wejściu",
     "fadeOut": "Wyciszenie na wyjściu",
     "noWaveform": "Ten pad odtwarza wbudowaną próbkę, więc nie ma pliku do narysowania.",
-    "envelopeShape": "Narastanie {{attack}} ms, opadanie {{decay}} ms, podtrzymanie {{sustain}} dB, wybrzmienie {{release}} ms"
+    "envelopeShape": "Narastanie {{attack}} ms, opadanie {{decay}} ms, podtrzymanie {{sustain}} dB, wybrzmienie {{release}} ms",
+    "detectedRoot": "Zsamplowane na {{note}} ({{cents}} centów)",
+    "rootUnsure": "— niepewne",
+    "cannotHold": "Ten sampel nie ma stabilnej części do przytrzymania, więc długa nuta kończy się wraz z plikiem.",
+    "storeB": "Zapisz B",
+    "showB": "Pokaż B",
+    "showA": "Pokaż A",
+    "keepB": "Zostaw B"
   },
   "crash": {
     "title": "Coś w oknie przestało działać",

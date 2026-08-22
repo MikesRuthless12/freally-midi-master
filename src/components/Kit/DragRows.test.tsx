@@ -72,6 +72,8 @@ const KIT = [
     path: null,
     tweaks: untouchedPad(),
     reversed: false,
+    root: null,
+    holds: null,
   },
   {
     lane: 'snare' as const,
@@ -80,6 +82,8 @@ const KIT = [
     path: null,
     tweaks: untouchedPad(),
     reversed: false,
+    root: null,
+    holds: null,
   },
   {
     lane: 'closedHat' as const,
@@ -88,6 +92,8 @@ const KIT = [
     path: null,
     tweaks: untouchedPad(),
     reversed: false,
+    root: null,
+    holds: null,
   },
   {
     lane: 'openHat' as const,
@@ -96,6 +102,8 @@ const KIT = [
     path: null,
     tweaks: untouchedPad(),
     reversed: false,
+    root: null,
+    holds: null,
   },
   {
     lane: 'snap' as const,
@@ -104,6 +112,8 @@ const KIT = [
     path: null,
     tweaks: untouchedPad(),
     reversed: false,
+    root: null,
+    holds: null,
   },
   {
     lane: 'bass' as const,
@@ -112,6 +122,8 @@ const KIT = [
     path: null,
     tweaks: untouchedPad(),
     reversed: false,
+    root: null,
+    holds: null,
   },
 ];
 

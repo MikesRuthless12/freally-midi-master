@@ -178,6 +178,18 @@ struct Voice {
     decay_step: f32,
     /// The level held after the decay, linear.
     sustain: f32,
+
+    // ---- Holding a note (TASK-053A) --------------------------------------
+    /// Where this voice may loop back to while the note is held, as
+    /// `(start, end)` into the pad's samples — or `None`, which is every pad in
+    /// every shipped kit.
+    ///
+    /// ⛔ **Resolved at trigger, not read from the pad per frame.** The render
+    /// loop already holds the pad, but a voice outlives the *gate* and the
+    /// region has to survive `hold` reaching zero unchanged; keeping it here is
+    /// also what lets a reversed hit of a loopable pad simply not loop, which
+    /// is one branch at trigger instead of one per frame.
+    loop_region: Option<(usize, usize)>,
 }
 
 impl Voice {
@@ -213,6 +225,7 @@ impl Voice {
             decay_left: 0,
             decay_step: 0.0,
             sustain: 1.0,
+            loop_region: None,
         }
     }
 
@@ -481,6 +494,34 @@ impl Sampler {
                 0.0
             },
             sustain,
+            // ⛔ **Held inside the TRIM WINDOW, or not at all** (TASK-053A). The
+            // region was measured against the whole buffer on the loader
+            // thread; a producer who then trims the pad has cut a different
+            // window, and looping outside it would play audio they removed.
+            // Dropping the loop there is the honest answer — the sample plays
+            // to the end of what they kept and releases, which is what
+            // `sustain::find` returning `None` already means.
+            //
+            // ⛔ **Never on a reversed hit.** `Voice::reversed` mirrors the read
+            // index, and a loop inside a mirrored read is a second thing for
+            // the render loop to reason about for a combination nobody asked
+            // for — `Ctrl`+`R` is a gesture, not a sustain.
+            //
+            // ⛔⛔ **AND never on a voice that rings out, which is the guard
+            // that stops an endless drum.** `hold_for` gives every non-melodic
+            // lane [`RINGS_OUT`] — `u32::MAX`, so `hold > 0` is permanently
+            // true — and a looping voice with a gate that never closes never
+            // ends. ⚠ **The test has to be HERE and not in `render`:** `hold`
+            // is decremented like any other counter, so one frame in it is
+            // `RINGS_OUT - 1` and a comparison against the sentinel stops
+            // matching. Found by `a_drum_that_rings_out_is_never_looped`, which
+            // is also why the lane gate in `oneshot::load` is not relied on for
+            // this — that one keeps the region off percussion, this one makes
+            // the render loop unable to hang whatever reaches it.
+            loop_region: pad
+                .loop_region
+                .filter(|_| !hit.reversed && hit.hold != RINGS_OUT)
+                .filter(|(from, to)| *from >= start && *to <= end && to > from),
         };
     }
 
@@ -539,8 +580,53 @@ impl Sampler {
                 continue;
             };
             let samples: &[f32] = &pad.samples;
+            // ⛔ **The loop's two constants, converted ONCE per block** (TASK-053A).
+            // Nothing in the frame loop writes `loop_region`, so `end as f64` and
+            // the span were two int→float conversions per frame of every looping
+            // voice — on the audio callback, which is the one place that cost is
+            // never worth paying twice. ⚠ Hoisting also puts the `Option` test
+            // first, so a pad with no loop — which is every pad in every shipped
+            // kit — pays one compare on a value already in a register.
+            let wrap = voice
+                .loop_region
+                .map(|(from, to)| (to as f64, (to - from) as f64));
 
             for frame in out.chunks_mut(channels) {
+                // ⛔⛔ **A held note LOOPS its steady state rather than running
+                // out** (TASK-053A). A whole-note chord under a four-bar loop
+                // must sound for four bars, and a sample that happens to be 1.2
+                // seconds long must not stop the chord dead at 1.2 seconds —
+                // which is what made the piano roll's note lengths do nothing
+                // audible on a sustaining part.
+                //
+                // ⛔ **Only while the gate is still open** (`hold > 0`). Once
+                // the note is released the voice reads on out of the region and
+                // stops naturally, so the release is the tail of the sample
+                // rather than a loop fading out — which is what a release
+                // sounds like on every sampler there has ever been.
+                //
+                // ⛔ **`pos` is moved back by the loop's LENGTH, not set to its
+                // start.** The step is almost never 1.0, so `pos` lands
+                // somewhere between samples; snapping it to an integer start
+                // would jump the read phase on every repeat and put a click at
+                // the splice — the failure this feature's own entry says makes
+                // a sustain loop worse than no sustain loop.
+                //
+                // ⚠ **`while`, not `if`.** A pad pitched up two octaves reads
+                // four samples per frame, and a loop shorter than that step
+                // would otherwise stay past its end for ever.
+                //
+                // ⚠ **Only a voice that was GATED carries a region at all** —
+                // `trigger_with` refuses one to anything that rings out, and
+                // the note there says why that test cannot live here.
+                if let Some((end, span)) = wrap {
+                    if voice.hold > 0 {
+                        while voice.pos >= end {
+                            voice.pos -= span;
+                        }
+                    }
+                }
+
                 let index = voice.pos as usize;
                 // ⛔ **The voice's own window, not the buffer's length.** With no
                 // trim these are the same number — `end` is `min`'d to the buffer
@@ -799,7 +885,7 @@ mod tests {
 
     /// A kit of test tones: every pad is a run of 1.0s, so a rendered sample
     /// says exactly which pad and gain produced it.
-    fn test_kit() -> Kit {
+    pub(super) fn test_kit() -> Kit {
         let pad = |id: &str, lane: Lane, choke: Option<u8>, pan: f32| Pad {
             id: id.into(),
             lane,
@@ -812,6 +898,7 @@ mod tests {
             choke_group: choke,
             root_note: None,
             shape: PadShape::default(),
+            loop_region: None,
         };
         Kit {
             id: "test".into(),
@@ -824,7 +911,7 @@ mod tests {
         }
     }
 
-    fn render_block(sampler: &mut Sampler, kit: &Kit, frames: usize) -> Vec<f32> {
+    pub(super) fn render_block(sampler: &mut Sampler, kit: &Kit, frames: usize) -> Vec<f32> {
         let mut out = vec![0.0; frames * 2];
         sampler.render(kit, &mut out, 2);
         out
@@ -1113,6 +1200,7 @@ mod tests {
                 choke_group: None,
                 root_note: None,
                 shape: PadShape::default(),
+                loop_region: None,
             }],
         }
     }
@@ -1287,6 +1375,7 @@ mod tests {
                 choke_group: None,
                 root_note: None,
                 shape,
+                loop_region: None,
             }],
         }
     }
@@ -1671,6 +1760,174 @@ mod tests {
         assert!(
             out.iter().all(|s| s.abs() <= 1.0),
             "the limiter let something past full scale"
+        );
+    }
+}
+
+/// Holding a note (TASK-053A).
+///
+/// ⛔ The verify line of the roadmap entry, in three parts: a one-shot ignores
+/// note length, a gated note ends on release, and **a sustaining note held for
+/// four bars is four bars of audio even when its sample is one second long**.
+#[cfg(test)]
+mod held_note_tests {
+    use std::sync::Arc;
+
+    use engine::pattern::Lane;
+
+    use super::tests::{render_block, test_kit};
+    use super::*;
+    use crate::audio::kit::Pad;
+    use crate::pad_tweaks::PadShape;
+
+    const RATE: u32 = 48_000;
+
+    /// A one-second tone whose steady state is loopable, at a known level.
+    fn holdable(lane: Lane) -> Kit {
+        let samples: Vec<f32> = (0..RATE as usize)
+            .map(|i| (2.0 * std::f32::consts::PI * 220.0 * i as f32 / RATE as f32).sin())
+            .collect();
+        let loop_region = crate::audio::sustain::find(&samples, RATE);
+        assert!(loop_region.is_some(), "the fixture must be loopable");
+        Kit {
+            id: "holdable".into(),
+            pads: vec![Pad {
+                id: "pad".into(),
+                lane,
+                samples: Arc::from(samples.into_boxed_slice()),
+                sample_rate: RATE,
+                gain: 1.0,
+                pan: 0.0,
+                pitch_semis: 0,
+                pitch_cents: 0,
+                choke_group: None,
+                root_note: Some(57),
+                shape: PadShape::default(),
+                loop_region,
+            }],
+        }
+    }
+
+    /// The largest absolute sample in a rendered block.
+    fn peak(out: &[f32]) -> f32 {
+        out.iter().fold(0.0f32, |top, s| top.max(s.abs()))
+    }
+
+    #[test]
+    fn a_four_bar_chord_is_four_bars_of_audio_from_a_one_second_sample() {
+        // ⛔⛔ **The defect, stated as arithmetic.** Four bars of 4/4 at 90 bpm
+        // is 10.67 seconds; the sample is one second. Before this the voice ran
+        // out after one second and the remaining nine were silence.
+        let kit = holdable(Lane::Chords);
+        let held = RATE * 8; // eight seconds, well past the sample
+        let mut sampler = Sampler::default();
+        sampler.trigger_with(
+            &kit,
+            0,
+            f64::from(RATE),
+            Hit {
+                hold: held,
+                ..Hit::default()
+            },
+        );
+
+        // Sample the last second of the held note — long past where the file
+        // ends — and it must still be sounding.
+        let _ = render_block(&mut sampler, &kit, RATE as usize * 7);
+        let late = render_block(&mut sampler, &kit, RATE as usize / 4);
+        assert!(
+            peak(&late) > 0.5,
+            "the note fell silent before the gate closed: peak {}",
+            peak(&late)
+        );
+    }
+
+    #[test]
+    fn the_loop_does_not_click_at_the_splice() {
+        // ⛔ **The failure that makes a sustain loop worse than no sustain
+        // loop.** Both loop points are rising zero crossings and `pos` moves
+        // back by the loop's *length* rather than snapping to its start, so the
+        // read phase is continuous — a step would show up as a sample-to-sample
+        // jump far larger than the waveform's own slope.
+        let kit = holdable(Lane::Chords);
+        let mut sampler = Sampler::default();
+        sampler.trigger_with(
+            &kit,
+            0,
+            f64::from(RATE),
+            Hit {
+                hold: RATE * 4,
+                ..Hit::default()
+            },
+        );
+
+        let out = render_block(&mut sampler, &kit, RATE as usize * 3);
+        // One channel of the interleaved pair.
+        let mono: Vec<f32> = out.iter().step_by(2).copied().collect();
+        // 220 Hz at 48 kHz moves at most ~0.029 per sample; a splice that
+        // stepped would be far above this. The bound is generous on purpose —
+        // this is looking for a discontinuity, not measuring the slope.
+        let worst = mono
+            .windows(2)
+            .map(|pair| (pair[1] - pair[0]).abs())
+            .fold(0.0f32, f32::max);
+        assert!(worst < 0.2, "a step at the loop point: {worst}");
+    }
+
+    #[test]
+    fn a_released_note_reads_on_out_of_the_loop_rather_than_repeating_for_ever() {
+        // ⛔ Once the gate closes the voice must leave the region — a loop that
+        // kept repeating under the release would be a stuck note, which is the
+        // one failure worse than a short one.
+        let kit = holdable(Lane::Chords);
+        let mut sampler = Sampler::default();
+        sampler.trigger_with(
+            &kit,
+            0,
+            f64::from(RATE),
+            Hit {
+                hold: 128,
+                ..Hit::default()
+            },
+        );
+
+        // Well past the gate, the release and the whole sample.
+        let _ = render_block(&mut sampler, &kit, RATE as usize * 2);
+        assert_eq!(
+            sampler.active_voices(),
+            0,
+            "the voice never freed itself after the gate closed"
+        );
+    }
+
+    #[test]
+    fn a_drum_that_rings_out_is_never_looped() {
+        // ⛔ `hold_for` gives every non-melodic lane `RINGS_OUT`, so the gate
+        // never opens and the loop test would hold for ever. The lane gate in
+        // `oneshot::load` is what stops a kick carrying a region at all; this
+        // holds the other end, where a region that arrived anyway must not
+        // produce an endless kick.
+        let kit = holdable(Lane::Kick);
+        let mut sampler = Sampler::default();
+        sampler.trigger_with(&kit, 0, f64::from(RATE), Hit::default());
+
+        let _ = render_block(&mut sampler, &kit, RATE as usize * 2);
+        assert_eq!(
+            sampler.active_voices(),
+            0,
+            "a ringing-out pad looped instead of ending"
+        );
+    }
+
+    #[test]
+    fn an_untouched_shipped_pad_is_untouched_by_any_of_this() {
+        // ⛔⛔ **The guarantee that makes this safe to ship unheard.** Every pad
+        // in every shipped kit carries `loop_region: None`, so the branch in
+        // `render` is never taken and the rendered samples are what they were.
+        let kit = test_kit();
+        assert!(
+            kit.pads.iter().all(|pad| pad.loop_region.is_none()),
+            "a test pad grew a loop region"
         );
     }
 }

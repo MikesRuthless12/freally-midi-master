@@ -57,7 +57,11 @@
     "playLane": "{{lane}} 재생",
     "padLane": "패드 {{at}} 레인",
     "useSelected": "선택한 샘플을 {{lane}}에 넣기",
-    "editPad": "{{lane}} 소리 편집"
+    "editPad": "{{lane}} 소리 편집",
+    "addMany": "샘플 추가…",
+    "imported": "{{count}}개를 패드에 배치했습니다",
+    "notPlaced": "배치되지 않음",
+    "dismissImport": "완료"
   },
   "sections": {
     "genres": "장르",
@@ -574,7 +578,14 @@
     "fadeIn": "페이드 인",
     "fadeOut": "페이드 아웃",
     "noWaveform": "이 패드는 내장 샘플을 재생하므로 그릴 파일이 없습니다.",
-    "envelopeShape": "어택 {{attack}} ms, 디케이 {{decay}} ms, 서스테인 {{sustain}} dB, 릴리스 {{release}} ms"
+    "envelopeShape": "어택 {{attack}} ms, 디케이 {{decay}} ms, 서스테인 {{sustain}} dB, 릴리스 {{release}} ms",
+    "detectedRoot": "{{note}}에서 샘플링됨 ({{cents}} 센트)",
+    "rootUnsure": "— 불확실",
+    "cannotHold": "이 샘플에는 유지할 정상 구간이 없어 긴 음표는 파일이 끝나는 곳에서 멈춥니다.",
+    "storeB": "B 저장",
+    "showB": "B 보기",
+    "showA": "A 보기",
+    "keepB": "B 유지"
   },
   "crash": {
     "title": "창의 일부가 작동을 멈췄습니다",

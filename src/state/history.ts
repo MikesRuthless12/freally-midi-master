@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import type { Complexity, Pattern, Scale, Song } from '../lib/ipc-types';
+import type { AssignedKit } from './kit';
 
 /**
  * The operation log undo and redo walk (FMM-U01).
@@ -159,6 +160,30 @@ export type Snapshot = {
   song: Song | null;
   /** Whether `song` is an arrangement rather than the seed's own output. */
   songEdited: boolean;
+  /**
+   * The producer's own samples, lane to path (TASK-050A).
+   *
+   * ⛔ **On the one stack rather than a second one, for the reason `song`
+   * gives right above.** A producer has one Ctrl+Z; a kit stack beside this one
+   * would make the shortcut guess which document it was about from the visible
+   * tab, and the pads sit above *every* tab.
+   *
+   * ⛔ **The kit is the plugin's, so this is a statement about it rather than a
+   * copy of it.** The samples themselves are decoded buffers on the loader
+   * thread — a snapshot carries the paths, and putting one back is a request
+   * across the bridge, not a `set`. That makes this the one restore in the
+   * whole snapshot that lands a beat later than the rest, which is why
+   * `applyKitDocument` compares before it sends: nobody's kit should be
+   * re-decoded because they undid a seed keystroke.
+   *
+   * ⚠ **Not in `SAVED_FIELDS`** — a document field, like `song`. The plugin
+   * already persists `one_shots` in its own session, and a second copy written
+   * by the page is the two-sources-of-truth failure this file keeps recording.
+   *
+   * ⚠ Reference equality is what [`changed`] compares, so `kit.ts` keeps the
+   * same object whenever the assignments have not moved.
+   */
+  oneShots: AssignedKit;
 };
 
 /**
@@ -187,6 +212,12 @@ const DISCRETE: readonly Field[] = [
   'lockedLanes',
   'partsOff',
   'song',
+  // ⛔ **A pad assignment is the same kind of discrete act** (TASK-050A), and it
+  // is the same defect the `mutedLanes` note above records: two dice presses on
+  // two lanes inside `COALESCE_MS`, or two pads cleared in a row, would collapse
+  // into one step — so "kick re-rolled, snare kept" would be unreachable by
+  // Ctrl+Z and one press would undo both. Nobody drags a kit toward a value.
+  'oneShots',
 ];
 
 /**

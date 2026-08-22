@@ -57,7 +57,11 @@
     "playLane": "Putar {{lane}}",
     "padLane": "Jalur pad {{at}}",
     "useSelected": "Taruh sampel terpilih di {{lane}}",
-    "editPad": "Ubah suara {{lane}}"
+    "editPad": "Ubah suara {{lane}}",
+    "addMany": "Tambah sampel…",
+    "imported": "{{count}} ditempatkan di pad",
+    "notPlaced": "Tidak ditempatkan",
+    "dismissImport": "Selesai"
   },
   "sections": {
     "genres": "Genre",
@@ -574,7 +578,14 @@
     "fadeIn": "Memudar masuk",
     "fadeOut": "Memudar keluar",
     "noWaveform": "Pad ini memainkan sampel bawaan, jadi tidak ada berkas untuk digambar.",
-    "envelopeShape": "Serangan {{attack}} ms, peluruhan {{decay}} ms, tahanan {{sustain}} dB, pelepasan {{release}} ms"
+    "envelopeShape": "Serangan {{attack}} ms, peluruhan {{decay}} ms, tahanan {{sustain}} dB, pelepasan {{release}} ms",
+    "detectedRoot": "Disampel di {{note}} ({{cents}} sen)",
+    "rootUnsure": "— tidak pasti",
+    "cannotHold": "Sampel ini tidak punya bagian stabil untuk ditahan, jadi nada panjang berakhir saat file habis.",
+    "storeB": "Simpan B",
+    "showB": "Tampilkan B",
+    "showA": "Tampilkan A",
+    "keepB": "Pakai B"
   },
   "crash": {
     "title": "Ada yang berhenti bekerja di jendela ini",

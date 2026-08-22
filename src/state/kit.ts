@@ -12,7 +12,7 @@
 import { create } from 'zustand';
 
 import { invoke } from '../lib/ipc';
-import { reason, useSession } from './session';
+import { noteDocumentChange, reason, registerKitDocument, useSession } from './session';
 // ⚠ A store-to-store read, not a subscription: the re-roll asks where the
 // browser is standing at the moment it fires, and nothing here re-renders on it.
 import { standingIn, useExplorer } from './explorer';
@@ -137,11 +137,79 @@ export type KitLane = {
    * lies about what the handles do.
    */
   reversed: boolean;
+  /**
+   * What note this pad's sample was measured to be in (TASK-052).
+   *
+   * ⚠ **`null` is three different real answers**, and the panel says so rather
+   * than printing a note nobody measured: a drum lane (no root applies), a
+   * shipped pad (nothing of the producer's on it), and a sample with no clear
+   * pitch — a vocal chop or a noisy pad, which `detect_root` refuses rather
+   * than guessing at.
+   */
+  root: DetectedRoot | null;
+  /**
+   * Whether a held note on this pad actually holds (TASK-053A).
+   *
+   * ⚠ **Three states, and the middle one is the point.** `null` is a lane
+   * where holding means nothing — a drum — or a lane with nothing of the
+   * producer's on it. `true` is a sample with a steady state to loop.
+   * `false` is the one that earns a sentence on screen: the note will end
+   * when the file does, and saying so beats shortening it silently.
+   */
+  holds: boolean | null;
+};
+
+/**
+ * A measured root, with how sure the measurement is.
+ *
+ * ⛔ **The clarity travels with the note because TASK-052 asks that the
+ * confidence be *surfaced*.** A root found at 0.61 on a noisy chop is a number
+ * a producer should be allowed to distrust — and the transpose dial beside it
+ * is what they fix it with.
+ */
+export type DetectedRoot = {
+  /** MIDI note number. */
+  note: number;
+  /** How far off that note it actually is, in cents. `-50..=50`. */
+  cents: number;
+  /** NSDF peak height, `0..=1`. Higher is more clearly one pitch. */
+  clarity: number;
 };
 
 type KitStateReply = {
   id: string | null;
   lanes: KitLane[];
+};
+
+/**
+ * The producer's own samples: which file is on which lane, and which way round
+ * (TASK-050A).
+ *
+ * ⛔ **The direction is carried, not derived.** `oneshot::load` bakes a
+ * reversal into the buffer, so a path alone does not describe the sound — an
+ * undo that restored the path and dropped the flag would silently un-reverse a
+ * pad the producer had reversed on purpose, and `apply` would then persist that
+ * loss. Lanes with nothing of theirs on them are absent, which is what the
+ * plugin reads as *"put the built-in sound back"*.
+ */
+export type AssignedKit = Record<string, { path: string; reversed: boolean }>;
+
+/**
+ * One file a batch import did not place, and why. Mirrors `oneshot::Refused`.
+ *
+ * ⚠ `reason` is the plugin's own English, like every other message that reaches
+ * `error` — it names a decode failure, not a UI state, and there is nothing on
+ * this side that could translate it without inventing a code for each one.
+ */
+export type Refused = {
+  name: string;
+  reason: string;
+};
+
+/** What the last batch import did (TASK-049). */
+export type ImportReport = {
+  loaded: number;
+  refused: Refused[];
 };
 
 /** What `one_shot_status` answers with. Mirrors `oneshot::Status`. */
@@ -150,7 +218,9 @@ type OneShotStatus =
   | { state: 'running' }
   | { state: 'done'; lane: Lane; name: string }
   | { state: 'cancelled' }
-  | { state: 'failed'; reason: string };
+  | { state: 'failed'; reason: string }
+  | ({ state: 'imported' } & ImportReport)
+  | { state: 'restored'; refused: Refused[] };
 
 /**
  * How often the assignment poll asks.
@@ -175,6 +245,39 @@ export const ONE_SHOT_POLL_MS = 400;
  */
 let loading: Promise<void> | null = null;
 
+/**
+ * The producer's own samples, lane to path — what an undo step carries.
+ *
+ * ⚠ Only the lanes holding a file of theirs. A shipped pad has no path and is
+ * absent, which is exactly what `one_shot_set_all` reads as *"put the built-in
+ * sound back on this one"*.
+ */
+function oneShotsOf(lanes: KitLane[]): AssignedKit {
+  const out: AssignedKit = {};
+  for (const row of lanes) {
+    if (row.path !== null) out[row.lane] = { path: row.path, reversed: row.reversed };
+  }
+  return out;
+}
+
+/**
+ * Whether two kits name the same file, the same way round, on the same lanes.
+ *
+ * ⛔ **The direction is part of the comparison.** `oneshot::load` bakes a
+ * reversal into the buffer, so the same path played backwards is a different
+ * sound — treating the two as equal would let an undo across a `Ctrl`+← skip
+ * the restore entirely and leave the pad playing forwards.
+ */
+function sameKit(a: AssignedKit, b: AssignedKit): boolean {
+  const keys = Object.keys(a);
+  return (
+    keys.length === Object.keys(b).length &&
+    keys.every(
+      (lane) => a[lane].path === b[lane]?.path && a[lane].reversed === b[lane]?.reversed,
+    )
+  );
+}
+
 type KitState = {
   /** The loaded kit's id, or `null` before the first read / if none loaded. */
   id: string | null;
@@ -183,6 +286,19 @@ type KitState = {
   loaded: boolean;
   /** The lane whose dialog is open, or `null`. */
   assigning: Lane | null;
+  /**
+   * Whether a batch import has the dialog slot (TASK-049).
+   *
+   * ⛔ **Not a lane parked in `assigning`.** A batch belongs to no lane, and
+   * `KitPanel` draws *"choosing…"* over whichever row `assigning` names — so a
+   * stand-in lane made that row stop showing its own sample for as long as the
+   * dialog was open. Ask [`busy`] when the question is *"is a dialog open"*.
+   */
+  importing: boolean;
+  /** Whether anything holds the plugin's single dialog slot. */
+  busy: () => boolean;
+  /** Put a saved kit on, and record it as one undo step (TASK-051/050A). */
+  loadSaved: (id: string) => Promise<void>;
   /**
    * The lane whose sound editor is open, or `null` (TASK-059, TASK-164).
    *
@@ -199,8 +315,47 @@ type KitState = {
   editingPad: Lane | null;
   /** The last thing that went wrong, for the panel to show. */
   error: string | null;
+  /**
+   * What the last batch import did, or `null` (TASK-049).
+   *
+   * ⛔ **Its own slot rather than `error`, because a batch that mostly worked
+   * is not an error.** Eighteen of twenty landing is a *success* with two
+   * things to tell the producer, and folding it into the one-line `error`
+   * would either shout at them about a working import or throw away the names
+   * of the two files that did not — which is the whole of what TASK-049 asks
+   * for: *"per-file error toasts that never abort the batch"*.
+   */
+  imported: ImportReport | null;
+  /**
+   * The producer's own samples, lane to path — the undo snapshot's copy of the
+   * kit (TASK-050A).
+   *
+   * ⛔ **Derived from `lanes` rather than a second source of truth.** The
+   * plugin owns the kit; this is the shape `history` can compare and
+   * `one_shot_set_all` can be handed back. `refresh` keeps the *same object*
+   * whenever the assignments have not moved — see the note there for why that
+   * is load-bearing.
+   */
+  oneShots: AssignedKit;
   refresh: () => Promise<void>;
   assign: (lane: Lane) => Promise<void>;
+  /**
+   * Pick a whole selection and let each file's name choose its pad (TASK-049).
+   *
+   * The plugin answers as soon as its loader thread is running, so this waits
+   * on [`awaitLoader`] like every other gesture that opens a dialog.
+   */
+  addMany: () => Promise<void>;
+  /**
+   * Put a browsed sample on a lane, refresh, and record one undo step.
+   *
+   * ⛔ **The one door for the five gestures that do this** — see the action for
+   * why it is not left to each of them. Answers whether the drop landed, so a
+   * caller that opens the pad editor does not open it over a refusal.
+   */
+  drop: (lane: Lane, path: string, reversed?: boolean) => Promise<boolean>;
+  /** Put the import report away once it has been read. */
+  dismissImport: () => void;
   clear: (lane: Lane) => Promise<void>;
   /**
    * Re-roll pads from the folder the browser is showing (TASK-050A).
@@ -253,8 +408,11 @@ export const useKit = create<KitState>((set, get) => ({
   lanes: [],
   loaded: false,
   assigning: null,
+  importing: false,
   editingPad: null,
   error: null,
+  imported: null,
+  oneShots: {},
 
   /**
    * Re-read what plays each lane.
@@ -270,7 +428,19 @@ export const useKit = create<KitState>((set, get) => ({
   async refresh() {
     try {
       const reply = await invoke<KitStateReply>('kit_state');
-      set({ id: reply.id, lanes: reply.lanes, loaded: true });
+      const next = oneShotsOf(reply.lanes);
+      set((state) => ({
+        id: reply.id,
+        lanes: reply.lanes,
+        loaded: true,
+        // ⛔ **The PREVIOUS object when nothing moved, and that is not a
+        // micro-optimisation.** `history.changed` compares snapshot fields by
+        // reference, and `refresh` runs after every gesture in the app — a
+        // fresh object each time would report the kit as changed on every
+        // snapshot, so one seed keystroke would record an undo step and
+        // nothing would ever coalesce.
+        oneShots: sameKit(state.oneShots, next) ? state.oneShots : next,
+      }));
     } catch (error) {
       // ⛔ Reported, not swallowed. A panel that fails to load its own kit and
       // shows an empty grid is the readout-that-lies failure this store exists
@@ -310,6 +480,102 @@ export const useKit = create<KitState>((set, get) => ({
     // is no rejection for a `finally` to be guarding against.
     await get().awaitLoader();
     set({ assigning: null });
+    // ⛔ **One undo step, once the change has actually landed** (TASK-050A).
+    // `noteDocumentChange` is the one door for a document that lives outside
+    // the session store: it records AND saves, and it is a no-op when nothing
+    // moved — a cancelled dialog leaves `oneShots` at the same object, so
+    // `history.changed` sees no field change and records nothing.
+    //
+    // ⛔ **Here rather than in `refresh`, which every one of these ends with.**
+    // A refresh also runs on mount and after an undo puts a kit back, and
+    // recording there would put *"the kit finished loading"* on the stack — so
+    // the producer's first Ctrl+Z would clear pads they never touched.
+    noteDocumentChange();
+  },
+
+  async addMany() {
+    if (get().busy()) return;
+    // ⛔ **Claimed, not merely checked.** The first cut read `assigning` as a
+    // guard and never set it, so the button's own `disabled` never engaged and
+    // the guard could only ever see a dialog opened by `assign`. A dialog is
+    // modal for as long as a producer browses a sample folder; a second one
+    // pressed in that window is refused by the plugin and falls through to the
+    // poll, which is a round trip to learn something the page already knew.
+    //
+    // ⛔ **Its own flag rather than parking a lane in `assigning`.** The second
+    // cut set `assigning: 'kick'` as a stand-in for "a dialog is open", on the
+    // claim that every reader only asks whether it is null. That was false:
+    // `KitPanel` compares it to a lane to draw *"choosing…"* over that row's
+    // sample name — so pressing **Add samples…** made the kick row stop naming
+    // its own sample for as long as the dialog was open. A batch belongs to no
+    // lane, so it does not get to borrow one.
+    //
+    // ⚠ **The last report goes as the new one starts**, for the reason
+    // `refresh` gives about `error`: what the previous import did stopped being
+    // true the moment this was pressed.
+    set({ importing: true, error: null, imported: null });
+    try {
+      await invoke('one_shot_add_many');
+    } catch (error) {
+      // The same fall-through `assign` documents: only the poll drains the
+      // plugin's one dialog slot, so a refusal for one already being open must
+      // not skip it.
+      if (!reason(error).includes('already')) {
+        set({ importing: false, error: reason(error) });
+        return;
+      }
+    }
+    await get().awaitLoader();
+    set({ importing: false });
+    noteDocumentChange();
+  },
+
+  async loadSaved(id) {
+    // ⛔ **The one door for a saved kit, for the reason `drop` is one.** This
+    // ran in `SavedKits` as `invoke → awaitLoader` and recorded nothing, so the
+    // producer's next Ctrl+Z — about a mute, a seed, anything — restored a
+    // snapshot still naming the kit from *before* the load, and `restoreKit`
+    // dutifully unloaded the kit they had just chosen.
+    set({ error: null });
+    try {
+      await invoke('kits_load', { id });
+    } catch (error) {
+      set({ error: reason(error) });
+      return;
+    }
+    await get().awaitLoader();
+    noteDocumentChange();
+  },
+
+  busy() {
+    // ⚠ **One question, two slots.** A per-lane assignment and a batch import
+    // both hold the plugin's single dialog slot, and every control that has to
+    // go quiet while one is open cares only that *something* does.
+    return get().assigning !== null || get().importing;
+  },
+
+  async drop(lane, path, reversed = false) {
+    // ⛔⛔ **The one door for a sample landing on a pad from the browser**, and
+    // it exists because there are FIVE gestures that do it — the KIT row, two
+    // on the pad grid, the explorer's own `→`/`←` keys, and the stage — each of
+    // which called `useExplorer.dropOn` and then `refresh()` directly. Drag and
+    // drop is the primary way a sample reaches a pad, so every one of them has
+    // to record an undo step; five call sites each remembering to is how four
+    // of them eventually do not.
+    //
+    // ⚠ **Returns whether it landed**, because three of the five open the pad
+    // editor on success and must not open it over a refusal.
+    const landed = await useExplorer.getState().dropOn(lane, path, reversed);
+    await get().refresh();
+    // ⚠ A refusal moved nothing, so `oneShots` is the same object and
+    // `history.changed` records nothing — but asking is clearer than relying on
+    // that, and it keeps a failed drop out of the `persist()` this triggers.
+    if (landed) noteDocumentChange();
+    return landed;
+  },
+
+  dismissImport() {
+    set({ imported: null });
   },
 
   async clear(lane) {
@@ -323,6 +589,7 @@ export const useKit = create<KitState>((set, get) => ({
       return;
     }
     await get().refresh();
+    noteDocumentChange();
   },
 
   async randomize(lane) {
@@ -366,6 +633,7 @@ export const useKit = create<KitState>((set, get) => ({
       return;
     }
     await get().awaitLoader();
+    noteDocumentChange();
   },
 
   editPad(lane) {
@@ -432,7 +700,35 @@ export const useKit = create<KitState>((set, get) => ({
           // ⚠ Cancelled is **not** an error. Closing the dialog is the ordinary
           // way out of it, and reporting it would train people to ignore the one
           // message that matters.
-          set({ error: status.state === 'failed' ? status.reason : null });
+          //
+          // ⚠ **Nor is a batch that refused some of its files** (TASK-049). It
+          // lands in `imported`, which the panel draws as a report rather than
+          // an alert — see that field for why the two are kept apart.
+          //
+          // ⚠ **A restore says nothing unless something could not come back**
+          // (TASK-050A). An undo is machine driven, not a dialog the producer
+          // is standing in front of, so a clean one is silent — the same rule
+          // `oneshot::restore` states for a reopened project. A sample that has
+          // moved since is still reported, because a pad that did not come back
+          // is something they have to know.
+          set({
+            error:
+              status.state === 'failed'
+                ? status.reason
+                : status.state === 'restored' && status.refused.length > 0
+                  ? // ⛔ **Every one of them, not the first.** An undo that
+                    // crosses three samples that have since moved reverts three
+                    // pads to their shipped sounds; naming one of them and
+                    // dropping the other two is the same *"a sample that did
+                    // not come back is something the producer has to know"*
+                    // rule applied to a third of the evidence.
+                    status.refused.map((one) => `${one.name} — ${one.reason}`).join('; ')
+                  : null,
+            imported:
+              status.state === 'imported'
+                ? { loaded: status.loaded, refused: status.refused }
+                : null,
+          });
           // The kit only changed if something actually loaded, but re-reading is
           // cheap and it is the one call that cannot get the panel out of step.
           await get().refresh();
@@ -454,3 +750,98 @@ export const useKit = create<KitState>((set, get) => ({
     return loading;
   },
 }));
+
+/**
+ * Hand the session store the kit, so one Ctrl+Z covers it (TASK-050A).
+ *
+ * ⛔ **Registered here rather than imported there, because `session.ts` cannot
+ * import this file** — this one imports it, and `snapshotOf` is synchronous so
+ * the `await import('./kit')` trick that breaks the cycle elsewhere is not
+ * available to it. The arrangement inverts the same dependency the same way;
+ * see `registerSongDocument`.
+ */
+registerKitDocument(() => ({ oneShots: useKit.getState().oneShots }), restoreKit);
+
+/**
+ * The kit an in-flight restore should end at, or `null` when none is wanted.
+ *
+ * ⚠ Module state rather than a store field, for the reason `loading` above is:
+ * nothing renders from it, and a `Promise` in the undo snapshot's neighbourhood
+ * would re-render every subscriber for something no component draws.
+ */
+let wanted: AssignedKit | null = null;
+let restoring: Promise<void> | null = null;
+
+/**
+ * Put a whole kit back, as an undo or a redo step (TASK-050A).
+ *
+ * ⛔⛔ **Compared before it is sent, and that guard is what makes the feature
+ * affordable.** Every undo step carries the kit, so without it, stepping back
+ * one seed keystroke would ask the plugin to re-decode a producer's twelve
+ * samples — cutting every sounding voice — to arrive at the kit already loaded.
+ *
+ * ⛔⛔ **A restore already running keeps the slot, and the newest wanted kit is
+ * PARKED rather than sent.** Restoring is asynchronous — an invoke, then the
+ * loader poll — while the session fields it travels with are restored
+ * synchronously. Ctrl+Z held down therefore issued a second `one_shot_set_all`
+ * while the first was still decoding, and the plugin keeps **one** loader slot:
+ * the second was refused with *"already"* and surfaced as an error over a kit
+ * left a step behind the rest of the undo. Last-write-wins is the right rule,
+ * because the last snapshot applied is the one the producer is looking at.
+ *
+ * ⚠ **A named export rather than a closure inside the registration**, so this
+ * can be driven directly by a test — the seam is installed once at module load
+ * and replacing it to observe it would remove the thing under test.
+ *
+ * Returns when nothing is left to restore, so a test can await it.
+ */
+export function restoreKit({ oneShots }: { oneShots: AssignedKit }): Promise<void> {
+  // ⛔⛔ **Compared against where the kit is HEADING, not where it is.** While a
+  // restore is in flight the store still holds the kit it is leaving, so asking
+  // the store alone would answer about a state already being replaced: undo to
+  // B and immediately redo to A, and *"A is what is loaded"* is true and
+  // useless — B is what is arriving. Reading `wanted` first is what lets the
+  // redo cancel the undo instead of landing under it.
+  const heading = wanted ?? useKit.getState().oneShots;
+  if (sameKit(heading, oneShots)) return restoring ?? Promise.resolve();
+  wanted = oneShots;
+  if (restoring !== null) return restoring;
+
+  const run = (async () => {
+    // ⚠ **`wanted` is cleared only once its restore has finished**, and only if
+    // nothing newer arrived meanwhile — that is what keeps the check above
+    // truthful for the whole time a restore is running.
+    while (wanted !== null) {
+      const next: AssignedKit = wanted;
+      if (sameKit(useKit.getState().oneShots, next)) {
+        if (wanted === next) wanted = null;
+        continue;
+      }
+
+      // ⚠ **Sent as triples, in the shape `one_shot_set_all` parses** — lane,
+      // path, and which way round. A lane the snapshot does not mention goes
+      // back to its shipped sound, which is what makes undoing an assignment
+      // reachable at all.
+      const lanes = Object.entries(next).map(
+        ([lane, one]: [string, AssignedKit[string]]) => [lane, one.path, one.reversed] as const,
+      );
+      try {
+        await invoke('one_shot_set_all', { lanes });
+        await useKit.getState().awaitLoader();
+      } catch (error) {
+        useKit.setState({ error: reason(error) });
+        wanted = null;
+        return;
+      }
+      if (wanted === next) wanted = null;
+    }
+  })();
+
+  // ⚠ **Cleared however it ends**, or one thrown restore would wedge every
+  // later one behind a latch nothing will ever release — the same rule
+  // `awaitLoader`'s own `finally` follows.
+  restoring = run.finally(() => {
+    restoring = null;
+  });
+  return restoring;
+}

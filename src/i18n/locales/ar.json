@@ -57,7 +57,11 @@
     "playLane": "تشغيل {{lane}}",
     "padLane": "مسار الوسادة {{at}}",
     "useSelected": "ضع العينة المحددة على {{lane}}",
-    "editPad": "تحرير صوت {{lane}}"
+    "editPad": "تحرير صوت {{lane}}",
+    "addMany": "إضافة عينات…",
+    "imported": "{{count}} وُضعت على الباد",
+    "notPlaced": "لم تُوضع",
+    "dismissImport": "تم"
   },
   "sections": {
     "genres": "الأنواع",
@@ -574,7 +578,14 @@
     "fadeIn": "تلاشٍ للداخل",
     "fadeOut": "تلاشٍ للخارج",
     "noWaveform": "يشغّل هذا الپاد عيّنة مدمجة، لذا لا يوجد ملف لرسمه.",
-    "envelopeShape": "الهجوم {{attack}} م.ث، الانحدار {{decay}} م.ث، الاستدامة {{sustain}} دي بي، التلاشي {{release}} م.ث"
+    "envelopeShape": "الهجوم {{attack}} م.ث، الانحدار {{decay}} م.ث، الاستدامة {{sustain}} دي بي، التلاشي {{release}} م.ث",
+    "detectedRoot": "مأخوذة عند {{note}} ({{cents}} سنت)",
+    "rootUnsure": "— غير مؤكد",
+    "cannotHold": "لا يحتوي هذا النموذج على جزء ثابت للاستمرار، لذا تنتهي النغمة الطويلة بانتهاء الملف.",
+    "storeB": "حفظ ب",
+    "showB": "إظهار ب",
+    "showA": "إظهار أ",
+    "keepB": "الإبقاء على ب"
   },
   "crash": {
     "title": "توقّف شيء ما في النافذة عن العمل",

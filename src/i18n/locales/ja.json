@@ -57,7 +57,11 @@
     "playLane": "{{lane}} を再生",
     "padLane": "パッド {{at}} のレーン",
     "useSelected": "選択したサンプルを {{lane}} に置く",
-    "editPad": "{{lane}} の音を編集"
+    "editPad": "{{lane}} の音を編集",
+    "addMany": "サンプルを追加…",
+    "imported": "{{count}} 件をパッドに配置しました",
+    "notPlaced": "配置されませんでした",
+    "dismissImport": "完了"
   },
   "sections": {
     "genres": "ジャンル",
@@ -574,7 +578,14 @@
     "fadeIn": "フェードイン",
     "fadeOut": "フェードアウト",
     "noWaveform": "このパッドは内蔵サンプルを再生するため、描画するファイルがありません。",
-    "envelopeShape": "アタック {{attack}} ミリ秒、ディケイ {{decay}} ミリ秒、サステイン {{sustain}} dB、リリース {{release}} ミリ秒"
+    "envelopeShape": "アタック {{attack}} ミリ秒、ディケイ {{decay}} ミリ秒、サステイン {{sustain}} dB、リリース {{release}} ミリ秒",
+    "detectedRoot": "{{note}} でサンプリング ({{cents}} セント)",
+    "rootUnsure": "— 不確か",
+    "cannotHold": "このサンプルには保持できる定常部がないため、長い音符はファイルの終わりで止まります。",
+    "storeB": "B に保存",
+    "showB": "B を表示",
+    "showA": "A を表示",
+    "keepB": "B を採用"
   },
   "crash": {
     "title": "ウィンドウ内の何かが停止しました",

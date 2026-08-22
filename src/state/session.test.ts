@@ -954,6 +954,9 @@ describe('applyPreset', () => {
       edited: false,
       song: null,
       songEdited: false,
+      // The kit the snapshot was taken over (TASK-050A). Empty: these fixtures
+      // are about the session fields, and a kit belongs to the plugin.
+      oneShots: {},
     });
 
     useSession.getState().applyPreset(PRESET);

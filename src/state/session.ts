@@ -24,6 +24,9 @@ import { reassignLane } from '../components/DrumGrid/cells';
 // that matters. `PAD_LANES` is what TASK-058H's muting is a statement about.
 import { PAD_LANES } from './lanes';
 import { useHistory, type Snapshot } from './history';
+// ⚠ A TYPE-only import, so the cycle stays broken: `kit.ts` imports this file
+// at runtime, and `registerKitDocument` is what inverts the value dependency.
+import type { AssignedKit } from './kit';
 import { entryFor, useVariations, type Variation } from './variations';
 import { readStored, writeStored } from './storage';
 import { useUi, type GeneratorTab } from './ui';
@@ -77,8 +80,13 @@ export const BAR_CHOICES = [4, 8] as const;
  *
  * `songEdited` rides with `song` because it is the flag that decides whether the
  * document is worth storing at all; it has no meaning apart from it.
+ *
+ * `oneShots` is here for a sharper version of the same rule (TASK-050A): the kit
+ * is not this store's at all — the plugin owns the decoded buffers and persists
+ * the paths in its own session — so naming it in `SAVED_FIELDS` would both read
+ * `undefined` here *and* write a second copy of something already saved.
  */
-type DocumentFields = 'patterns' | 'song' | 'songEdited';
+type DocumentFields = 'patterns' | 'song' | 'songEdited' | 'oneShots';
 
 /**
  * `SAVED_FIELDS` must name exactly the undo snapshot's fields except the
@@ -1076,6 +1084,11 @@ function snapshotOf(state: SessionState): Snapshot {
     patterns: state.patterns,
     song: arrangement.song,
     songEdited: arrangement.edited,
+    // The kit, read through its own seam (TASK-050A). ⚠ No artist guard, unlike
+    // the arrangement above: a kit belongs to the plugin *instance*, not to the
+    // style — the producer's own snare stays on the pad when they switch artist,
+    // which is `OneShots`' documented behaviour and what they expect.
+    oneShots: readKitDocument().oneShots,
   };
 }
 
@@ -1115,11 +1128,18 @@ function applySnapshot(
   // `songEdited` into the *session* store — a second copy of the arrangement,
   // living beside the real one in `useSong` and drifting from it the moment
   // either changed.
-  const { song, songEdited, ...session } = snapshot;
+  const { song, songEdited, oneShots, ...session } = snapshot;
 
   applying = true;
   try {
     set(session);
+    // ⛔ **Inside the guard for the reason the arrangement is**, and it matters
+    // more here: `applyKitDocument` writes `useKit`, whose own actions call
+    // `noteDocumentChange` — so a restore that recorded itself would push an
+    // entry on every Ctrl+Z as it popped one, and the stack could never be
+    // walked out of. ⚠ It compares before it sends: undoing a seed keystroke
+    // must not re-decode a producer's twelve samples.
+    applyKitDocument({ oneShots });
     // Inside the guard, because `applySongDocument` writes to a store the song
     // module records edits from. Outside it, stepping back one arrangement edit
     // would immediately record the restored state as a fresh one and undo would
@@ -1360,6 +1380,19 @@ async function loadOwnSamples(id: string, roster: RosterEntry[]): Promise<void> 
     // top-level work. This runs long after both are evaluated.
     const { useKit } = await import('./kit');
     await useKit.getState().awaitLoader();
+
+    // ⛔⛔ **AMENDED into the step the selection already recorded, not recorded
+    // as one of its own** (TASK-050A). Since the kit joined the undo snapshot,
+    // this is a change to it — and it lands *after* `select()`'s own `set()`
+    // has already been snapshotted, so the entry for that selection named the
+    // outgoing artist's pads. The producer's next Ctrl+Z would then strip these
+    // samples off, which is not a state the stack was ever taken over.
+    //
+    // ⚠ **Amend rather than record**, because loading a style's own samples is
+    // not a second act: it is what selecting that style *means*, and a separate
+    // step would make Ctrl+Z undo half a switch.
+    useHistory.getState().amend(snapshotOf(useSession.getState()));
+    persist();
   } catch {
     // Deliberately swallowed; see the doc above.
   }
@@ -1502,6 +1535,40 @@ export function registerSongDocument(
 ): void {
   readSongDocument = read;
   applySongDocument = apply;
+}
+
+/**
+ * The kit, across the same seam and for the same reason (TASK-050A).
+ *
+ * ⛔ **A seam rather than an import, because `kit.ts` imports THIS file.**
+ * Reaching the other way directly would be a cycle; `session.ts` already breaks
+ * one with `await import('./kit')`, but `snapshotOf` is synchronous and cannot.
+ * Registration inverts it once, at module load, exactly as the arrangement does.
+ *
+ * ⚠ The default read answers an empty kit, so a snapshot taken before `kit.ts`
+ * has registered — or in a test that never imports it — is a kit with nothing
+ * of the producer's on it, which is what an unregistered kit genuinely is.
+ */
+type KitDocument = { oneShots: AssignedKit };
+
+/**
+ * The empty kit, as one frozen constant.
+ *
+ * ⛔ **Not a fresh `{}` per call.** `history.changed` compares by reference, so
+ * a new object each time would report the kit as changed on every snapshot —
+ * every seed keystroke would record a step and nothing would ever coalesce.
+ */
+const NO_ONE_SHOTS: AssignedKit = Object.freeze({});
+
+let readKitDocument: () => KitDocument = () => ({ oneShots: NO_ONE_SHOTS });
+let applyKitDocument: (document: KitDocument) => void = () => {};
+
+export function registerKitDocument(
+  read: () => KitDocument,
+  apply: (document: KitDocument) => void,
+): void {
+  readKitDocument = read;
+  applyKitDocument = apply;
 }
 
 /**

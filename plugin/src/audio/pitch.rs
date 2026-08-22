@@ -55,7 +55,11 @@ const WINDOW_SECONDS: f32 = 0.5;
 const MIN_CLARITY: f32 = 0.6;
 
 /// What a sample is tuned to.
-#[derive(Debug, Clone, Copy, PartialEq)]
+///
+/// ⚠ `Serialize` because the KIT panel draws it: TASK-052 asks that the
+/// confidence be *surfaced*, not merely used, so a producer can see when the
+/// detector was unsure rather than wonder why a pad sits where it does.
+#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize)]
 pub struct Root {
     /// MIDI note number.
     pub note: u8,

@@ -57,7 +57,11 @@
     "playLane": "Jouer {{lane}}",
     "padLane": "Piste du pad {{at}}",
     "useSelected": "Placer l’échantillon sélectionné sur {{lane}}",
-    "editPad": "Modifier le son de {{lane}}"
+    "editPad": "Modifier le son de {{lane}}",
+    "addMany": "Ajouter des samples…",
+    "imported": "{{count}} placés sur les pads",
+    "notPlaced": "Non placés",
+    "dismissImport": "Terminé"
   },
   "sections": {
     "genres": "Genres",
@@ -574,7 +578,14 @@
     "fadeIn": "Fondu entrant",
     "fadeOut": "Fondu sortant",
     "noWaveform": "Ce pad joue un échantillon intégré : il n'y a donc aucun fichier à dessiner.",
-    "envelopeShape": "Attaque {{attack}} ms, déclin {{decay}} ms, maintien {{sustain}} dB, relâchement {{release}} ms"
+    "envelopeShape": "Attaque {{attack}} ms, déclin {{decay}} ms, maintien {{sustain}} dB, relâchement {{release}} ms",
+    "detectedRoot": "Échantillonné en {{note}} ({{cents}} cents)",
+    "rootUnsure": "— incertain",
+    "cannotHold": "Cet échantillon n'a pas de partie stable à tenir : une note longue s'arrête avec le fichier.",
+    "storeB": "Mémoriser B",
+    "showB": "Voir B",
+    "showA": "Voir A",
+    "keepB": "Garder B"
   },
   "crash": {
     "title": "Quelque chose dans la fenêtre a cessé de fonctionner",
