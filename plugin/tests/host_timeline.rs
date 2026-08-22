@@ -283,9 +283,7 @@ fn the_host_tempo_changes_when_notes_land_and_never_how_many() {
             .and_then(|hihat| hihat.get("rolls"))
             .and_then(|rolls| rolls.get("positions"))
             .and_then(serde_json::Value::as_array)
-            .is_some_and(|positions| {
-                positions.iter().any(|at| at.as_str() == Some("pre_snare"))
-            });
+            .is_some_and(|positions| positions.iter().any(|at| at.as_str() == Some("pre_snare")));
         if bought.contains(&engine::pattern::Lane::Snare) && rolls_follow_the_snare {
             bought.push(engine::pattern::Lane::ClosedHat);
         }
