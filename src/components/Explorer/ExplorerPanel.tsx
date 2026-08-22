@@ -8,6 +8,7 @@ import {
   innermostExpanded,
   isInside,
   samePath,
+  stillFilterable,
   useExplorer,
   vocabularyOf,
 } from '../../state/explorer';
@@ -189,10 +190,7 @@ export function ExplorerPanel() {
    */
   const filterable = useMemo(() => vocabularyOf(tags), [tags]);
   const liveTags = useMemo(
-    () =>
-      activeTags.filter((tag) =>
-        filterable.some((known) => known.toLowerCase() === tag.toLowerCase()),
-      ),
+    () => stillFilterable(activeTags, filterable),
     [activeTags, filterable],
   );
   const liveStarred = onlyStarred && starred.size > 0;

@@ -10,6 +10,7 @@ import {
   innermostExpanded,
   isInside,
   samePath,
+  stillFilterable,
   useExplorer,
 } from './explorer';
 import { outlineOf } from '../components/Explorer/waveform';
@@ -1020,5 +1021,28 @@ describe('reading the notes out of a sample', () => {
     });
     await useExplorer.getState().select('/lib/second.wav');
     expect(useExplorer.getState().audioSplit).toBeNull();
+  });
+});
+
+describe('stillFilterable', () => {
+  /**
+   * ⛔ **The stranding case.** The chip is gone, so the filter it stood for has
+   * to go with it — otherwise every row is hidden and there is nothing on screen
+   * left to press to bring them back.
+   */
+  it('drops a pressed tag whose last file was untagged', () => {
+    expect(stillFilterable(['808', 'vocal'], ['vocal'])).toEqual(['vocal']);
+  });
+
+  /**
+   * ⚠ `vocabularyOf` keeps the first spelling it saw, so the chip's text and the
+   * pressed text can differ in case for the same tag.
+   */
+  it('keeps a pressed tag the vocabulary spells differently', () => {
+    expect(stillFilterable(['Vocal'], ['vocal'])).toEqual(['Vocal']);
+  });
+
+  it('is empty when the vocabulary is', () => {
+    expect(stillFilterable(['808'], [])).toEqual([]);
   });
 });

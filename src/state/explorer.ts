@@ -146,6 +146,29 @@ export function vocabularyOf(tags: Record<string, string[]>): string[] {
 }
 
 /**
+ * The pressed filter chips that still have a chip on screen.
+ *
+ * ⛔⛔ **Held in state, the pressed set outlives what drew it — and strands the
+ * tree.** `TagFilter` draws one chip per tag *in use*, so untagging the last
+ * file holding a pressed tag, or dropping the root it lived under, takes the
+ * chip away while the filter stays on: every row hidden, and nothing left on
+ * screen to press to get them back. Deriving the live set from the vocabulary on
+ * each render is what makes that state unrepresentable. Clearing it from an
+ * effect instead would be a `setState` in render's shadow, which eslint refuses
+ * and which would flash the unfiltered tree for a frame besides.
+ *
+ * ⚠ **Case-insensitively, and it keeps the *pressed* spelling.** `vocabularyOf`
+ * folds case and keeps the first spelling it saw, while `tags::clean` dedupes
+ * only *within* a file — so file A can hold `Vocal` and file B `vocal`, and
+ * which one was tagged first must not decide whether the chip survives.
+ */
+export function stillFilterable(active: string[], vocabulary: string[]): string[] {
+  return active.filter((tag) =>
+    vocabulary.some((known) => known.toLowerCase() === tag.toLowerCase()),
+  );
+}
+
+/**
  * One file the browser opened lately (TASK-058). Mirrors `recent::Recent`.
  *
  * ⚠ **The same shape as [`Favourite`] deliberately**, so one row component draws

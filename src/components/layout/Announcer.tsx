@@ -37,7 +37,7 @@ import { keyName } from '../SessionChips/values';
  * invisible one in a string is exactly the thing a reviewer cannot see. Named
  * here so what it is for is legible.
  */
-const ZERO_WIDTH = '\u200B';
+export const ZERO_WIDTH = '\u200B';
 
 export function Announcer() {
   const { t } = useTranslation();

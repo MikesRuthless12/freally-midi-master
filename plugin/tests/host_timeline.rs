@@ -257,6 +257,39 @@ fn the_host_tempo_changes_when_notes_land_and_never_how_many() {
             bought.push(engine::pattern::Lane::Rim);
         }
 
+        // ⛔⛔ **`fullTimeAtHighTempoProb` buys a THIRD lane, transitively — and
+        // only for the models whose grammar asks it to.** The key moves the
+        // snare from half time onto the backbeat, and a hi-hat roll positioned
+        // `pre_snare` is *defined* by where the snare is: one snare a bar
+        // becomes two, so the roll is offered a second window and the closed-hat
+        // count moves with it. `RollPosition::parse` makes `pre_snare` the only
+        // snare-relative position there is, so this is the whole of the
+        // transitivity rather than the first case of an open set.
+        //
+        // ⚠ **Latent since the key was written, and hidden by its own
+        // probability.** `rage` authors it at 0.15 and five of its children roll
+        // `pre_snare` hats; `sheck-wes` and `trippie-redd` have been passing
+        // this gate for months because their draw came up false, and
+        // `nine-vicious` is simply the first whose came up true. The gate was
+        // never sound for those five — it was lucky.
+        //
+        // ⚠ Conditioned on the *combination*, so a model with the key and no
+        // snare-relative roll, or a roll and no key, is still held to the exact
+        // claim on every lane but the snare.
+        let rolls_follow_the_snare = model
+            .blocks
+            .get("drums")
+            .and_then(|drums| drums.get("hihat"))
+            .and_then(|hihat| hihat.get("rolls"))
+            .and_then(|rolls| rolls.get("positions"))
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|positions| {
+                positions.iter().any(|at| at.as_str() == Some("pre_snare"))
+            });
+        if bought.contains(&engine::pattern::Lane::Snare) && rolls_follow_the_snare {
+            bought.push(engine::pattern::Lane::ClosedHat);
+        }
+
         let without_bought = |tempo: f64| -> Vec<(engine::pattern::Lane, usize)> {
             counts(tempo)
                 .into_iter()

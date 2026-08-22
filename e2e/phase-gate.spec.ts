@@ -238,14 +238,23 @@ test.describe('Phase gate — theming', () => {
 // the one that would rot; that file's header records what changed and why.
 test.describe('Phase gate — offline and AI-free', () => {
   test('fonts are bundled, not fetched from a CDN', async ({ page }) => {
-    const fontUrls = await page.evaluate(() =>
-      performance
+    // ⛔ **Against the page's OWN origin, not a port literal** — the last
+    // survivor of the prefix match the note above retired. `localhost:1420` was
+    // wrong twice over: 1420 is not free on every machine, so
+    // `FMM_E2E_PORT=1431` failed this on a font it had just served correctly
+    // from `http://localhost:1431/src/assets/fonts/`; and a *different* port on
+    // localhost is a different server, which a `toContain` would have waved
+    // through. Same origin as the document is the claim — anything else is a
+    // fetch off the machine, which is what this gate exists to refuse.
+    const { origin, fontUrls } = await page.evaluate(() => ({
+      origin: location.origin,
+      fontUrls: performance
         .getEntriesByType('resource')
         .map((e) => e.name)
         .filter((n) => /\.(woff2?|ttf|otf)(\?|$)/i.test(n)),
-    );
+    }));
     for (const url of fontUrls) {
-      expect(url, 'fonts must be served locally').toContain('localhost:1420');
+      expect(new URL(url).origin, 'fonts must be served locally').toBe(origin);
     }
   });
 });
